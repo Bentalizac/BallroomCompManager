@@ -1,0 +1,18 @@
+{
+  "name": "@listit/server",
+  "version": "1.0.0",
+  "description": "ListIt server application",
+  "main": "index.js",
+  "scripts": {
+    "dev": "node index.js",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@listit/shared": "file:../shared"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}

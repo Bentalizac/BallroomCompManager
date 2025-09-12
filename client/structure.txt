@@ -1,0 +1,9 @@
+app/
+    auth/
+        login/
+        sign-up/
+    protected/
+        home/
+        user/
+            owned items
+            
