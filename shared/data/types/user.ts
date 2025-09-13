@@ -23,6 +23,7 @@ export interface Participant {
     eventId: string;
     /**Role enum */
     role?: CompetitionRole
+    /**What type of event is this */
     eventType: EventType
 }
 
