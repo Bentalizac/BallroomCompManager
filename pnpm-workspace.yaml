@@ -1,4 +1,0 @@
-packages:
-  - 'client'
-  - 'server'
-  - 'shared' # if you have a shared package
