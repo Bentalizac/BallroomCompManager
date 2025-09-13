@@ -16,7 +16,7 @@ export interface Participant {
     /**Supabase ID */
     id: string;
     /**Supabase ID for applicable user */
-    userId: string;
+    user: User;
     /**Supabase ID for the competition */
     competitionId: string;
     /**Supabase ID for the event */

@@ -1,4 +1,4 @@
-import { Participant } from "./user";
+import { Participant, User } from "./user";
 
 
 
@@ -9,7 +9,7 @@ export interface BallroomCompetitor extends Participant{
     /**
      * User ID for partner, is nullable for events such as WCS or other circumstances
      */
-    partnerID?: string;
+    partner?: User;
     /**
      * Number for the competitor, if it's a woman, this will be the same as the man's number
      */

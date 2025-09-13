@@ -96,7 +96,7 @@ export const mockParticipants: Participant[] = [
     // Competitors
     {
         id: "participant-1",
-        userId: "user-1",
+        user: mockUsers[0], // Emma Rodriguez
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Competitor,
@@ -104,7 +104,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-2",
-        userId: "user-2",
+        user: mockUsers[1], // Marcus Chen
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Competitor,
@@ -112,7 +112,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-3",
-        userId: "user-3",
+        user: mockUsers[2], // Sofia Thompson
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Competitor,
@@ -120,7 +120,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-4",
-        userId: "user-4",
+        user: mockUsers[3], // Alessandro Williams
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Competitor,
@@ -128,7 +128,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-5",
-        userId: "user-5",
+        user: mockUsers[4], // Isabella Johnson
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Competitor,
@@ -136,7 +136,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-6",
-        userId: "user-6",
+        user: mockUsers[5], // Victor Davis
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Competitor,
@@ -144,7 +144,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-7",
-        userId: "user-7",
+        user: mockUsers[6], // Anastasia Miller
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Competitor,
@@ -152,7 +152,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-8",
-        userId: "user-8",
+        user: mockUsers[7], // Dimitri Anderson
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Competitor,
@@ -160,7 +160,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-9",
-        userId: "user-9",
+        user: mockUsers[8], // Valentina Garcia
         competitionId: "comp-1",
         eventId: "event-3",
         role: CompetitionRole.Competitor,
@@ -168,7 +168,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-10",
-        userId: "user-10",
+        user: mockUsers[9], // Rafael Martinez
         competitionId: "comp-1",
         eventId: "event-3",
         role: CompetitionRole.Competitor,
@@ -177,7 +177,7 @@ export const mockParticipants: Participant[] = [
     // Judges
     {
         id: "participant-11",
-        userId: "user-11",
+        user: mockUsers[10], // Judge Stevens
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Judge,
@@ -185,7 +185,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-12",
-        userId: "user-12",
+        user: mockUsers[11], // Judge Patterson
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Judge,
@@ -193,7 +193,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-13",
-        userId: "user-13",
+        user: mockUsers[12], // Judge Brooks
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Judge,
@@ -201,7 +201,7 @@ export const mockParticipants: Participant[] = [
     },
     {
         id: "participant-14",
-        userId: "user-11",
+        user: mockUsers[10], // Judge Stevens (judging multiple events)
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Judge,
@@ -210,7 +210,7 @@ export const mockParticipants: Participant[] = [
     // Organizer
     {
         id: "participant-15",
-        userId: "user-14",
+        user: mockUsers[13], // Sarah Event Organizer
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Organizer,
@@ -223,115 +223,115 @@ export const mockBallroomCompetitors: BallroomCompetitor[] = [
     // Partnership 1: Emma & Marcus (couple #101)
     {
         id: "participant-1",
-        userId: "user-1",
+        user: mockUsers[0], // Emma Rodriguez
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: "user-2",
+        partner: mockUsers[1], // Partner is Marcus Chen
         competitorNumber: "101",
         lead: false // Emma is the follow
     },
     {
         id: "participant-2",
-        userId: "user-2",
+        user: mockUsers[1], // Marcus Chen
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: "user-1",
+        partner: mockUsers[0], // Partner is Emma Rodriguez
         competitorNumber: "101",
         lead: true // Marcus is the lead
     },
     // Partnership 2: Sofia & Alessandro (couple #102)
     {
         id: "participant-3",
-        userId: "user-3",
+        user: mockUsers[2], // Sofia Thompson
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: "user-4",
+        partner: mockUsers[4], // 
         competitorNumber: "102",
         lead: false // Sofia is the follow
     },
     {
         id: "participant-4",
-        userId: "user-4",
+        user: mockUsers[3], // Alessandro Williams
         competitionId: "comp-1",
         eventId: "event-1",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: "user-3",
+        partner: mockUsers[3], // Partner is Alessandro Williams
         competitorNumber: "102",
         lead: true // Alessandro is the lead
     },
     // Partnership 3: Isabella & Victor (couple #103)
     {
         id: "participant-5",
-        userId: "user-5",
+        user: mockUsers[4], // Isabella Johnson
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: "user-6",
+        partner: mockUsers[6], // Partner is Victor Davis
         competitorNumber: "103",
         lead: false // Isabella is the follow
     },
     {
         id: "participant-6",
-        userId: "user-6",
+        user: mockUsers[5], // Victor Davis
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: "user-5",
+        partner: mockUsers[5], // Partner is Isabella Johnson
         competitorNumber: "103",
         lead: true // Victor is the lead
     },
     // Partnership 4: Anastasia & Dimitri (couple #104)
     {
         id: "participant-7",
-        userId: "user-7",
+        user: mockUsers[6], // Anastasia Miller
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: "user-8",
+        partner: mockUsers[7], // Partner is Dimitri Anderson
         competitorNumber: "104",
         lead: false // Anastasia is the follow
     },
     {
         id: "participant-8",
-        userId: "user-8",
+        user: mockUsers[7], // Dimitri Anderson
         competitionId: "comp-1",
         eventId: "event-2",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: "user-7",
+        partner: mockUsers[6], // Partner is Anastasia Miller
         competitorNumber: "104",
         lead: true // Dimitri is the lead
     },
     // Solo competitors (e.g., for WCS or when partner is missing)
     {
         id: "participant-9",
-        userId: "user-9",
+        user: mockUsers[8], // Valentina Garcia
         competitionId: "comp-1",
         eventId: "event-3",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: undefined, // No partner for this event
+        partner: undefined, // No partner for this event
         competitorNumber: "105",
         lead: false // Valentina is a follow looking for a lead
     },
     {
         id: "participant-10",
-        userId: "user-10",
+        user: mockUsers[9], // Rafael Martinez
         competitionId: "comp-1",
         eventId: "event-3",
         role: CompetitionRole.Competitor,
         eventType: EventType.Ballroom,
-        partnerID: undefined, // No partner for this event
+        partner: undefined, // No partner for this event
         competitorNumber: "106",
         lead: true // Rafael is a lead looking for a follow
     }
@@ -360,15 +360,20 @@ export const getPartnershipsByEvent = (eventId: string): BallroomCompetitor[][] 
     const processed = new Set<string>();
     
     competitors.forEach(competitor => {
-        if (!processed.has(competitor.userId) && competitor.partnerID) {
-            const partner = competitors.find(c => c.userId === competitor.partnerID);
-            if (partner) {
-                partnerships.push([competitor, partner]);
-                processed.add(competitor.userId);
-                processed.add(partner.userId);
+        if (processed.has(competitor.id)) return; // Already processed
+        if (competitor.partner) {
+            const partnerCompetitor = competitors.find(c => c.user.id === competitor.partner?.id);
+            if (partnerCompetitor) {
+                partnerships.push([competitor, partnerCompetitor]);
+                processed.add(competitor.id);
+                processed.add(partnerCompetitor.id);
+            } else {
+                // Partner not found in this event, add solo
+                partnerships.push([competitor]);
+                processed.add(competitor.id);
             }
         }
     });
-    
+
     return partnerships;
 };

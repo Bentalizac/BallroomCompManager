@@ -7,3 +7,8 @@ export type { BallroomCompetitor } from './data/types/userExtensions';
 // Enums exports
 export { CompetitionRole } from './data/enums/roles';
 export { ScoringMethods } from './data/enums/scoringMethods';
+
+// Fake data exports
+export { mockUsers, mockBallroomCompetitors, mockParticipants } from './fakedata/user/fakeUsers';
+//export { mockCompetitions } from './fakedata/competition/fakeCompetitions';
+//export { mockEvents } from './fakedata/event/fakeEvents';

@@ -2,11 +2,6 @@
 	"name": "listit-monorepo",
 	"version": "1.0.0",
 	"private": true,
-	"workspaces": [
-		"client",
-		"server",
-		"shared"
-	],
 	"scripts": {
 		"build:shared": "cd shared && npm run build",
 		"dev:client": "cd client && npm run dev",
