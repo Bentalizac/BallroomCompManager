@@ -18,7 +18,7 @@ function Header({ id }: HeaderProps) {
     return (
         <header className="w-full px-4 py-3 bg-accent">
             <div className="flex items-center justify-between w-full">
-                <div className="text-lg font-bold">Logo</div>
+                <div className="text-lg font-bold text-accent-foreground">Logo</div>
                 <div>{navMenu({ menuItems })}</div>
             </div>
         </header>
