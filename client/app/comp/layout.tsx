@@ -1,7 +1,7 @@
 'use client';
 
 import { Header } from '@/components/custom/header';
-import { IdProvider, IdContext } from '@/providers/idProvider/compIdProvider';
+import { IdProvider, IdContext } from '@/providers/compIdProvider/compIdProvider';
 import { useContext } from 'react';
 
 
