@@ -1,14 +1,18 @@
 import { navMenu } from "@/components/custom/nav-menu";
 
-function Header() {
+type HeaderProps = {
+    id?: string;
+};
+
+function Header({ id }: HeaderProps) {
     const menuItems = [
-        { title: "Home", href: "/home" },
-        { title: "Schedule", href: "/schedule" },
-        { title: "Results", href: "/results" },
-        { title: "Register", href: "/register" },
-        { title: "Rules", href: "/rules" },
-        { title: "Contact", href: "/contact" },
-        { title: "Login", href: "/login" }
+        { title: "Home", href: `/comp/${id}/home` },
+        { title: "Schedule", href: `/comp/${id}/schedule` },
+        { title: "Results", href: `/comp/${id}/results` },
+        { title: "Register", href: `/comp/${id}/register` },
+        { title: "Rules", href: `/comp/${id}/rules` },
+        { title: "Contact", href: `/comp/${id}/contact` },
+        { title: "Login", href: `/comp/${id}/login` }
     ];
 
     return (
@@ -21,4 +25,5 @@ function Header() {
     );
 }
 
+export type { HeaderProps };
 export { Header };
