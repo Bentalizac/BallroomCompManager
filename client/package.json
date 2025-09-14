@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@ballroomcompmanager/shared": "file:../shared",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@supabase/supabase-js": "^2.57.4",
     "@tanstack/react-query": "^5.87.4",
     "@trpc/client": "^11.5.1",
     "@trpc/react-query": "^11.5.1",
