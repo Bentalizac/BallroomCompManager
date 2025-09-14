@@ -12,7 +12,7 @@ function Header({ id }: HeaderProps) {
         { title: "Register", href: `/comp/${id}/register` },
         { title: "Rules", href: `/comp/${id}/rules` },
         { title: "Contact", href: `/comp/${id}/contact` },
-        { title: "Login", href: `/comp/${id}/login` }
+        { title: "Login", href: `/auth` }
     ];
 
     return (
