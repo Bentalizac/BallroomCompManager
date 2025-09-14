@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import authService from '@/services/auth/auth';
 
 export default function AuthForm() {
   const [mode, setMode] = useState<'login' | 'signup'>('login');
@@ -12,17 +13,18 @@ export default function AuthForm() {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
 
     if (mode === 'signup') {
-      const { data, error } = await supabase.auth.signUp({ email, password });
-      if (error) setError(error.message);
-      else setSuccess('Check your email to confirm your account!');
+        const { data, error } = await authService.signUp(email, password);
+        if (error) setError(error.message);
+        else setSuccess('Check your email to confirm your account!');
     } else {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await authService.signIn(email, password);
       if (error) setError(error.message);
       else setSuccess('Logged in successfully!');
     }
