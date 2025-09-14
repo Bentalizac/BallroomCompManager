@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ballroomcompmanager/shared": "file:../shared",
     "@tanstack/react-query": "^5.87.4",
     "@trpc/client": "^11.5.1",
     "@trpc/react-query": "^11.5.1",
