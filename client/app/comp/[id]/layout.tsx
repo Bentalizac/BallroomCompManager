@@ -1,9 +1,11 @@
-'use client';
+"use client";
 
-import { Header } from '@/components/custom/header';
-import { IdProvider, IdContext } from '@/providers/compIdProvider/compIdProvider';
-import { useContext } from 'react';
-
+import { Header } from "@/components/custom/header";
+import {
+  IdProvider,
+  IdContext,
+} from "@/providers/compIdProvider/compIdProvider";
+import { useContext } from "react";
 
 function LayoutWithContext({ children }: { children: React.ReactNode }) {
   const context = useContext(IdContext);
@@ -16,7 +18,13 @@ function LayoutWithContext({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function RootLayout({ children, params }: { children: React.ReactNode; params: { id: string } }) {
+export default function RootLayout({
+  children,
+  params,
+}: {
+  children: React.ReactNode;
+  params: { id: string };
+}) {
   return (
     <IdProvider id={params.id}>
       <LayoutWithContext>{children}</LayoutWithContext>

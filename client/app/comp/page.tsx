@@ -1,11 +1,14 @@
-import { Header } from "@/components/custom/header";
+import { CompetitionsList } from "@/components/competitions/CompetitionsList";
 
-export default function Demo() {
-    // Displays all fake users in a list
-
+export default function CompetitionsPage() {
     return (
-        <header>
-            <p>demo 2 main</p>
-        </header>
+        <div className="container mx-auto px-4 py-8">
+            <div className="mb-8">
+                <h1 className="text-3xl font-bold text-gray-900 mb-2">Ballroom Competitions</h1>
+                <p className="text-gray-600">Browse and register for upcoming ballroom dance competitions</p>
+            </div>
+            
+            <CompetitionsList />
+        </div>
     );
 }
