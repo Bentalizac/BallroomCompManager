@@ -16,6 +16,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Load current session
+    
     const getUser = async () => {
       const {
         data: { session },
