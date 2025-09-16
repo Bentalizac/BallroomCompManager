@@ -5,7 +5,7 @@ import {
   IdProvider,
   IdContext,
 } from "@/providers/compIdProvider/compIdProvider";
-import { useContext } from "react";
+import React, { useContext } from "react";
 
 function LayoutWithContext({ children }: { children: React.ReactNode }) {
   const context = useContext(IdContext);
@@ -23,10 +23,11 @@ export default function RootLayout({
   params,
 }: {
   children: React.ReactNode;
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }) {
+  const { id } = React.use(params);
   return (
-    <IdProvider id={params.id}>
+    <IdProvider id={id}>
       <LayoutWithContext>{children}</LayoutWithContext>
     </IdProvider>
   );
