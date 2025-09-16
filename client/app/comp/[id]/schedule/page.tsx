@@ -38,31 +38,42 @@ export default function Schedule() {
                         <Button>&gt;</Button>
                     </span>
                 </div>
-                <div>
-                    {fakeEvent.map((event, index) => (
-                        <Accordion type="single" className="border p-4 my-2 rounded" key={index} collapsible>
-                            <AccordionItem value="item-1">
-                                <AccordionTrigger>
-                                    <div>
-                                        <div className="text-xl font-bold">{event.time}</div>
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <span>{event.name}</span>
-                                        <span>Heat {event.heat}</span>
-                                    </div>
-                                </AccordionTrigger>
-                                <AccordionContent>
-                                    <ul>
-                                        <li>Competitor 1</li>
-                                        <li>Competitor 2</li>
-                                        <li>Competitor 3</li>
-                                        <li>Competitor 4</li>
-                                    </ul>
-                                </AccordionContent>
-                            </AccordionItem>
+                <div className="flex columns-2 gap-4">
+                    <div className="w-3/4">
+                        <Accordion type="single" className="border rounded" collapsible>
+                            {fakeEvent.map((event, index) => (
+                                <AccordionItem key={index} value={`item-${index}`} className="px-4 py-1">
+                                    <AccordionTrigger>
+                                        <div>
+                                            <div className="text-xl font-bold">{event.time}</div>
+                                        </div>
+                                        <div className="flex gap-3">
+                                            <span>{event.name}</span>
+                                            <span>Heat {event.heat}</span>
+                                        </div>
+                                    </AccordionTrigger>
+                                    <AccordionContent>
+                                        <ul>
+                                            <li>Competitor 1</li>
+                                            <li>Competitor 2</li>
+                                            <li>Competitor 3</li>
+                                            <li>Competitor 4</li>
+                                        </ul>
+                                    </AccordionContent>
+                                </AccordionItem>
+                            ))}
                         </Accordion>
-                    ))}
+                    </div>
+                    <div className="w-1/4 border rounded p-2">
+                        Schedule View Filter
+                        <br />
+                        <br />
+                        filter by competitor
+                        <br />
+                        filter by event
+                    </div>
                 </div>
+                
             </main>
         </>
     );
