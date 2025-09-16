@@ -58,9 +58,9 @@ export const mockEvents: CompEvent[] = [
 // Mock Competitions
 export const mockCompetitions: Competition[] = [
   {
-    id: "comp-1",
-    startDate: new Date("2024-03-15T08:00:00"),
-    endDate: new Date("2024-03-15T22:00:00"),
+    id: "BYU",
+    startDate: new Date("2025-10-15T08:00:00"),
+    endDate: new Date("2026-03-15T08:00:00"),
     events: mockEvents,
   },
   {
