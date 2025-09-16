@@ -29,42 +29,39 @@ export default function Schedule() {
 
     return (
         <>
-            <main>
-                <div>
+            <main className="p-15">
+                <div className="flex justify-between items-center py-1 px-2">
                     <span className='text-2xl'>Schedule</span>
-                    <span>
+                    <span className="flex items-center gap-2">
                         <Button>&lt;</Button>
                         <span className="text-2xl">10/9</span>
                         <Button>&gt;</Button>
                     </span>
                 </div>
                 <div>
-                    <span>
-                        {fakeEvent.map((event, index) => (
-                            <Accordion type="single" className="border p-4 my-2 rounded" key={index} collapsible>
-                                <AccordionItem value="item-1">
-                                    <AccordionTrigger>
-                                        <div>
-                                            <div className="text-xl font-bold">{event.time}</div>
-                                        </div>
-                                        <div>
-                                            <span>Name: {event.name}</span>
-                                            <span>Heat: {event.heat}</span>
-                                        </div>
-                                    </AccordionTrigger>
-                                    <AccordionContent>
-                                        <ul>
-                                            <li>Competitor 1</li>
-                                            <li>Competitor 2</li>
-                                            <li>Competitor 3</li>
-                                            <li>Competitor 4</li>
-                                        </ul>
-                                    </AccordionContent>
-                                </AccordionItem>
-                            </Accordion>
-                        ))}
-                    </span>
-                    
+                    {fakeEvent.map((event, index) => (
+                        <Accordion type="single" className="border p-4 my-2 rounded" key={index} collapsible>
+                            <AccordionItem value="item-1">
+                                <AccordionTrigger>
+                                    <div>
+                                        <div className="text-xl font-bold">{event.time}</div>
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <span>{event.name}</span>
+                                        <span>Heat {event.heat}</span>
+                                    </div>
+                                </AccordionTrigger>
+                                <AccordionContent>
+                                    <ul>
+                                        <li>Competitor 1</li>
+                                        <li>Competitor 2</li>
+                                        <li>Competitor 3</li>
+                                        <li>Competitor 4</li>
+                                    </ul>
+                                </AccordionContent>
+                            </AccordionItem>
+                        </Accordion>
+                    ))}
                 </div>
             </main>
         </>
