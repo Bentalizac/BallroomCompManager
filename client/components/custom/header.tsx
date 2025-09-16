@@ -6,7 +6,7 @@ type HeaderProps = {
 
 function Header({ id }: HeaderProps) {
     const menuItems = [
-        { title: "Home", href: `/comp/${id}/home` },
+        { title: "Home", href: `/comp/${id}` },
         { title: "Schedule", href: `/comp/${id}/schedule` },
         { title: "Results", href: `/comp/${id}/results` },
         { title: "Register", href: `/comp/${id}/register` },
