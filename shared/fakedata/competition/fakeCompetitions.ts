@@ -2,6 +2,7 @@ import { Competition } from "../../data/types/competition";
 import { CompEvent } from "../../data/types/event";
 import { ScoringMethods } from "../../data/enums/scoringMethods";
 import { mockParticipants, mockUsers } from "../user/fakeUsers";
+import { BallroomCompetitor } from "../../data/types/userExtensions";
 
 // Mock Events
 export const mockEvents: CompEvent[] = [
@@ -136,4 +137,14 @@ export const getRegistrationByUserAndComp = (
 
 export const getAllCompetitions = (): Competition[] => {
   return mockCompetitions;
+};
+
+export const getCompEvents = (id: string): CompEvent[] => {
+  var events = mockEvents.filter((event) => event.competitionId == id);
+  return events;
+};
+
+export const getEventCompetitors = (eventId: string): BallroomCompetitor[] => {
+  
+  return [];
 };

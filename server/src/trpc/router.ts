@@ -15,7 +15,7 @@ const t = initTRPC.create();
 
 // Create router and procedures
 export const router = t.router;
-export const procedure = t.procedure;
+export const publicProcedure = t.procedure;
 
 // Input validation schemas
 const getCompetitionSchema = z.object({
@@ -30,14 +30,14 @@ const getUserRegistrationSchema = z.object({
 // Competition router
 const competitionRouter = router({
   // Get all competitions
-  getAll: procedure.query(async (): Promise<Competition[]> => {
+  getAll: publicProcedure.query(async (): Promise<Competition[]> => {
     // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 10));
     return getAllCompetitions();
   }),
 
   // Get competition by ID
-  getById: procedure
+  getById: publicProcedure
     .input(getCompetitionSchema)
     .query(async ({ input }): Promise<Competition | null> => {
       // Simulate network delay
@@ -47,7 +47,7 @@ const competitionRouter = router({
     }),
 
   // Get user's registration for a competition
-  getUserRegistration: procedure
+  getUserRegistration: publicProcedure
     .input(getUserRegistrationSchema)
     .query(async ({ input }): Promise<CompetitionRegistration | null> => {
       // Simulate network delay
@@ -60,13 +60,17 @@ const competitionRouter = router({
     }),
 
   // Get all registrations for a competition (admin/organizer use)
-  getRegistrations: procedure
+  getRegistrations: publicProcedure
     .input(z.object({ competitionId: z.string() }))
     .query(async ({ input }): Promise<CompetitionRegistration[]> => {
       // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 100));
       return getRegistrationsByCompetition(input.competitionId);
     }),
+});
+
+const userRouter = router({
+  registerForComp: authedProcedure,
 });
 
 // Main app router
