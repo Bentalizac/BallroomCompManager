@@ -19,20 +19,6 @@ app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
 });
 
-// tRPC endpoint
-app.use(
-  "/trpc",
-  createExpressMiddleware({
-    router: appRouter,
-    // Add context if needed (for auth, etc.)
-    // createContext: ({ req, res }) => ({
-    //   user: req.user, // from auth middleware
-    //   req,
-    //   res,
-    // }),
-  }),
-);
-
 // Error handler
 app.use((err: any, req: any, res: any, next: any) => {
   console.error("Server error:", err);
