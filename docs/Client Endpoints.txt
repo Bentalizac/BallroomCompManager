@@ -1,0 +1,24 @@
+Client Endpoints
+
+|-- auth                       // 
+|-- comp                       // all competitions
+|   L-- [id]                   // comp home page
+|       |--schedule            // 
+|       |--results             // 
+|       |--register            // 
+|       |--rules               // 
+|       |--contact             // 
+|       |-- manage             // comp dash
+|       |   |-- schedule       // edit comp schedule
+|       |   |-- settings       // judge/staff settings
+|       |   L-- analytics      // view analytics
+|       L-- run                // 
+|           |-- judge          // score contestants
+|           L-- ondeck         // confirm ondeck
+L-- product                    // product home page
+    |-- about                  // 
+    |-- pricing                // 
+    |-- contact                // 
+    L-- demo                   // 
+        |                      // 
+        L                      // 

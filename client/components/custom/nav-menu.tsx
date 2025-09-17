@@ -27,11 +27,16 @@ function navMenu({ className, menuItems, ...props }: HeaderProps) {
         <NavigationMenuList>
           {menuItems.map((component) => (
             <NavigationMenuItem key={component.title}>
-              <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+              <NavigationMenuLink
+                asChild
+                className={
+                  `${navigationMenuTriggerStyle()} bg-transparent text-accent-foreground hover:bg-secondary hover:text-secondary-foreground data-[state=open]:bg-secondary transition-colors`
+                }
+              >
                 <Link href={component.href}>{component.title}</Link>
               </NavigationMenuLink>
             </NavigationMenuItem>
-          ))}          
+          ))}
         </NavigationMenuList>
     </NavigationMenu>
   )
