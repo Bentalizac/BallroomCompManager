@@ -2,6 +2,7 @@ import { Competition } from "../../data/types/competition";
 import { CompEvent } from "../../data/types/event";
 import { ScoringMethods } from "../../data/enums/scoringMethods";
 import { mockParticipants, mockUsers } from "../user/fakeUsers";
+import { BallroomCompetitor } from "../../data/types/userExtensions";
 
 // Mock Events
 export const mockEvents: CompEvent[] = [
@@ -58,19 +59,22 @@ export const mockEvents: CompEvent[] = [
 // Mock Competitions
 export const mockCompetitions: Competition[] = [
   {
-    id: "comp-1",
-    startDate: new Date("2024-03-15T08:00:00"),
-    endDate: new Date("2024-03-15T22:00:00"),
+    id: "BYU",
+    name: "BYU DanceSport",
+    startDate: new Date("2025-10-15T08:00:00"),
+    endDate: new Date("2026-03-15T08:00:00"),
     events: mockEvents,
   },
   {
     id: "comp-2",
+    name: "Spring Fling Dance Competition",
     startDate: new Date("2024-04-20T08:00:00"),
     endDate: new Date("2024-04-20T22:00:00"),
     events: [],
   },
   {
     id: "comp-3",
+    name: "Summer Salsa Showdown",
     startDate: new Date("2024-05-25T08:00:00"),
     endDate: new Date("2024-05-25T22:00:00"),
     events: [],
@@ -136,4 +140,13 @@ export const getRegistrationByUserAndComp = (
 
 export const getAllCompetitions = (): Competition[] => {
   return mockCompetitions;
+};
+
+export const getCompEvents = (id: string): CompEvent[] => {
+  var events = mockEvents.filter((event) => event.competitionId == id);
+  return events;
+};
+
+export const getEventCompetitors = (eventId: string): BallroomCompetitor[] => {
+  return [];
 };

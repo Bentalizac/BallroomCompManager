@@ -39,7 +39,7 @@ export function useUserRegistration(competitionId: string | undefined, userId: s
 export function useRegisterForCompetition() {
   const utils = trpc.useContext();
   
-  return trpc.competition.register.useMutation({
+  return trpc.user.registerForComp.useMutation({
     onSuccess: (data, variables) => {
       // Invalidate and refetch related queries
       utils.competition.getAll.invalidate();
@@ -143,4 +143,73 @@ export function useCanRegister(
       reason: null
     };
   }, [competition, userRegistration]);
+}
+
+// Hook to create a new competition (admin only)
+export function useCreateCompetition() {
+  const utils = trpc.useContext();
+  
+  return trpc.competition.create.useMutation({
+    onSuccess: () => {
+      // Invalidate competitions list to show new competition
+      utils.competition.getAll.invalidate();
+    },
+    onError: (error) => {
+      console.error('Failed to create competition:', error.message);
+    }
+  });
+}
+
+// Hook to update a competition (admin only)
+export function useUpdateCompetition() {
+  const utils = trpc.useContext();
+  
+  return trpc.competition.update.useMutation({
+    onSuccess: (data) => {
+      // Invalidate and update specific competition cache
+      utils.competition.getAll.invalidate();
+      utils.competition.getById.invalidate({ id: data.id });
+    },
+    onError: (error) => {
+      console.error('Failed to update competition:', error.message);
+    }
+  });
+}
+
+// Hook to delete a competition (admin only)
+export function useDeleteCompetition() {
+  const utils = trpc.useContext();
+  
+  return trpc.competition.delete.useMutation({
+    onSuccess: (_, variables) => {
+      // Remove from cache and invalidate list
+      utils.competition.getAll.invalidate();
+      utils.competition.getById.setData({ id: variables.id }, undefined);
+    },
+    onError: (error) => {
+      console.error('Failed to delete competition:', error.message);
+    }
+  });
+}
+
+// Hook to get current user's registrations
+export function useMyRegistrations() {
+  return trpc.user.getMyRegistrations.useQuery(undefined, {
+    staleTime: 1000 * 60 * 2, // 2 minutes
+  });
+}
+
+// Hook to update user profile
+export function useUpdateProfile() {
+  const utils = trpc.useContext();
+  
+  return trpc.user.updateProfile.useMutation({
+    onSuccess: () => {
+      // Invalidate user-related queries if you have them
+      utils.user.getMyRegistrations.invalidate();
+    },
+    onError: (error) => {
+      console.error('Failed to update profile:', error.message);
+    }
+  });
 }
