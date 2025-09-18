@@ -26,7 +26,6 @@ function LayoutWithContext({ children }: { children: React.ReactNode }) {
     ]
 
     const menuItemsLoggedIn = [
-
         { title: "Home", href: `/comp/${id}` },
         { title: "Schedule", href: `/comp/${id}/schedule` },
         { title: "Results", href: `/comp/${id}/results` },
@@ -34,21 +33,24 @@ function LayoutWithContext({ children }: { children: React.ReactNode }) {
         { title: "Rules", href: `/comp/${id}/rules` },
         { title: "Contact", href: `/comp/${id}/contact` },
         { title: "Tickets", href: `/comp/${id}/tickets` },
-
-        // { title: "Profile", href: `/user` },
-        
-        // Admin
-        { title: "Comp Dash", href: `/comp/${id}/manage` },
-        { title: "Edit Schedule", href: `/comp/${id}/manage/schedule` },
-        { title: "Edit Settings", href: `/comp/${id}/manage/settings` },
-        { title: "View Analytic", href: `/comp/${id}/manage/analytics` },
-
-        // staff
-        { title: "Judge", href: `/comp/${id}/run/judge` },
-        { title: "On-Deck", href: `/comp/${id}/run/ondeck` },
-        
+        {
+            title: "Admin",
+            children: [
+                { title: "Comp Dash", href: `/comp/${id}/manage` },
+                { title: "Edit Schedule", href: `/comp/${id}/manage/schedule` },
+                { title: "Edit Settings", href: `/comp/${id}/manage/settings` },
+                { title: "View Analytic", href: `/comp/${id}/manage/analytics` },
+            ]
+        },
+        {
+            title: "Run",
+            children: [
+                { title: "Judge", href: `/comp/${id}/run/judge` },
+                { title: "On-Deck", href: `/comp/${id}/run/ondeck` },
+            ]
+        },
         // { title: "Logout", href: `/auth` }
-    ]
+    ];
 
     const { user, loading } = useAuth();
     const router = useRouter()

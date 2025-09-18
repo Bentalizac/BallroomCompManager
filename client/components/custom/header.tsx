@@ -5,9 +5,12 @@ import { useAuth } from "@/providers/auth/authProvider";
 import React, { useEffect } from "react";
 import { title } from "process";
 
+
+
 type MenuItem = {
-  title: string;
-  href: string;
+    title: string;
+    href?: string;
+    children?: { title: string; href: string }[]; 
 };
 
 type HeaderProps = {
