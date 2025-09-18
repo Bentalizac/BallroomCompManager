@@ -128,6 +128,10 @@ importers:
         version: 5.9.2
 
   shared:
+    dependencies:
+      zod:
+        specifier: ^4.1.8
+        version: 4.1.8
     devDependencies:
       '@types/node':
         specifier: ^24.3.3

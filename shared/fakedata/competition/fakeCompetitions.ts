@@ -1,5 +1,6 @@
 import { Competition } from "../../data/types/competition";
 import { CompEvent } from "../../data/types/event";
+import { Registration } from "../../data/types/registration";
 import { ScoringMethods } from "../../data/enums/scoringMethods";
 import { mockParticipants, mockUsers } from "../user/fakeUsers";
 import { BallroomCompetitor } from "../../data/types/userExtensions";
@@ -81,16 +82,7 @@ export const mockCompetitions: Competition[] = [
   },
 ];
 
-// Registration data
-export interface CompetitionRegistration {
-  id: string;
-  competitionId: string;
-  userId: string;
-  registrationDate: Date;
-  status: "pending" | "confirmed" | "cancelled";
-}
-
-export const mockRegistrations: CompetitionRegistration[] = [
+export const mockRegistrations: Registration[] = [
   {
     id: "reg-1",
     competitionId: "comp-1",
@@ -125,14 +117,14 @@ export const getEventById = (id: string): CompEvent | undefined => {
 
 export const getRegistrationsByCompetition = (
   competitionId: string,
-): CompetitionRegistration[] => {
+): Registration[] => {
   return mockRegistrations.filter((reg) => reg.competitionId === competitionId);
 };
 
 export const getRegistrationByUserAndComp = (
   userId: string,
   competitionId: string,
-): CompetitionRegistration | undefined => {
+): Registration | undefined => {
   return mockRegistrations.find(
     (reg) => reg.userId === userId && reg.competitionId === competitionId,
   );

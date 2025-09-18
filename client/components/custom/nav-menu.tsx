@@ -8,10 +8,9 @@ import {
   NavigationMenuTrigger,
   NavigationMenuViewport,
   navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu"
+} from "@/components/ui/navigation-menu";
 
-import Link from "next/link"
-
+import Link from "next/link";
 
 type MenuItem = {
   title: string;
@@ -23,7 +22,6 @@ interface HeaderProps extends React.ComponentProps<"div"> {
   menuItems: MenuItem[];
 }
 
-
 function navMenu({ className, menuItems, ...props }: HeaderProps) {
   return (
     <NavigationMenu viewport={false}>
@@ -32,12 +30,17 @@ function navMenu({ className, menuItems, ...props }: HeaderProps) {
           <NavigationMenuItem key={item.title}>
             {item.children && item.children.length > 0 ? (
               <>
-                <NavigationMenuTrigger className={navigationMenuTriggerStyle()}>{item.title}</NavigationMenuTrigger>
+                <NavigationMenuTrigger className={navigationMenuTriggerStyle()}>
+                  {item.title}
+                </NavigationMenuTrigger>
                 <NavigationMenuContent className="w-max min-w-[180px]">
                   <ul className="p-2">
                     {item.children.map((child) => (
                       <li key={child.title}>
-                        <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
+                        <NavigationMenuLink
+                          asChild
+                          className={navigationMenuTriggerStyle()}
+                        >
                           <Link href={child.href}>{child.title}</Link>
                         </NavigationMenuLink>
                       </li>
@@ -48,9 +51,7 @@ function navMenu({ className, menuItems, ...props }: HeaderProps) {
             ) : (
               <NavigationMenuLink
                 asChild
-                className={
-                  `${navigationMenuTriggerStyle()} bg-transparent text-accent-foreground hover:bg-secondary hover:text-secondary-foreground data-[state=open]:bg-secondary transition-colors`
-                }
+                className={`${navigationMenuTriggerStyle()} bg-transparent text-accent-foreground hover:bg-secondary hover:text-secondary-foreground data-[state=open]:bg-secondary transition-colors`}
               >
                 <Link href={item.href ?? "#"}>{item.title}</Link>
               </NavigationMenuLink>
@@ -62,4 +63,4 @@ function navMenu({ className, menuItems, ...props }: HeaderProps) {
   );
 }
 
-export { navMenu }
+export { navMenu };

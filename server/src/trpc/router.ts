@@ -7,10 +7,9 @@ import {
   getRegistrationsByCompetition,
   getRegistrationByUserAndComp,
   mockRegistrations,
-  CompetitionRegistration,
 } from "@ballroomcompmanager/shared/fakedata/competition/fakeCompetitions";
 import { Competition } from "@ballroomcompmanager/shared/data/types/competition";
-
+import { Registration } from "@ballroomcompmanager/shared/data/types/registration";
 type Context = {
   user: User | null;
 };
@@ -29,7 +28,19 @@ export const authedProcedure = t.procedure.use(async function isAuthed(opts) {
   }
   return opts.next({
     ctx: {
-      // ✅ user value is known to be non-null now
+      user: ctx.user,
+    },
+  });
+});
+
+export const adminProcedure = t.procedure.use(async function isAdmin(opts) {
+  const { ctx } = opts;
+
+  if (!ctx.user || ctx.user.role !== "admin") {
+    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
+  }
+  return opts.next({
+    ctx: {
       user: ctx.user,
     },
   });
@@ -50,16 +61,13 @@ const competitionRouter = router({
   // Get all competitions
   getAll: publicProcedure.query(async (): Promise<Competition[]> => {
     // Simulate network delay
-    await new Promise((resolve) => setTimeout(resolve, 10));
-    return getAllCompetitions();
+    return getAllCompetitions(); // In real app, fetch from database
   }),
 
   // Get competition by ID
   getById: publicProcedure
     .input(getCompetitionSchema)
     .query(async ({ input }): Promise<Competition | null> => {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 100));
       const competition = getCompetitionById(input.id);
       return competition || null;
     }),
@@ -67,9 +75,7 @@ const competitionRouter = router({
   // Get user's registration for a competition
   getUserRegistration: publicProcedure
     .input(getUserRegistrationSchema)
-    .query(async ({ input }): Promise<CompetitionRegistration | null> => {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    .query(async ({ input }): Promise<Registration | null> => {
       const registration = getRegistrationByUserAndComp(
         input.userId,
         input.competitionId,
@@ -80,9 +86,7 @@ const competitionRouter = router({
   // Get all registrations for a competition (admin/organizer use)
   getRegistrations: publicProcedure
     .input(z.object({ competitionId: z.string() }))
-    .query(async ({ input }): Promise<CompetitionRegistration[]> => {
-      // Simulate network delay
-      await new Promise((resolve) => setTimeout(resolve, 100));
+    .query(async ({ input }): Promise<Registration[]> => {
       return getRegistrationsByCompetition(input.competitionId);
     }),
 
@@ -176,7 +180,6 @@ const competitionRouter = router({
   delete: authedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }): Promise<{ success: boolean }> => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
 
       const competition = getCompetitionById(input.id);
       if (!competition) {
@@ -197,7 +200,7 @@ const userRouter = router({
   // Register user for a competition
   registerForComp: authedProcedure
     .input(getUserRegistrationSchema)
-    .mutation(async ({ input, ctx }): Promise<CompetitionRegistration> => {
+    .mutation(async ({ input, ctx }): Promise<Registration> => {
       // Simulate network delay
       await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -215,7 +218,7 @@ const userRouter = router({
       }
 
       // Create new registration
-      const newRegistration: CompetitionRegistration = {
+      const newRegistration: Registration = {
         id: `reg_${Date.now()}`,
         userId: input.userId,
         status: "pending",
@@ -231,8 +234,7 @@ const userRouter = router({
 
   // Get current user's registrations
   getMyRegistrations: authedProcedure.query(
-    async ({ ctx }): Promise<CompetitionRegistration[]> => {
-      await new Promise((resolve) => setTimeout(resolve, 50));
+    async ({ ctx }): Promise<Registration[]> => {
       return mockRegistrations.filter((reg) => reg.userId === ctx.user.id);
     },
   ),
@@ -246,8 +248,6 @@ const userRouter = router({
       }),
     )
     .mutation(async ({ input, ctx }): Promise<User> => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
       // In real app, update database
       const updatedUser: User = {
         ...ctx.user,
