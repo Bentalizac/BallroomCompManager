@@ -68,7 +68,7 @@ function LayoutWithContext({ children }: { children: React.ReactNode }) {
                 />
             )}
         </div>
-        <main>{children}</main>
+        {children}
     </>
     );
 }
