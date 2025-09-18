@@ -61,7 +61,9 @@ export default function Schedule() {
             <div className="flex-1 p-4">
                 <h1 className="text-xl text-center">Schedule</h1>
                 <div className="flex gap-2">
-                    <div className="flex flex-col w-12 border gap-4">
+                    <div className="flex flex-col w-12 gap-4">
+                        <div/>
+                        <div/>
                         <div>8:00</div>
                         <div>8:30</div>
                         <div>9:00</div>
