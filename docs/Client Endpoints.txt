@@ -3,11 +3,12 @@ Client Endpoints
 |-- auth                       // 
 |-- comp                       // all competitions
 |   L-- [id]                   // comp home page
-|       |--schedule            // 
-|       |--results             // 
-|       |--register            // 
-|       |--rules               // 
-|       |--contact             // 
+|       |-- schedule           // 
+|       |-- results            // 
+|       |-- register           // 
+|       |-- rules              // 
+|       |-- contact            // 
+|       |-- tickets            //
 |       |-- manage             // comp dash
 |       |   |-- schedule       // edit comp schedule
 |       |   |-- settings       // judge/staff settings

@@ -20,6 +20,7 @@ function LayoutWithContext({ children }: { children: React.ReactNode }) {
         { title: "Register", href: `/comp/${id}/register` },
         { title: "Rules", href: `/comp/${id}/rules` },
         { title: "Contact", href: `/comp/${id}/contact` },
+        { title: "Tickets", href: `/comp/${id}/tickets` },
 
         { title: "Login", href: `/auth` }
     ]
@@ -32,6 +33,7 @@ function LayoutWithContext({ children }: { children: React.ReactNode }) {
         { title: "Register", href: `/comp/${id}/register` },
         { title: "Rules", href: `/comp/${id}/rules` },
         { title: "Contact", href: `/comp/${id}/contact` },
+        { title: "Tickets", href: `/comp/${id}/tickets` },
 
         // { title: "Profile", href: `/user` },
         
@@ -66,7 +68,7 @@ function LayoutWithContext({ children }: { children: React.ReactNode }) {
                 />
             )}
         </div>
-        <main>{children}</main>
+        {children}
     </>
     );
 }
