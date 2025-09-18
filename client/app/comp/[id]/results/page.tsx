@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 export default function Results() {
     // Configurable live feed variables
     const EVENTS_PER_FEED = 2; // Change to 2 or 3 as desired
-    const FEED_INTERVAL_MS = 20000; // 20 seconds
+    const FEED_INTERVAL_MS = 10000; // 10 seconds
 
     // Live state
     const [isLive, setIsLive] = React.useState(false);
@@ -86,30 +86,32 @@ export default function Results() {
                 </span>
             </div>
             <div className="space-y-6 mt-4 transition-all duration-700" key={isLive ? feedIndex : undefined}>
-                {liveEvents.filter(Boolean).map((event, idx) => (
-                    <div key={event.heat + '-' + event.name} className="border rounded-lg p-4 shadow animate-slidein">
-                        <div className="flex justify-between items-center mb-2">
-                            <div>
-                                <span className="font-semibold text-lg">{event.name}</span>
-                                <span className="ml-4 text-sm text-gray-500">Heat {event.heat}</span>
-                            </div>
-                            <span className="text-sm">{event.time}</span>
-                        </div>
-                        <div className="grid grid-cols-8 gap-4">
-                            {event.competitors.map((comp, cidx) => (
-                                <div key={cidx} className="flex items-center justify-center gap-2">
-                                    <span className="font-mono text-lg">{comp.number}</span>
-                                    <input
-                                        type="checkbox"
-                                        checked={comp.checked}
-                                        readOnly
-                                        className="accent-green-600 w-5 h-5"
-                                    />
+                {liveEvents.filter(Boolean).map((event, idx) =>
+                    event ? (
+                        <div key={event.heat + '-' + event.name} className="border rounded-lg p-4 shadow animate-slidein">
+                            <div className="flex justify-between items-center mb-2">
+                                <div>
+                                    <span className="font-semibold text-lg">{event.name}</span>
+                                    <span className="ml-4 text-sm text-gray-500">Heat {event.heat}</span>
                                 </div>
-                            ))}
+                                <span className="text-sm">{event.time}</span>
+                            </div>
+                            <div className="grid grid-cols-8 gap-4">
+                                {event.competitors.map((comp, cidx) => (
+                                    <div key={cidx} className="flex items-center justify-center gap-2">
+                                        <span className="font-mono text-lg">{comp.number}</span>
+                                        <input
+                                            type="checkbox"
+                                            checked={comp.checked}
+                                            readOnly
+                                            className="accent-green-600 w-5 h-5"
+                                        />
+                                    </div>
+                                ))}
+                            </div>
                         </div>
-                    </div>
-                ))}
+                    ) : null
+                )}
             </div>
             <style jsx>{`
                 @keyframes slidein {
