@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 
 export function MarketingHeader() {
+  const pathname = usePathname();
+  const { redirectToAuth } = useAuthRedirect();
+
   return (
     <header className="w-full px-4 py-3 bg-white border-b border-gray-200">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
@@ -16,9 +21,12 @@ export function MarketingHeader() {
           <Link href="/p" className="text-gray-600 hover:text-gray-900">
             Pricing
           </Link>
-          <Link href="/auth" className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+          <button 
+            onClick={() => redirectToAuth(pathname)}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
             Login
-          </Link>
+          </button>
         </nav>
       </div>
     </header>

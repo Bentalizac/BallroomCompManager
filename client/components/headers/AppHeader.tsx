@@ -3,19 +3,22 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth/authProvider";
+import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { useState, useEffect } from "react";
 
 type MenuItem = {
   title: string;
   href?: string;
+  onClick?: () => void;
   children?: { title: string; href: string }[];
 };
 
 export function AppHeader() {
   const { user } = useAuth();
   const pathname = usePathname();
+  const { redirectToAuth } = useAuthRedirect();
   const [userRole, setUserRole] = useState<string | null>(null);
-  
+
   // Extract competition ID from pathname
   const competitionMatch = pathname.match(/^\/comp\/([^\/]+)/);
   const competitionId = competitionMatch ? competitionMatch[1] : null;
@@ -25,7 +28,7 @@ export function AppHeader() {
     if (user) {
       // TODO: Replace with actual role fetching logic
       // This is a placeholder - implement your role fetching logic here
-      setUserRole('admin'); // Default to admin for now
+      setUserRole("admin"); // Default to admin for now
     } else {
       setUserRole(null);
     }
@@ -41,19 +44,25 @@ export function AppHeader() {
           { title: "Results", href: `/comp/${competitionId}/results` },
           { title: "Register", href: `/comp/${competitionId}/register` },
           { title: "Rules", href: `/comp/${competitionId}/rules` },
-          { title: "Login", href: "/auth" }
+          { 
+            title: "Login", 
+            onClick: () => redirectToAuth(pathname)
+          }
         ];
       }
       return [
         { title: "Home", href: "/home" },
-        { title: "Login", href: "/auth" }
+        { 
+          title: "Login", 
+          onClick: () => redirectToAuth(pathname)
+        }
       ];
     }
 
     // Authenticated navigation
     const baseItems: MenuItem[] = [
       { title: "Home", href: "/home" },
-      { title: "Dashboard", href: "/dashboard" }
+      { title: "Dashboard", href: "/dashboard" },
     ];
 
     // Add competition-specific items if in competition context
@@ -63,54 +72,67 @@ export function AppHeader() {
         { title: "Schedule", href: `/comp/${competitionId}/schedule` },
         { title: "Results", href: `/comp/${competitionId}/results` },
         { title: "Register", href: `/comp/${competitionId}/register` },
-        { title: "Rules", href: `/comp/${competitionId}/rules` }
+        { title: "Rules", href: `/comp/${competitionId}/rules` },
       ];
 
       // Add admin/judge items based on role
-      if (userRole === 'admin' || userRole === 'organizer') {
+      if (userRole === "admin" || userRole === "organizer") {
         competitionItems.push({
           title: "Manage",
           children: [
             { title: "Dashboard", href: `/comp/${competitionId}/manage` },
-            { title: "Schedule", href: `/comp/${competitionId}/manage/schedule` },
-            { title: "Settings", href: `/comp/${competitionId}/manage/settings` },
-            { title: "Analytics", href: `/comp/${competitionId}/manage/analytics` }
-          ]
+            {
+              title: "Schedule",
+              href: `/comp/${competitionId}/manage/schedule`,
+            },
+            {
+              title: "Settings",
+              href: `/comp/${competitionId}/manage/settings`,
+            },
+            {
+              title: "Analytics",
+              href: `/comp/${competitionId}/manage/analytics`,
+            },
+          ],
         });
       }
 
-      if (userRole === 'admin' || userRole === 'judge') {
+      if (userRole === "admin" || userRole === "judge") {
         competitionItems.push({
           title: "Run",
           children: [
             { title: "Judge", href: `/comp/${competitionId}/run/judge` },
-            { title: "On-Deck", href: `/comp/${competitionId}/run/ondeck` }
-          ]
+            { title: "On-Deck", href: `/comp/${competitionId}/run/ondeck` },
+          ],
         });
       }
 
-      return [...baseItems, ...competitionItems, {
-        title: "Account",
-        children: [
-          { title: "Profile", href: "/profile" },
-          { title: "Settings", href: "/settings" },
-          { title: "Logout", href: "/auth/logout" }
-        ]
-      }];
+      return [
+        ...baseItems,
+        ...competitionItems,
+        {
+          title: "Account",
+          children: [
+            { title: "Profile", href: "/profile" },
+            { title: "Settings", href: "/settings" },
+            { title: "Logout", href: "/auth/logout" },
+          ],
+        },
+      ];
     }
 
     // Non-competition authenticated navigation
     return [
       ...baseItems,
-      { title: "Competitions", href: "/competitions" },
+      { title: "Competitions", href: "/comp" },
       {
         title: "Account",
         children: [
           { title: "Profile", href: "/profile" },
           { title: "Settings", href: "/settings" },
-          { title: "Logout", href: "/auth/logout" }
-        ]
-      }
+          { title: "Logout", href: "/auth/logout" },
+        ],
+      },
     ];
   };
 
@@ -121,10 +143,12 @@ export function AppHeader() {
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="text-xl font-bold text-accent-foreground">
           <Link href="/home">
-            {competitionId ? `Competition ${competitionId}` : "BallroomCompManager"}
+            {competitionId
+              ? `Competition ${competitionId}`
+              : "BallroomCompManager"}
           </Link>
         </div>
-        
+
         <nav className="hidden md:flex items-center space-x-6">
           {navItems.map((item, index) => (
             <div key={index} className="relative group">
@@ -135,6 +159,13 @@ export function AppHeader() {
                 >
                   {item.title}
                 </Link>
+              ) : item.onClick ? (
+                <button
+                  onClick={item.onClick}
+                  className="text-accent-foreground hover:text-accent-foreground/80 transition-colors"
+                >
+                  {item.title}
+                </button>
               ) : (
                 <>
                   <button className="text-accent-foreground hover:text-accent-foreground/80 transition-colors">

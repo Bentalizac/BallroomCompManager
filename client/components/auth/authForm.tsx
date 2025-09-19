@@ -1,18 +1,27 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/providers/auth/authProvider';
+import { useAuthRedirect } from '@/hooks/useAuthRedirect';
 
 export default function AuthForm() {
-  const { signIn, signUp, loading } = useAuth();
+  const { signIn, signUp, loading, user } = useAuth();
+  const { handlePostAuthRedirect } = useAuthRedirect();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Handle redirect when user becomes authenticated
+  useEffect(() => {
+    if (user && !loading) {
+      handlePostAuthRedirect();
+    }
+  }, [user, loading, handlePostAuthRedirect]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -27,8 +36,12 @@ export default function AuthForm() {
         else setSuccess('Check your email to confirm your account!');
       } else {
         const { error } = await signIn(email, password);
-        if (error) setError(error.message);
-        else setSuccess('Logged in successfully!');
+        if (error) {
+          setError(error.message);
+        } else {
+          setSuccess('Logged in successfully!');
+          // Redirect will be handled by useEffect when user state updates
+        }
       }
     } catch (err) {
       setError('An unexpected error occurred');
