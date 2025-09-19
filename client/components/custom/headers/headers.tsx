@@ -33,7 +33,7 @@ export const AuthedHeader = (
       { title: "Dashboard", href: "/dashboard" },
       { title: "Profile", href: "/profile" },
       { title: "Settings", href: "/settings" },
-      { title: "Logout", href: "/auth" },
+      { title: "Logout", href: "/auth/logout" },
     ]}
   />
 );

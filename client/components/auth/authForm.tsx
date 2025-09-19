@@ -3,29 +3,37 @@
 import { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import authService from '@/services/auth/auth';
+import { useAuth } from '@/providers/auth/authProvider';
 
 export default function AuthForm() {
+  const { signIn, signUp, loading } = useAuth();
   const [mode, setMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    setIsSubmitting(true);
 
-    if (mode === 'signup') {
-        const { data, error } = await authService.signUp(email, password);
+    try {
+      if (mode === 'signup') {
+        const { error } = await signUp(email, password);
         if (error) setError(error.message);
         else setSuccess('Check your email to confirm your account!');
-    } else {
-      const { data, error } = await authService.signIn(email, password);
-      if (error) setError(error.message);
-      else setSuccess('Logged in successfully!');
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) setError(error.message);
+        else setSuccess('Logged in successfully!');
+      }
+    } catch (err) {
+      setError('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -52,13 +60,15 @@ export default function AuthForm() {
         {error && <p className="text-red-600">{error}</p>}
         {success && <p className="text-green-600">{success}</p>}
 
-        <Button type="submit">{mode === 'login' ? 'Login' : 'Sign Up'}</Button>
+        <Button type="submit" disabled={isSubmitting || loading}>
+          {isSubmitting ? 'Loading...' : (mode === 'login' ? 'Login' : 'Sign Up')}
+        </Button>
       </form>
 
       <div className="mt-4 text-center">
         {mode === 'login' ? (
           <>
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <button
               className="text-blue-600 underline"
               onClick={() => {
