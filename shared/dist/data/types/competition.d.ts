@@ -4,5 +4,6 @@ export interface Competition {
     startDate: Date;
     endDate: Date;
     events: CompEvent[];
+    name: string;
 }
 //# sourceMappingURL=competition.d.ts.map

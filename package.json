@@ -4,13 +4,20 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-		"build:shared": "cd shared && npm run build",
-		"dev:client": "cd client && npm run dev",
-		"dev:server": "cd server && npm run dev",
-		"install:all": "npm install && cd client && npm install && cd ../server && npm install && cd ../shared && npm install"
-	},
+    "build:shared": "cd shared && npm run build",
+    "dev:client": "cd client && npm run dev",
+    "dev:server": "cd server && npm run dev",
+    "install:all": "npm install && cd client && npm install && cd ../server && npm install && cd ../shared && npm install",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:migrate": "supabase migration up",
+    "db:generate-types": "supabase gen types typescript --local > server/src/dal/database.types.ts",
+    "db:new-migration": "supabase migration new",
+    "db:dashboard": "supabase dashboard"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "packageManager": "pnpm@10.15.1"
+  "packageManager": "pnpm@10.17.1"
 }

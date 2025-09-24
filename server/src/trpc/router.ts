@@ -1,5 +1,9 @@
 import { initTRPC, TRPCError } from "@trpc/server";
-import { User } from "@ballroomcompmanager/shared";
+import {
+  CompetitionRole,
+  Participant,
+  User,
+} from "@ballroomcompmanager/shared";
 import { z } from "zod";
 import {
   getAllCompetitions,
@@ -12,6 +16,7 @@ import { Competition } from "@ballroomcompmanager/shared/data/types/competition"
 import { Registration } from "@ballroomcompmanager/shared/data/types/registration";
 type Context = {
   user: User | null;
+  participant: Participant | null;
 };
 // Initialize tRPC
 const t = initTRPC.context<Context>().create();
@@ -33,18 +38,26 @@ export const authedProcedure = t.procedure.use(async function isAuthed(opts) {
   });
 });
 
-export const adminProcedure = t.procedure.use(async function isAdmin(opts) {
-  const { ctx } = opts;
-
-  if (!ctx.user || ctx.user.role !== "admin") {
-    throw new TRPCError({ code: "FORBIDDEN", message: "Admin access required" });
-  }
-  return opts.next({
-    ctx: {
-      user: ctx.user,
-    },
-  });
-});
+export const organizerProcedure = t.procedure.use(
+  async function isOrganizer(opts) {
+    const { ctx } = opts;
+    if (
+      !ctx.user ||
+      !ctx.participant ||
+      ctx.participant.role !== CompetitionRole.Organizer
+    ) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Organizer access required",
+      });
+    }
+    return opts.next({
+      ctx: {
+        user: ctx.user,
+      },
+    });
+  },
+);
 
 // Input validation schemas
 const getCompetitionSchema = z.object({
@@ -180,7 +193,6 @@ const competitionRouter = router({
   delete: authedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ input, ctx }): Promise<{ success: boolean }> => {
-
       const competition = getCompetitionById(input.id);
       if (!competition) {
         throw new TRPCError({

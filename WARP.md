@@ -35,6 +35,10 @@ pnpm install
 
 # Alternative using root package.json script
 npm run install:all
+
+# Set up local database (first time only)
+npm run db:start        # Start local Supabase services
+npm run db:generate-types # Generate TypeScript types
 ```
 
 ### Development
@@ -75,6 +79,30 @@ cd client && pnpm lint
 
 # Clean shared package build artifacts
 cd shared && pnpm clean
+```
+
+### Database Management
+```bash
+# Start local Supabase database
+npm run db:start
+
+# Stop local Supabase database
+npm run db:stop
+
+# Reset database to clean state
+npm run db:reset
+
+# Apply new migrations
+npm run db:migrate
+
+# Generate TypeScript types from database schema
+npm run db:generate-types
+
+# Create a new migration
+npm run db:new-migration migration_name
+
+# Open Supabase dashboard
+npm run db:dashboard
 ```
 
 ## Development Workflow

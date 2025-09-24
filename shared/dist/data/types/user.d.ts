@@ -19,7 +19,7 @@ export interface Participant {
     /**Supabase ID for the event */
     eventId: string;
     /**Role enum */
-    role?: CompetitionRole;
+    role: CompetitionRole;
     /**What type of event is this */
     eventType: EventType;
 }

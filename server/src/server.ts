@@ -14,6 +14,23 @@ app.use(
   }),
 );
 
+// tRPC middleware
+app.use(
+  "/trpc",
+  createExpressMiddleware({
+    router: appRouter,
+    createContext: ({ req, res }) => {
+      // TODO: Extract user from JWT token in Authorization header
+      // For now, return null context - you'll need to implement auth middleware
+      return {
+        user: null,
+        participant: null,
+        compID: null,
+      };
+    },
+  }),
+);
+
 // Health check endpoint
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
