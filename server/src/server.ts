@@ -21,7 +21,7 @@ app.use(
     router: appRouter,
     createContext: ({ req, res }) => {
       // TODO: Extract user from JWT token in Authorization header
-      // For now, return null context - you'll need to implement auth middleware
+      // For now, return null context - you'll need to implement auth middleware. Change to make Oak reset when committed
       return {
         user: null,
         participant: null,
