@@ -1,3 +1,3 @@
 export enum ScoringMethods {
-    Ballroom = 0
+  Ballroom = "ballroom",
 }
