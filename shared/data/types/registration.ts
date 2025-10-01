@@ -1,3 +1,5 @@
+import { eventRoles } from "../enums/eventRoles";
+
 export interface Registration {
   id: string;
   competitionId: string;
@@ -8,4 +10,5 @@ export interface Registration {
 
 export interface EventRegistration extends Registration {
   eventId: string;
+  role: EventRoles;
 }
