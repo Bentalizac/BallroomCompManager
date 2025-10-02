@@ -13,12 +13,14 @@ export interface UseTimelineOperationsProps {
   setScheduledEvents: React.Dispatch<React.SetStateAction<ScheduledEvent[]>>;
   setAvailableEvents?: React.Dispatch<React.SetStateAction<Event[]>>;
   onEventUpdate?: (eventId: string, updates: Partial<ScheduledEvent>) => void;
+  onEventMove?: (eventId: string, updates: Partial<ScheduledEvent>) => void;
 }
 
 export function useTimelineOperations({
   setScheduledEvents,
   setAvailableEvents,
-  onEventUpdate
+  onEventUpdate,
+  onEventMove
 }: UseTimelineOperationsProps): TimelineOperations {
   
   const handleEventDrop = useCallback((
@@ -49,14 +51,21 @@ export function useTimelineOperations({
     newVenue: Venue, 
     newTimeSlot: number
   ) => {
+    const updates = { day: newDay, venue: newVenue, startTime: newTimeSlot };
+    
     setScheduledEvents(prev => 
       prev.map(event => 
         event.event.id === eventId 
-          ? { ...event, day: newDay, venue: newVenue, startTime: newTimeSlot }
+          ? { ...event, ...updates }
           : event
       )
     );
-  }, [setScheduledEvents]);
+    
+    // Notify parent about the move so it can update selectedEvent if needed
+    if (onEventMove) {
+      onEventMove(eventId, updates);
+    }
+  }, [setScheduledEvents, onEventMove]);
 
   const handleEventUpdate = useCallback((eventId: string, updates: Partial<ScheduledEvent>) => {
     setScheduledEvents(prev => 

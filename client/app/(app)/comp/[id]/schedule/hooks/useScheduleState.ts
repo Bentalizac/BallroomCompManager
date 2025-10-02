@@ -53,7 +53,7 @@ export function useScheduleState(): ScheduleState & ScheduleActions {
     
     // Update selected event if it's the one being updated
     if (selectedEvent?.event.id === eventId) {
-      setSelectedEvent(prev => prev ? { ...prev, ...updates } : null);
+      setSelectedEvent(selectedEvent ? { ...selectedEvent, ...updates } : null);
     }
   }, [selectedEvent]);
 

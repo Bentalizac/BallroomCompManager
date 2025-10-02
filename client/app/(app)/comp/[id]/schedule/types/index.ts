@@ -40,6 +40,7 @@ export interface TimelineProps {
     scheduledEvents: ScheduledEvent[];
     setScheduledEvents: React.Dispatch<React.SetStateAction<ScheduledEvent[]>>;
     setAvailableEvents?: React.Dispatch<React.SetStateAction<Event[]>>;
+    onEventMove?: (eventId: string, updates: Partial<ScheduledEvent>) => void;
     days: Date[];
     locations: Venue[];
 }

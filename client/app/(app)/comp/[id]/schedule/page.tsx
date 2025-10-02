@@ -32,8 +32,15 @@ export default function Page() {
     setSelectedEvent
   });
 
-  const today = new Date();
-  const Days: Date[] = [new Date(today.getFullYear(), 9, 9), new Date(today.getFullYear(), 9, 10)];
+  // Handle event moves and update selected event if needed
+  const handleEventMove = (eventId: string, updates: Partial<ScheduledEvent>) => {
+    // Update the selected event if it's the one being moved
+    if (selectedEvent?.event.id === eventId) {
+      setSelectedEvent(selectedEvent ? { ...selectedEvent, ...updates } : null);
+    }
+  };
+
+  const Days: Date[] = [new Date('2025-10-09'), new Date('2025-10-10')];
   const locations: Venue[] = [{ name: 'Wilk' }, { name: 'RB' }];
 
   return (
@@ -49,6 +56,7 @@ export default function Page() {
           scheduledEvents={scheduledEvents}
           setScheduledEvents={setScheduledEvents}
           setAvailableEvents={setAvailableEvents}
+          onEventMove={handleEventMove}
           days={Days}
           locations={locations}
         />

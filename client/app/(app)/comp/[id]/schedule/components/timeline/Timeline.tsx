@@ -3,11 +3,12 @@ import { useTimelineOperations } from '../../hooks';
 import { CustomDragLayer } from './CustomDragLayer';
 import { DayColumn } from './DayColumn';
 
-export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, setScheduledEvents, setAvailableEvents, days, locations }: TimelineProps) {
+export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, setScheduledEvents, setAvailableEvents, onEventMove, days, locations }: TimelineProps) {
     const { handleEventDrop, handleEventMove, handleEventUpdate } = useTimelineOperations({
         setScheduledEvents,
         setAvailableEvents,
-        onEventUpdate: undefined // We don't need external update handler here
+        onEventUpdate: onEventMove, // Use onEventMove for updates too
+        onEventMove
     });
 
     return (
