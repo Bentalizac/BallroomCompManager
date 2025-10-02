@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from 'react';
 import { useDrop, useDrag, useDragLayer } from 'react-dnd';
-import { Event } from './EventsList';
+import { Event } from '../events/EventsList';
+import { ScheduledEvent, TimelineProps, VenueColumnProps, ScheduledEventProps } from '../../types';
+import { TIME_CONSTANTS, LAYOUT_CONSTANTS, TIME_SLOTS } from '../../constants';
+import { useEventPositioning, useTimelineOperations } from '../../hooks';
 
 // Custom drag layer for consistent drag preview
 function CustomDragLayer() {
@@ -15,7 +18,7 @@ function CustomDragLayer() {
     return null;
   }
 
-  const height = (item.duration / 15) * 12; // Same calculation as in ResizableEvent
+  const height = (item.duration / TIME_CONSTANTS.SLOT_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
 
   return (
     <div
@@ -25,7 +28,7 @@ function CustomDragLayer() {
         zIndex: 100,
         left: currentOffset.x,
         top: currentOffset.y,
-        width: '180px', // Slightly smaller width for the drag preview to indicate it's being moved
+        width: `${LAYOUT_CONSTANTS.DRAG_PREVIEW_WIDTH}px`,
       }}
     >
       <div
@@ -49,29 +52,7 @@ function CustomDragLayer() {
   );
 }
 
-export interface ScheduledEvent extends Event {
-  startTime: number; // minutes from midnight
-  duration: number; // minutes
-  day: '10/9' | '10/10';
-  venue: 'Wilk' | 'RB';
-}
-
-interface TimelineProps {
-  onEventSelect: (event: ScheduledEvent | null) => void;
-  selectedEvent: ScheduledEvent | null;
-  scheduledEvents: ScheduledEvent[];
-  setScheduledEvents: React.Dispatch<React.SetStateAction<ScheduledEvent[]>>;
-}
-
-interface ResizableEventProps {
-  event: ScheduledEvent;
-  onEventSelect: (event: ScheduledEvent | null) => void;
-  selectedEvent: ScheduledEvent | null;
-  onEventUpdate: (eventId: string, updates: Partial<ScheduledEvent>) => void;
-  onEventMove: (eventId: string, newDay: '10/9' | '10/10', newVenue: 'Wilk' | 'RB', newTimeSlot: number) => void;
-}
-
-function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, onEventMove }: ResizableEventProps) {
+function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, onEventMove }: ScheduledEventProps) {
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef(0);
@@ -102,13 +83,12 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
     e.stopPropagation();
     setIsResizing(true);
     startYRef.current = e.clientY;
-    // Always use the current event duration
     startHeightRef.current = event.duration;
 
     const handleMouseMove = (e: MouseEvent) => {
       const deltaY = e.clientY - startYRef.current;
-      const deltaMinutes = Math.round((deltaY / 12) * 15); // 12px per 15-minute slot
-      const newDuration = Math.max(15, startHeightRef.current + deltaMinutes); // Minimum 15 minutes
+      const deltaMinutes = Math.round((deltaY / TIME_CONSTANTS.PIXELS_PER_SLOT) * TIME_CONSTANTS.SLOT_INTERVAL);
+      const newDuration = Math.max(TIME_CONSTANTS.SLOT_INTERVAL, startHeightRef.current + deltaMinutes);
       onEventUpdate(event.event.id, { duration: newDuration });
     };
 
@@ -122,7 +102,7 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const height = (event.duration / 15) * 12; // 12px per 15-minute slot
+  const height = (event.duration / TIME_CONSTANTS.SLOT_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
 
   return (
     <div
@@ -164,119 +144,6 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
   );
 }
 
-interface DroppableVenueColumnProps {
-  day: '10/9' | '10/10';
-  venue: 'Wilk' | 'RB';
-  onEventDrop: (event: Event, day: '10/9' | '10/10', venue: 'Wilk' | 'RB', timeSlot: number) => void;
-  onEventMove: (eventId: string, newDay: '10/9' | '10/10', newVenue: 'Wilk' | 'RB', newTimeSlot: number) => void;
-  scheduledEvents: ScheduledEvent[];
-  onEventSelect: (event: ScheduledEvent | null) => void;
-  selectedEvent: ScheduledEvent | null;
-  onEventUpdate: (eventId: string, updates: Partial<ScheduledEvent>) => void;
-}
-
-// Helper function to calculate overlapping events and their positions
-function calculateEventPositions(events: ScheduledEvent[]) {
-  const eventPositions = new Map<string, { column: number, totalColumns: number }>();
-  
-  if (events.length === 0) return eventPositions;
-  
-  // Sort events by start time, then by duration (longer events first for same start time)
-  const sortedEvents = [...events].sort((a, b) => {
-    if (a.startTime !== b.startTime) {
-      return a.startTime - b.startTime;
-    }
-    return b.duration - a.duration;
-  });
-  
-  // Build overlap groups using a more sophisticated algorithm
-  const overlapGroups: ScheduledEvent[][] = [];
-  
-  for (const event of sortedEvents) {
-    const eventEndTime = event.startTime + event.duration;
-    let assignedToGroup = false;
-    
-    // Try to find an existing group where this event overlaps with any member
-    for (const group of overlapGroups) {
-      const overlapsWithGroup = group.some(groupEvent => {
-        const groupEventEndTime = groupEvent.startTime + groupEvent.duration;
-        return (
-          event.startTime < groupEventEndTime && eventEndTime > groupEvent.startTime
-        );
-      });
-      
-      if (overlapsWithGroup) {
-        // Check if adding this event would create conflicts within the group
-        // For now, we'll use a simple approach and just add it to the first overlapping group
-        group.push(event);
-        assignedToGroup = true;
-        break;
-      }
-    }
-    
-    // If no overlapping group found, create a new one
-    if (!assignedToGroup) {
-      overlapGroups.push([event]);
-    }
-  }
-  
-  // For each group, assign column positions using a more sophisticated layout algorithm
-  for (const group of overlapGroups) {
-    if (group.length === 1) {
-      // Single event, takes full width
-      eventPositions.set(group[0].event.id, { column: 0, totalColumns: 1 });
-      continue;
-    }
-    
-    // For multiple events, we need to find the optimal column assignment
-    // Sort group by start time for column assignment
-    const sortedGroup = [...group].sort((a, b) => a.startTime - b.startTime);
-    
-    // Track which columns are occupied at each time point
-    const columns: { event: ScheduledEvent | null, endTime: number }[] = [];
-    
-    for (const event of sortedGroup) {
-      const eventEndTime = event.startTime + event.duration;
-      
-      // Find the first available column
-      let assignedColumn = -1;
-      for (let i = 0; i < columns.length; i++) {
-        if (columns[i].endTime <= event.startTime) {
-          // This column is free
-          assignedColumn = i;
-          break;
-        }
-      }
-      
-      // If no column is available, create a new one
-      if (assignedColumn === -1) {
-        assignedColumn = columns.length;
-        columns.push({ event: null, endTime: 0 });
-      }
-      
-      // Assign the event to this column
-      columns[assignedColumn] = { event, endTime: eventEndTime };
-      
-      eventPositions.set(event.event.id, {
-        column: assignedColumn,
-        totalColumns: Math.max(columns.length, group.length)
-      });
-    }
-    
-    // Update all events in this group to have the same totalColumns
-    const maxColumns = columns.length;
-    for (const event of group) {
-      const position = eventPositions.get(event.event.id)!;
-      eventPositions.set(event.event.id, {
-        ...position,
-        totalColumns: maxColumns
-      });
-    }
-  }
-  
-  return eventPositions;
-}
-
 function DroppableVenueColumn({ 
   day, 
   venue, 
@@ -286,7 +153,7 @@ function DroppableVenueColumn({
   onEventSelect, 
   selectedEvent,
   onEventUpdate 
-}: DroppableVenueColumnProps) {
+}: VenueColumnProps) {
   const dropRef = useRef<HTMLDivElement>(null);
 
   const [{ isOver }, drop] = useDrop({
@@ -347,7 +214,7 @@ function DroppableVenueColumn({
 
   // Filter events for this day/venue and calculate positions
   const venueEvents = scheduledEvents.filter(event => event.day === day && event.venue === venue);
-  const eventPositions = calculateEventPositions(venueEvents);
+  const eventPositions = useEventPositioning(venueEvents);
 
   return (
     <div
@@ -356,7 +223,7 @@ function DroppableVenueColumn({
       style={{ minHeight: `${56 * 12}px` }} // 56 time slots * 12px each
     >
       {/* Time grid lines */}
-      {timeSlots.map((timeSlot) => (
+      {TIME_SLOTS.map((timeSlot) => (
         <div
           key={timeSlot}
           className="relative h-12 border-b border-gray-200"
@@ -426,38 +293,11 @@ const formatTimeString = (minutes: number) => {
   return `${displayHours}:${mins.toString().padStart(2, '0')}${ampm}`;
 };
 
-const timeSlots = Array.from({ length: 56 }, (_, i) => 480 + i * 15); // 8:00am to 10:00pm in 15-min intervals
-
 export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, setScheduledEvents }: TimelineProps) {
-  const handleEventDrop = (event: Event, day: '10/9' | '10/10', venue: 'Wilk' | 'RB', timeSlot: number) => {
-    const newScheduledEvent: ScheduledEvent = {
-      ...event,
-      startTime: timeSlot,
-      duration: 60, // Default 1 hour
-      day,
-      venue
-    };
-    
-    setScheduledEvents(prev => [...prev, newScheduledEvent]);
-  };
-
-  const handleEventMove = (eventId: string, newDay: '10/9' | '10/10', newVenue: 'Wilk' | 'RB', newTimeSlot: number) => {
-    setScheduledEvents(prev => 
-      prev.map(event => 
-        event.event.id === eventId 
-          ? { ...event, day: newDay, venue: newVenue, startTime: newTimeSlot }
-          : event
-      )
-    );
-  };
-
-  const handleEventUpdate = (eventId: string, updates: Partial<ScheduledEvent>) => {
-    setScheduledEvents(prev => 
-      prev.map(event => 
-        event.event.id === eventId ? { ...event, ...updates } : event
-      )
-    );
-  };
+  const { handleEventDrop, handleEventMove, handleEventUpdate } = useTimelineOperations({
+    setScheduledEvents,
+    onEventUpdate: undefined // We don't need external update handler here
+  });
 
   return (
     <div className="flex-1 bg-white flex flex-col h-full">
