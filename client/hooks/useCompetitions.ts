@@ -70,13 +70,14 @@ export function useCompetitionRegistrations(competitionId: string | undefined) {
 }
 
 // Custom hook for competition display data with computed fields
-export function useCompetitionDisplay(competition: Competition | undefined) {
+export function useCompetitionDisplay(competition: any | undefined) {
   return useMemo(() => {
     if (!competition) return null;
     
     const now = new Date();
-    const startDate = new Date(competition.startDate);
-    const endDate = new Date(competition.endDate);
+    // Handle both camelCase and snake_case field names
+    const startDate = new Date(competition.startDate || competition.start_date);
+    const endDate = new Date(competition.endDate || competition.end_date);
     
     return {
       ...competition,
@@ -86,10 +87,12 @@ export function useCompetitionDisplay(competition: Competition | undefined) {
         month: 'long',
         day: 'numeric'
       }),
-      formattedStartTime: startDate.toLocaleTimeString('en-US', {
-        hour: '2-digit',
-        minute: '2-digit'
-      }),
+      formattedStartTime: startDate.getHours() === 0 && startDate.getMinutes() === 0 ? 
+        'All Day' : 
+        startDate.toLocaleTimeString('en-US', {
+          hour: '2-digit',
+          minute: '2-digit'
+        }),
       formattedEndDate: endDate.toLocaleDateString('en-US', {
         weekday: 'long', 
         year: 'numeric',
@@ -107,7 +110,7 @@ export function useCompetitionDisplay(competition: Competition | undefined) {
 
 // Hook to check if user can register for a competition
 export function useCanRegister(
-  competition: Competition | undefined,
+  competition: any | undefined,
   userRegistration: CompetitionRegistration | undefined,
   isAuthenticated: boolean = true
 ) {
@@ -134,7 +137,8 @@ export function useCanRegister(
     }
 
     const now = new Date();
-    const startDate = new Date(competition.startDate);
+    // Handle both camelCase and snake_case field names
+    const startDate = new Date(competition.startDate || competition.start_date);
     
     if (startDate <= now) {
       return {

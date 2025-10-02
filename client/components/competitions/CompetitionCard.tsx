@@ -13,9 +13,7 @@ interface CompetitionCardProps {
   competitionId: string;
 }
 
-export function CompetitionCard({
-  competitionId,
-}: CompetitionCardProps) {
+export function CompetitionCard({ competitionId }: CompetitionCardProps) {
   // Get authenticated user from auth context
   const { user } = useAuth();
   const userId = user?.id;
@@ -29,7 +27,11 @@ export function CompetitionCard({
   const { data: userRegistration } = useUserRegistration(competitionId, userId);
 
   // Check if user can register
-  const { canRegister, reason } = useCanRegister(competition, userRegistration, !!user);
+  const { canRegister, reason } = useCanRegister(
+    competition,
+    userRegistration,
+    !!user,
+  );
 
   // Registration mutation
   const registerMutation = useRegisterForCompetition();
@@ -76,7 +78,7 @@ export function CompetitionCard({
     <div className="border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
       {/* Competition Title */}
       <h3 className="text-xl font-semibold mb-2">
-        Competition {displayData.id}
+        Competition {displayData.name}
       </h3>
 
       {/* Date & Time Info */}
@@ -156,7 +158,7 @@ export function CompetitionCard({
         <div className="w-full bg-gray-100 text-gray-600 px-4 py-2 rounded text-center">
           <p className="text-sm mb-2">Sign in to register for competitions</p>
           <button
-            onClick={() => window.location.href = '/auth'}
+            onClick={() => (window.location.href = "/auth")}
             className="text-blue-600 hover:text-blue-800 font-medium text-sm"
           >
             Sign In

@@ -1,10 +1,15 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/providers/auth/authProvider';
 import { useCreateCompetition } from '@/hooks/useCompetitions';
 import { useVenues, useCreateVenue } from '@/hooks/useData';
+import { CompetitionBasicInfoForm } from './CompetitionBasicInfoForm';
+import { VenueSelector } from './VenueSelector';
+import { CreateVenueForm } from './CreateVenueForm';
+import { AuthenticationGuard } from './AuthenticationGuard';
+import { ErrorDisplay } from './ErrorDisplay';
 
 interface CreateCompetitionFormProps {
   onSuccess?: (competitionId: string) => void;
@@ -21,15 +26,6 @@ export function CreateCompetitionForm({ onSuccess, onCancel }: CreateCompetition
     venueId: '',
   });
   const [showCreateVenue, setShowCreateVenue] = useState(false);
-  const [newVenueData, setNewVenueData] = useState({
-    name: '',
-    street: '',
-    city: '',
-    state: '',
-    postalCode: '',
-    country: '',
-    googleMapsUrl: '',
-  });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const { data: venues, isLoading: venuesLoading } = useVenues();
@@ -39,18 +35,9 @@ export function CreateCompetitionForm({ onSuccess, onCancel }: CreateCompetition
   // Show login prompt if not authenticated
   if (!user) {
     return (
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="bg-white rounded-lg shadow-sm border p-6 text-center">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Authentication Required</h2>
-          <p className="text-gray-600 mb-6">You need to be logged in to create a competition.</p>
-          <button
-            onClick={() => router.push('/auth')}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            Sign In
-          </button>
-        </div>
-      </div>
+      <AuthenticationGuard 
+        message="You need to be logged in to create a competition."
+      />
     );
   }
 
@@ -106,40 +93,34 @@ export function CreateCompetitionForm({ onSuccess, onCancel }: CreateCompetition
     }
   };
 
-  const handleCreateVenue = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!newVenueData.name.trim()) {
-      return;
-    }
-
+  const handleCreateVenue = async (venueData: {
+    name: string;
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    googleMapsUrl: string;
+  }) => {
     try {
       const venue = await createVenue.mutateAsync({
-        name: newVenueData.name.trim(),
-        street: newVenueData.street.trim() || undefined,
-        city: newVenueData.city.trim() || undefined,
-        state: newVenueData.state.trim() || undefined,
-        postalCode: newVenueData.postalCode.trim() || undefined,
-        country: newVenueData.country.trim() || undefined,
-        googleMapsUrl: newVenueData.googleMapsUrl.trim() || undefined,
+        name: venueData.name.trim(),
+        street: venueData.street.trim() || undefined,
+        city: venueData.city.trim() || undefined,
+        state: venueData.state.trim() || undefined,
+        postalCode: venueData.postalCode.trim() || undefined,
+        country: venueData.country.trim() || undefined,
+        googleMapsUrl: venueData.googleMapsUrl.trim() || undefined,
       });
 
       // Set the newly created venue as selected
       setFormData(prev => ({ ...prev, venueId: venue.id }));
       
-      // Reset venue form and hide it
-      setNewVenueData({
-        name: '',
-        street: '',
-        city: '',
-        state: '',
-        postalCode: '',
-        country: '',
-        googleMapsUrl: '',
-      });
+      // Hide the create form
       setShowCreateVenue(false);
     } catch (error) {
       console.error('Failed to create venue:', error);
+      throw error; // Let the component handle the error display
     }
   };
 
@@ -149,197 +130,32 @@ export function CreateCompetitionForm({ onSuccess, onCancel }: CreateCompetition
         <h1 className="text-2xl font-bold text-gray-900 mb-6">Create New Competition</h1>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Competition Name */}
-          <div>
-            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-              Competition Name *
-            </label>
-            <input
-              type="text"
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.name ? 'border-red-300' : 'border-gray-300'
-              }`}
-              placeholder="e.g., Bay Area Open Championship 2024"
-            />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
-          </div>
+          <CompetitionBasicInfoForm
+            name={formData.name}
+            startDate={formData.startDate}
+            endDate={formData.endDate}
+            errors={errors}
+            onNameChange={(name) => setFormData(prev => ({ ...prev, name }))}
+            onStartDateChange={(startDate) => setFormData(prev => ({ ...prev, startDate }))}
+            onEndDateChange={(endDate) => setFormData(prev => ({ ...prev, endDate }))}
+          />
 
-          {/* Date Range */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-                Start Date *
-              </label>
-              <input
-                type="date"
-                id="startDate"
-                value={formData.startDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.startDate ? 'border-red-300' : 'border-gray-300'
-                }`}
-              />
-              {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>}
-            </div>
-
-            <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-                End Date *
-              </label>
-              <input
-                type="date"
-                id="endDate"
-                value={formData.endDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.endDate ? 'border-red-300' : 'border-gray-300'
-                }`}
-              />
-              {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
-            </div>
-          </div>
-
-          {/* Venue Selection */}
-          <div>
-            <label htmlFor="venueId" className="block text-sm font-medium text-gray-700 mb-2">
-              Venue (Optional)
-            </label>
-            <div className="flex gap-2">
-              <select
-                id="venueId"
-                value={formData.venueId}
-                onChange={(e) => setFormData(prev => ({ ...prev, venueId: e.target.value }))}
-                className="flex-1 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                disabled={venuesLoading}
-              >
-                <option value="">Select a venue</option>
-                {venues?.map((venue) => (
-                  <option key={venue.id} value={venue.id}>
-                    {venue.name} {venue.city && venue.state ? `- ${venue.city}, ${venue.state}` : ''}
-                  </option>
-                ))}
-              </select>
-              <button
-                type="button"
-                onClick={() => setShowCreateVenue(!showCreateVenue)}
-                className="px-3 py-2 text-sm bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                {showCreateVenue ? 'Cancel' : 'Add New'}
-              </button>
-            </div>
-          </div>
+          <VenueSelector
+            selectedVenueId={formData.venueId}
+            venues={venues}
+            isLoading={venuesLoading}
+            showCreateForm={showCreateVenue}
+            onVenueSelect={(venueId) => setFormData(prev => ({ ...prev, venueId }))}
+            onToggleCreateForm={() => setShowCreateVenue(!showCreateVenue)}
+          />
 
           {/* New Venue Form */}
           {showCreateVenue && (
-            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Add New Venue</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Venue Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={newVenueData.name}
-                    onChange={(e) => setNewVenueData(prev => ({ ...prev, name: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., Emerald Ballroom"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Street Address
-                  </label>
-                  <input
-                    type="text"
-                    value={newVenueData.street}
-                    onChange={(e) => setNewVenueData(prev => ({ ...prev, street: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., 123 Dance Street"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    City
-                  </label>
-                  <input
-                    type="text"
-                    value={newVenueData.city}
-                    onChange={(e) => setNewVenueData(prev => ({ ...prev, city: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., San Francisco"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    State/Province
-                  </label>
-                  <input
-                    type="text"
-                    value={newVenueData.state}
-                    onChange={(e) => setNewVenueData(prev => ({ ...prev, state: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., CA"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Postal Code
-                  </label>
-                  <input
-                    type="text"
-                    value={newVenueData.postalCode}
-                    onChange={(e) => setNewVenueData(prev => ({ ...prev, postalCode: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., 94102"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Country
-                  </label>
-                  <input
-                    type="text"
-                    value={newVenueData.country}
-                    onChange={(e) => setNewVenueData(prev => ({ ...prev, country: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="e.g., USA"
-                  />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Google Maps URL
-                  </label>
-                  <input
-                    type="url"
-                    value={newVenueData.googleMapsUrl}
-                    onChange={(e) => setNewVenueData(prev => ({ ...prev, googleMapsUrl: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                    placeholder="https://maps.google.com/?q=..."
-                  />
-                </div>
-              </div>
-              <div className="flex justify-end gap-2 mt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateVenue(false)}
-                  className="px-4 py-2 text-sm text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={handleCreateVenue}
-                  disabled={!newVenueData.name.trim() || createVenue.isLoading}
-                  className="px-4 py-2 text-sm text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {createVenue.isLoading ? 'Creating...' : 'Create Venue'}
-                </button>
-              </div>
-            </div>
+            <CreateVenueForm
+              onSubmit={handleCreateVenue}
+              onCancel={() => setShowCreateVenue(false)}
+              isLoading={createVenue.isLoading}
+            />
           )}
 
           {/* Form Actions */}
@@ -362,21 +178,15 @@ export function CreateCompetitionForm({ onSuccess, onCancel }: CreateCompetition
         </form>
 
         {/* Error Messages */}
-        {createCompetition.error && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">
-              Failed to create competition: {createCompetition.error.message}
-            </p>
-          </div>
-        )}
+        <ErrorDisplay 
+          title="Failed to create competition" 
+          error={createCompetition.error}
+        />
         
-        {createVenue.error && (
-          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">
-              Failed to create venue: {createVenue.error.message}
-            </p>
-          </div>
-        )}
+        <ErrorDisplay 
+          title="Failed to create venue" 
+          error={createVenue.error}
+        />
       </div>
     </div>
   );
