@@ -25,11 +25,11 @@ function CustomDragLayer() {
         zIndex: 100,
         left: currentOffset.x,
         top: currentOffset.y,
-        width: '200px', // Fixed width for the drag preview
+        width: '180px', // Slightly smaller width for the drag preview to indicate it's being moved
       }}
     >
       <div
-        className="rounded shadow-lg border-2 border-transparent opacity-80"
+        className="rounded shadow-lg border-2 border-blue-400 opacity-90"
         style={{ 
           backgroundColor: item.color + '80',
           height: `${height}px`,
@@ -39,6 +39,9 @@ function CustomDragLayer() {
         <div className="p-1 h-full overflow-hidden relative">
           <div className="text-xs font-medium text-gray-800 truncate">
             {item.event.name}
+          </div>
+          <div className="absolute top-1 right-1 text-xs text-blue-600 font-medium">
+            MOVE
           </div>
         </div>
       </div>
@@ -154,7 +157,7 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
           onMouseDown={handleResizeStart}
           style={{ zIndex: 10 }}
         >
-          <div className="w-8 h-1 bg-gray-400 rounded-full opacity-50 hover:opacity-100" />
+          <div className="w-4 h-1 bg-gray-400 rounded-full opacity-50 hover:opacity-100" />
         </div>
       </div>
     </div>
@@ -170,6 +173,108 @@ interface DroppableVenueColumnProps {
   onEventSelect: (event: ScheduledEvent | null) => void;
   selectedEvent: ScheduledEvent | null;
   onEventUpdate: (eventId: string, updates: Partial<ScheduledEvent>) => void;
+}
+
+// Helper function to calculate overlapping events and their positions
+function calculateEventPositions(events: ScheduledEvent[]) {
+  const eventPositions = new Map<string, { column: number, totalColumns: number }>();
+  
+  if (events.length === 0) return eventPositions;
+  
+  // Sort events by start time, then by duration (longer events first for same start time)
+  const sortedEvents = [...events].sort((a, b) => {
+    if (a.startTime !== b.startTime) {
+      return a.startTime - b.startTime;
+    }
+    return b.duration - a.duration;
+  });
+  
+  // Build overlap groups using a more sophisticated algorithm
+  const overlapGroups: ScheduledEvent[][] = [];
+  
+  for (const event of sortedEvents) {
+    const eventEndTime = event.startTime + event.duration;
+    let assignedToGroup = false;
+    
+    // Try to find an existing group where this event overlaps with any member
+    for (const group of overlapGroups) {
+      const overlapsWithGroup = group.some(groupEvent => {
+        const groupEventEndTime = groupEvent.startTime + groupEvent.duration;
+        return (
+          event.startTime < groupEventEndTime && eventEndTime > groupEvent.startTime
+        );
+      });
+      
+      if (overlapsWithGroup) {
+        // Check if adding this event would create conflicts within the group
+        // For now, we'll use a simple approach and just add it to the first overlapping group
+        group.push(event);
+        assignedToGroup = true;
+        break;
+      }
+    }
+    
+    // If no overlapping group found, create a new one
+    if (!assignedToGroup) {
+      overlapGroups.push([event]);
+    }
+  }
+  
+  // For each group, assign column positions using a more sophisticated layout algorithm
+  for (const group of overlapGroups) {
+    if (group.length === 1) {
+      // Single event, takes full width
+      eventPositions.set(group[0].event.id, { column: 0, totalColumns: 1 });
+      continue;
+    }
+    
+    // For multiple events, we need to find the optimal column assignment
+    // Sort group by start time for column assignment
+    const sortedGroup = [...group].sort((a, b) => a.startTime - b.startTime);
+    
+    // Track which columns are occupied at each time point
+    const columns: { event: ScheduledEvent | null, endTime: number }[] = [];
+    
+    for (const event of sortedGroup) {
+      const eventEndTime = event.startTime + event.duration;
+      
+      // Find the first available column
+      let assignedColumn = -1;
+      for (let i = 0; i < columns.length; i++) {
+        if (columns[i].endTime <= event.startTime) {
+          // This column is free
+          assignedColumn = i;
+          break;
+        }
+      }
+      
+      // If no column is available, create a new one
+      if (assignedColumn === -1) {
+        assignedColumn = columns.length;
+        columns.push({ event: null, endTime: 0 });
+      }
+      
+      // Assign the event to this column
+      columns[assignedColumn] = { event, endTime: eventEndTime };
+      
+      eventPositions.set(event.event.id, {
+        column: assignedColumn,
+        totalColumns: Math.max(columns.length, group.length)
+      });
+    }
+    
+    // Update all events in this group to have the same totalColumns
+    const maxColumns = columns.length;
+    for (const event of group) {
+      const position = eventPositions.get(event.event.id)!;
+      eventPositions.set(event.event.id, {
+        ...position,
+        totalColumns: maxColumns
+      });
+    }
+  }
+  
+  return eventPositions;
 }
 
 function DroppableVenueColumn({ 
@@ -240,6 +345,10 @@ function DroppableVenueColumn({
     dropRef.current = node;
   };
 
+  // Filter events for this day/venue and calculate positions
+  const venueEvents = scheduledEvents.filter(event => event.day === day && event.venue === venue);
+  const eventPositions = calculateEventPositions(venueEvents);
+
   return (
     <div
       ref={combinedRef}
@@ -261,10 +370,16 @@ function DroppableVenueColumn({
       ))}
       
       {/* Render events */}
-      {scheduledEvents
-        .filter(event => event.day === day && event.venue === venue)
-        .map((event) => {
+      {venueEvents.map((event) => {
           const topPosition = ((event.startTime - 480) / 15) * 12;
+          const position = eventPositions.get(event.event.id) || { column: 0, totalColumns: 1 };
+          
+          // Calculate width and left offset based on overlap
+          // Add small gaps between overlapping events for better visual separation
+          const gapPercentage = position.totalColumns > 1 ? 1 : 0; // 1% gap between events
+          const availableWidth = 100 - (gapPercentage * (position.totalColumns - 1));
+          const widthPercentage = availableWidth / position.totalColumns;
+          const leftPercentage = (position.column * (widthPercentage + gapPercentage));
           
           // Debug logging
           console.log('Event positioning:', {
@@ -272,15 +387,21 @@ function DroppableVenueColumn({
             startTime: event.startTime,
             minutesFromStart: event.startTime - 480,
             slotsFromStart: (event.startTime - 480) / 15,
-            topPosition: topPosition
+            topPosition: topPosition,
+            column: position.column,
+            totalColumns: position.totalColumns,
+            widthPercentage,
+            leftPercentage
           });
           
           return (
             <div
               key={event.event.id}
-              className="absolute left-0 w-full"
+              className="absolute"
               style={{
                 top: `${topPosition}px`, // Position based on start time
+                left: `${leftPercentage}%`,
+                width: `${widthPercentage}%`,
               }}
             >
               <ResizableEvent
