@@ -3,6 +3,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Clock, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
+import { 
+  formatTime, 
+  formatDuration, 
+  parseTime, 
+  parseDuration,
+  validateTimeString,
+  validateDurationString 
+} from '../../utils';
 
 export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
   const [editedValues, setEditedValues] = useState<{
@@ -34,48 +42,6 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
       }));
     }
   }, [selectedEvent, isEditing]);
-
-  const formatTime = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const ampm = hours < 12 ? 'am' : 'pm';
-    const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    return `${displayHours}:${mins.toString().padStart(2, '0')}${ampm}`;
-  };
-
-  const formatDuration = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    if (hours === 0) return `${mins}min`;
-    if (mins === 0) return `${hours}h`;
-    return `${hours}h ${mins}min`;
-  };
-
-  const parseTime = (timeStr: string): number | null => {
-    // Parse time in format "10:30am" or "2:15pm"
-    const match = timeStr.match(/^(\d{1,2}):(\d{2})(am|pm)$/i);
-    if (!match) return null;
-    
-    let hours = parseInt(match[1]);
-    const minutes = parseInt(match[2]);
-    const ampm = match[3].toLowerCase();
-    
-    if (ampm === 'pm' && hours !== 12) hours += 12;
-    if (ampm === 'am' && hours === 12) hours = 0;
-    
-    return hours * 60 + minutes;
-  };
-
-  const parseDuration = (durationStr: string): number | null => {
-    // Parse duration in format "1h 30min", "90min", "2h"
-    const match = durationStr.match(/^(?:(\d+)h\s*)?(?:(\d+)min?)?$/i);
-    if (!match) return null;
-    
-    const hours = parseInt(match[1] || '0');
-    const minutes = parseInt(match[2] || '0');
-    
-    return hours * 60 + minutes;
-  };
 
   const handleStartTimeBlur = () => {
     setIsEditing(prev => ({ ...prev, startTime: false }));

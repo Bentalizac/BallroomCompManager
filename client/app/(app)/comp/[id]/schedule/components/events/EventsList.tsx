@@ -3,9 +3,8 @@ import { GripVertical, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { Event, EventData, DraggableEventProps, EventsCategoryProps, EventsListProps } from '../../types';
+import { mockEvents } from '../../data/mockData';
 
-// Re-export types for backward compatibility
-export type { Event, EventData };
 
 function DraggableEvent({ event, onDragEnd }: DraggableEventProps) {
   const [{ isDragging }, drag] = useDrag({
@@ -48,7 +47,6 @@ function EventsCategory({ title, events, onDragEnd }: EventsCategoryProps) {
   );
 }
 
-import { mockEvents } from '../../data/mockData';
 
 export function EventsList({ events = mockEvents, onEventDrop }: EventsListProps) {
   const [localEvents, setLocalEvents] = useState<Event[]>(events);

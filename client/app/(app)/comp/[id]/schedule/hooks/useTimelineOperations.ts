@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { Event, ScheduledEvent } from '../types';
 import { LAYOUT_CONSTANTS } from '../constants';
+import { createScheduledEvent } from '../utils';
 
 export interface TimelineOperations {
   handleEventDrop: (event: Event, day: '10/9' | '10/10', venue: 'Wilk' | 'RB', timeSlot: number) => void;
@@ -24,13 +25,13 @@ export function useTimelineOperations({
     venue: 'Wilk' | 'RB', 
     timeSlot: number
   ) => {
-    const newScheduledEvent: ScheduledEvent = {
-      ...event,
-      startTime: timeSlot,
-      duration: LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION,
+    const newScheduledEvent = createScheduledEvent(
+      event,
+      timeSlot,
+      LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION,
       day,
       venue
-    };
+    );
     
     setScheduledEvents(prev => [...prev, newScheduledEvent]);
   }, [setScheduledEvents]);

@@ -10,7 +10,7 @@ import { SidePanel } from './components/panels/SidePanel';
 import { ScheduledEvent } from './types';
 import { useScheduleState, useKeyboardShortcuts } from './hooks';
 
-function App() {
+export default function Page() {
   const {
     selectedEvent,
     availableEvents,
@@ -49,12 +49,5 @@ function App() {
         />
       </div>
     </DndProvider>
-  );
-}
-
-
-export default function Page() {
-  return (
-    <App />
   );
 }

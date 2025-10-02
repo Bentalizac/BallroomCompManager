@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Event, ScheduledEvent } from '../types';
 import { mockEvents, mockScheduledEvents } from '../data/mockData';
+import { scheduledEventToBasicEvent } from '../utils';
 
 export interface ScheduleState {
   selectedEvent: ScheduledEvent | null;
@@ -30,16 +31,7 @@ export function useScheduleState(): ScheduleState & ScheduleActions {
 
   const handleEventReturnToList = useCallback((event: ScheduledEvent) => {
     // Convert back to basic Event and add to available events
-    const basicEvent: Event = {
-      event: {
-        id: event.event.id.startsWith('scheduled-') ? `${Date.now()}` : event.event.id,
-        name: event.event.name,
-        category: event.event.category,
-        division: event.event.division,
-        type: event.event.type
-      },
-      color: event.color
-    };
+    const basicEvent = scheduledEventToBasicEvent(event);
     
     setAvailableEvents(prev => [...prev, basicEvent]);
     
