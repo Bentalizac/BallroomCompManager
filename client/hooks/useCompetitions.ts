@@ -1,7 +1,7 @@
 import { trpc } from '@/lib/trpc';
 import { useMemo } from 'react';
-import type { Competition } from '@ballroomcompmanager/shared/data/types/competition';
-import type { CompetitionRegistration } from '@ballroomcompmanager/shared/fakedata/competition/fakeCompetitions';
+import type { CompetitionApiType, DomainCompetition } from '@ballroomcompmanager/shared';
+import { competitionApiToDomain } from '@ballroomcompmanager/shared';
 
 // Hook to get all competitions
 export function useCompetitions() {
@@ -70,14 +70,14 @@ export function useCompetitionRegistrations(competitionId: string | undefined) {
 }
 
 // Custom hook for competition display data with computed fields
-export function useCompetitionDisplay(competition: any | undefined) {
+export function useCompetitionDisplay(competition: CompetitionApiType | undefined) {
   return useMemo(() => {
     if (!competition) return null;
     
     const now = new Date();
-    // Handle both camelCase and snake_case field names
-    const startDate = new Date(competition.startDate || competition.start_date);
-    const endDate = new Date(competition.endDate || competition.end_date);
+    // Parse dates from YYYY-MM-DD string format
+    const startDate = new Date(competition.startDate + 'T00:00:00.000Z');
+    const endDate = new Date(competition.endDate + 'T00:00:00.000Z');
     
     return {
       ...competition,
@@ -87,12 +87,7 @@ export function useCompetitionDisplay(competition: any | undefined) {
         month: 'long',
         day: 'numeric'
       }),
-      formattedStartTime: startDate.getHours() === 0 && startDate.getMinutes() === 0 ? 
-        'All Day' : 
-        startDate.toLocaleTimeString('en-US', {
-          hour: '2-digit',
-          minute: '2-digit'
-        }),
+      formattedStartTime: 'All Day', // Date-only format, no time
       formattedEndDate: endDate.toLocaleDateString('en-US', {
         weekday: 'long', 
         year: 'numeric',
@@ -103,15 +98,15 @@ export function useCompetitionDisplay(competition: any | undefined) {
       isOngoing: startDate <= now && endDate >= now,
       isPast: endDate < now,
       daysUntilStart: Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
-      eventCount: competition.events?.length || 0
+      eventCount: competition.events.length
     };
   }, [competition]);
 }
 
 // Hook to check if user can register for a competition
 export function useCanRegister(
-  competition: any | undefined,
-  userRegistration: CompetitionRegistration | undefined,
+  competition: CompetitionApiType | undefined,
+  userRegistration: { status: string } | undefined,
   isAuthenticated: boolean = true
 ) {
   return useMemo(() => {
@@ -137,8 +132,7 @@ export function useCanRegister(
     }
 
     const now = new Date();
-    // Handle both camelCase and snake_case field names
-    const startDate = new Date(competition.startDate || competition.start_date);
+    const startDate = new Date(competition.startDate + 'T00:00:00.000Z');
     
     if (startDate <= now) {
       return {

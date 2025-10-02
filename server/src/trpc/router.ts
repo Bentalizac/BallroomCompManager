@@ -11,6 +11,13 @@ import {
   getSupabaseAdmin,
 } from "../dal/supabase";
 import type { Database } from "../dal/database.types";
+import { CompetitionApi, EventApi } from "@ballroomcompmanager/shared";
+import {
+  mapCompetitionRowToDTO,
+  mapEventRowToDTO,
+  type CompRow,
+  type EventRow,
+} from "./mappers";
 type Context = {
   userId: string | null;
   userToken: string | null;
@@ -89,7 +96,11 @@ const competitionRouter = router({
       });
     }
 
-    return competitions || [];
+    // Map DB rows to DTOs
+    const mapped = (competitions || []).map(mapCompetitionRowToDTO);
+    
+    // Validate with zod schema
+    return z.array(CompetitionApi).parse(mapped);
   }),
 
   // Get competition by ID
@@ -108,29 +119,15 @@ const competitionRouter = router({
           venue:venue_id (
             id,
             name,
-            street,
             city,
-            state,
-            postal_code,
-            country
+            state
           ),
           events:event_info (
             id,
             name,
             start_date,
             end_date,
-            event_status,
-            category_ruleset (
-              id,
-              event_categories (
-                id,
-                name
-              ),
-              rulesets (
-                id,
-                name
-              )
-            )
+            event_status
           )
         `,
         )
@@ -145,7 +142,13 @@ const competitionRouter = router({
         });
       }
 
-      return competition || null;
+      if (!competition) {
+        return null;
+      }
+
+      // Map DB row to DTO and validate
+      const mapped = mapCompetitionRowToDTO(competition);
+      return CompetitionApi.parse(mapped);
     }),
 
   // Get events for a competition
@@ -161,23 +164,7 @@ const competitionRouter = router({
           name,
           start_date,
           end_date,
-          event_status,
-          category_ruleset (
-            id,
-            event_categories (
-              id,
-              name
-            ),
-            rulesets (
-              id,
-              name,
-              scoring_methods (
-                id,
-                name,
-                description
-              )
-            )
-          )
+          event_status
         `,
         )
         .eq("comp_id", input.competitionId)
@@ -191,7 +178,11 @@ const competitionRouter = router({
         });
       }
 
-      return events || [];
+      // Map DB rows to DTOs
+      const mapped = (events || []).map(mapEventRowToDTO);
+      
+      // Validate with zod schema
+      return z.array(EventApi).parse(mapped);
     }),
 
   // Get all event registrations for a competition (admin/organizer use)

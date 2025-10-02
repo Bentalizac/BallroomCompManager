@@ -22,3 +22,27 @@ export {
 //export { mockEvents } from './fakedata/event/fakeEvents';
 
 // API types exports
+export {
+  EventStatus,
+  VenueApi,
+  EventApi,
+  CompetitionApi,
+  type VenueApi as VenueApiType,
+  type EventApi as EventApiType,
+  type CompetitionApi as CompetitionApiType,
+  type EventStatus as EventStatusType,
+} from './api/schemas';
+
+// Domain types exports
+export type {
+  Venue as DomainVenue,
+  Event as DomainEvent,
+  Competition as DomainCompetition,
+} from './domain/types';
+
+// Domain mappers exports
+export {
+  venueApiToDomain,
+  eventApiToDomain,
+  competitionApiToDomain,
+} from './domain/mappers';
