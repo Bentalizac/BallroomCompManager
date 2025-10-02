@@ -87,7 +87,7 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
     
     const newStartTime = parseTime(editedValues.startTime);
     if (newStartTime !== null && selectedEvent && onEventUpdate) {
-      onEventUpdate(selectedEvent.id, { startTime: newStartTime });
+      onEventUpdate(selectedEvent.event.id, { startTime: newStartTime });
       // Update end time display
       setEditedValues(prev => ({
         ...prev,
@@ -107,7 +107,7 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
     
     const newDuration = parseDuration(editedValues.duration);
     if (newDuration !== null && newDuration > 0 && selectedEvent && onEventUpdate) {
-      onEventUpdate(selectedEvent.id, { duration: newDuration });
+      onEventUpdate(selectedEvent.event.id, { duration: newDuration });
       // Update end time display
       setEditedValues(prev => ({
         ...prev,
@@ -129,7 +129,7 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
     if (newEndTime !== null && selectedEvent && onEventUpdate) {
       const newDuration = newEndTime - selectedEvent.startTime;
       if (newDuration > 0) {
-        onEventUpdate(selectedEvent.id, { duration: newDuration });
+        onEventUpdate(selectedEvent.event.id, { duration: newDuration });
         // Update duration display
         setEditedValues(prev => ({
           ...prev,
@@ -195,9 +195,9 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
           {selectedEvent ? (
             <div className="bg-white rounded-lg p-4 space-y-3">
               <div>
-                <div className="font-medium text-gray-900">{selectedEvent.name}</div>
-                <div className="text-sm text-gray-600">{selectedEvent.division}</div>
-                <div className="text-sm text-gray-600">{selectedEvent.type}</div>
+                <div className="font-medium text-gray-900">{selectedEvent.event.name}</div>
+                <div className="text-sm text-gray-600">{selectedEvent.event.division}</div>
+                <div className="text-sm text-gray-600">{selectedEvent.event.type}</div>
               </div>
               
               <div className="space-y-3 text-sm">

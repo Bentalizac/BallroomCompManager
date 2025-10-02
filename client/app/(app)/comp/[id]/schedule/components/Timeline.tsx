@@ -38,7 +38,7 @@ function CustomDragLayer() {
       >
         <div className="p-1 h-full overflow-hidden relative">
           <div className="text-xs font-medium text-gray-800 truncate">
-            {item.name}
+            {item.event.name}
           </div>
         </div>
       </div>
@@ -106,7 +106,7 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
       const deltaY = e.clientY - startYRef.current;
       const deltaMinutes = Math.round((deltaY / 12) * 15); // 12px per 15-minute slot
       const newDuration = Math.max(15, startHeightRef.current + deltaMinutes); // Minimum 15 minutes
-      onEventUpdate(event.id, { duration: newDuration });
+      onEventUpdate(event.event.id, { duration: newDuration });
     };
 
     const handleMouseUp = () => {
@@ -125,7 +125,7 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
     <div
       ref={drag as any}
       className={`absolute left-0 top-0 w-full rounded shadow-sm border-2 transition-colors ${
-        selectedEvent?.id === event.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
+        selectedEvent?.event.id === event.event.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
       } ${isDragState || isDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'} ${isResizing ? 'cursor-ns-resize' : ''}`}
       style={{ 
         backgroundColor: event.color + '80',
@@ -141,9 +141,9 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
     >
       <div className="p-1 h-full overflow-hidden relative">
         <div className="text-xs font-medium text-gray-800 truncate">
-          {event.name}
+          {event.event.name}
         </div>
-        {selectedEvent?.id === event.id && (
+        {selectedEvent?.event.id === event.event.id && (
           <div className="absolute top-1 right-1 text-xs text-blue-600 font-medium">
             DEL
           </div>
@@ -222,7 +222,7 @@ function DroppableVenueColumn({
         
         if ('startTime' in item) {
           // This is a scheduled event being moved
-          onEventMove(item.id, day, venue, clampedTimeSlot);
+          onEventMove(item.event.id, day, venue, clampedTimeSlot);
         } else {
           // This is a new event from the events list
           onEventDrop(item, day, venue, clampedTimeSlot);
@@ -268,7 +268,7 @@ function DroppableVenueColumn({
           
           // Debug logging
           console.log('Event positioning:', {
-            eventName: event.name,
+            eventName: event.event.name,
             startTime: event.startTime,
             minutesFromStart: event.startTime - 480,
             slotsFromStart: (event.startTime - 480) / 15,
@@ -277,7 +277,7 @@ function DroppableVenueColumn({
           
           return (
             <div
-              key={event.id}
+              key={event.event.id}
               className="absolute left-0 w-full"
               style={{
                 top: `${topPosition}px`, // Position based on start time
@@ -311,7 +311,6 @@ export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, setSch
   const handleEventDrop = (event: Event, day: '10/9' | '10/10', venue: 'Wilk' | 'RB', timeSlot: number) => {
     const newScheduledEvent: ScheduledEvent = {
       ...event,
-      id: `scheduled-${Date.now()}`,
       startTime: timeSlot,
       duration: 60, // Default 1 hour
       day,
@@ -324,7 +323,7 @@ export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, setSch
   const handleEventMove = (eventId: string, newDay: '10/9' | '10/10', newVenue: 'Wilk' | 'RB', newTimeSlot: number) => {
     setScheduledEvents(prev => 
       prev.map(event => 
-        event.id === eventId 
+        event.event.id === eventId 
           ? { ...event, day: newDay, venue: newVenue, startTime: newTimeSlot }
           : event
       )
@@ -334,7 +333,7 @@ export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, setSch
   const handleEventUpdate = (eventId: string, updates: Partial<ScheduledEvent>) => {
     setScheduledEvents(prev => 
       prev.map(event => 
-        event.id === eventId ? { ...event, ...updates } : event
+        event.event.id === eventId ? { ...event, ...updates } : event
       )
     );
   };

@@ -3,12 +3,16 @@ import { GripVertical, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 
-export interface Event {
+export interface EventData {
   id: string;
   name: string;
   category: 'Latin' | 'Ballroom' | 'Other';
   division?: string;
   type?: string;
+}
+
+export interface Event {
+  event: EventData;
   color: string;
 }
 
@@ -27,7 +31,7 @@ function DraggableEvent({ event, onDragEnd }: DraggableEventProps) {
     end: (item, monitor) => {
       // If the item was dropped on a valid target, remove it from the list
       if (monitor.didDrop() && onDragEnd) {
-        onDragEnd(event.id);
+        onDragEnd(event.event.id);
       }
     },
   });
@@ -40,7 +44,7 @@ function DraggableEvent({ event, onDragEnd }: DraggableEventProps) {
       }`}
     >
       <GripVertical className="w-4 h-4 text-gray-400" />
-      <span className="text-sm">{event.name}</span>
+      <span className="text-sm">{event.event.name}</span>
     </div>
   );
 }
@@ -57,7 +61,7 @@ function EventsCategory({ title, events, onDragEnd }: EventsCategoryProps) {
       <h3 className="font-medium mb-3 text-gray-700">{title}</h3>
       <div className="space-y-2">
         {events.map((event) => (
-          <DraggableEvent key={event.id} event={event} onDragEnd={onDragEnd} />
+          <DraggableEvent key={event.event.id} event={event} onDragEnd={onDragEnd} />
         ))}
       </div>
     </div>
@@ -65,20 +69,62 @@ function EventsCategory({ title, events, onDragEnd }: EventsCategoryProps) {
 }
 
 const mockEvents: Event[] = [
-  { id: '1', name: 'Pre Champ Latin', category: 'Latin', division: 'Pre Championship', type: 'Latin', color: '#b8a8d4' },
-  { id: '2', name: 'Amateur Latin', category: 'Latin', division: 'Amateur', type: 'Latin', color: '#b8a8d4' },
-  { id: '3', name: 'Novice Latin', category: 'Latin', division: 'Novice', type: 'Latin', color: '#b8a8d4' },
-  { id: '4', name: 'Class 485', category: 'Latin', division: 'Class', type: 'Latin', color: '#b8a8d4' },
-  { id: '5', name: 'Class 385', category: 'Latin', division: 'Class', type: 'Latin', color: '#b8a8d4' },
-  { id: '6', name: 'Class 383', category: 'Latin', division: 'Class', type: 'Latin', color: '#b8a8d4' },
-  { id: '7', name: 'Pre Champ Ballroom', category: 'Ballroom', division: 'Pre Championship', type: 'Ballroom', color: '#8fa4d4' },
-  { id: '8', name: 'Amateur Ballroom', category: 'Ballroom', division: 'Amateur', type: 'Ballroom', color: '#8fa4d4' },
-  { id: '9', name: 'Novice Ballroom', category: 'Ballroom', division: 'Novice', type: 'Ballroom', color: '#8fa4d4' },
-  { id: '10', name: 'Class 484', category: 'Ballroom', division: 'Class', type: 'Ballroom', color: '#8fa4d4' },
-  { id: '11', name: 'Class 384', category: 'Ballroom', division: 'Class', type: 'Ballroom', color: '#8fa4d4' },
-  { id: '12', name: 'Class 382', category: 'Ballroom', division: 'Class', type: 'Ballroom', color: '#8fa4d4' },
-  { id: '13', name: 'Formation Teams', category: 'Other', division: 'Formation', type: 'Teams', color: '#a8c4d4' },
-  { id: '14', name: 'Cabaret', category: 'Other', division: 'Cabaret', type: 'Entertainment', color: '#a8c4d4' },
+  { 
+    event: { id: '1', name: 'Pre Champ Latin', category: 'Latin', division: 'Pre Championship', type: 'Latin' }, 
+    color: '#b8a8d4' 
+  },
+  { 
+    event: { id: '2', name: 'Amateur Latin', category: 'Latin', division: 'Amateur', type: 'Latin' }, 
+    color: '#b8a8d4' 
+  },
+  { 
+    event: { id: '3', name: 'Novice Latin', category: 'Latin', division: 'Novice', type: 'Latin' }, 
+    color: '#b8a8d4' 
+  },
+  { 
+    event: { id: '4', name: 'Class 485', category: 'Latin', division: 'Class', type: 'Latin' }, 
+    color: '#b8a8d4' 
+  },
+  { 
+    event: { id: '5', name: 'Class 385', category: 'Latin', division: 'Class', type: 'Latin' }, 
+    color: '#b8a8d4' 
+  },
+  { 
+    event: { id: '6', name: 'Class 383', category: 'Latin', division: 'Class', type: 'Latin' }, 
+    color: '#b8a8d4' 
+  },
+  { 
+    event: { id: '7', name: 'Pre Champ Ballroom', category: 'Ballroom', division: 'Pre Championship', type: 'Ballroom' }, 
+    color: '#8fa4d4' 
+  },
+  { 
+    event: { id: '8', name: 'Amateur Ballroom', category: 'Ballroom', division: 'Amateur', type: 'Ballroom' }, 
+    color: '#8fa4d4' 
+  },
+  { 
+    event: { id: '9', name: 'Novice Ballroom', category: 'Ballroom', division: 'Novice', type: 'Ballroom' }, 
+    color: '#8fa4d4' 
+  },
+  { 
+    event: { id: '10', name: 'Class 484', category: 'Ballroom', division: 'Class', type: 'Ballroom' }, 
+    color: '#8fa4d4' 
+  },
+  { 
+    event: { id: '11', name: 'Class 384', category: 'Ballroom', division: 'Class', type: 'Ballroom' }, 
+    color: '#8fa4d4' 
+  },
+  { 
+    event: { id: '12', name: 'Class 382', category: 'Ballroom', division: 'Class', type: 'Ballroom' }, 
+    color: '#8fa4d4' 
+  },
+  { 
+    event: { id: '13', name: 'Formation Teams', category: 'Other', division: 'Formation', type: 'Teams' }, 
+    color: '#a8c4d4' 
+  },
+  { 
+    event: { id: '14', name: 'Cabaret', category: 'Other', division: 'Cabaret', type: 'Entertainment' }, 
+    color: '#a8c4d4' 
+  },
 ];
 
 interface EventsListProps {
@@ -95,16 +141,16 @@ export function EventsList({ events = mockEvents, onEventDrop }: EventsListProps
   }, [events]);
 
   const handleDragEnd = (eventId: string) => {
-    const droppedEvent = localEvents.find(event => event.id === eventId);
+    const droppedEvent = localEvents.find(event => event.event.id === eventId);
     if (droppedEvent && onEventDrop) {
       onEventDrop(droppedEvent);
     }
-    setLocalEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
+    setLocalEvents(prevEvents => prevEvents.filter(event => event.event.id !== eventId));
   };
 
-  const latinEvents = localEvents.filter(e => e.category === 'Latin');
-  const ballroomEvents = localEvents.filter(e => e.category === 'Ballroom');
-  const otherEvents = localEvents.filter(e => e.category === 'Other');
+  const latinEvents = localEvents.filter(e => e.event.category === 'Latin');
+  const ballroomEvents = localEvents.filter(e => e.event.category === 'Ballroom');
+  const otherEvents = localEvents.filter(e => e.event.category === 'Other');
 
   return (
     <div className="w-64 bg-secondary flex flex-col h-full">
