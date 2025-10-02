@@ -1,1 +1,1 @@
-{"version":3,"file":"scoringMethods.d.ts","sourceRoot":"","sources":["../../../data/enums/scoringMethods.ts"],"names":[],"mappings":"AAAA,oBAAY,cAAc;IACtB,QAAQ,IAAI;CACf"}
+{"version":3,"file":"scoringMethods.d.ts","sourceRoot":"","sources":["../../../data/enums/scoringMethods.ts"],"names":[],"mappings":"AAAA,oBAAY,cAAc;IACxB,QAAQ,aAAa;CACtB"}

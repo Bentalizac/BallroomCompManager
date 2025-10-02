@@ -6,4 +6,7 @@ export type { Registration, EventRegistration, } from "./data/types/registration
 export { CompetitionRole } from "./data/enums/roles";
 export { ScoringMethods } from "./data/enums/scoringMethods";
 export { mockUsers, mockBallroomCompetitors, mockParticipants, } from "./fakedata/user/fakeUsers";
+export { EventStatus, VenueApi, EventApi, CompetitionApi, type VenueApi as VenueApiType, type EventApi as EventApiType, type CompetitionApi as CompetitionApiType, type EventStatus as EventStatusType, } from './api/schemas';
+export type { Venue as DomainVenue, Event as DomainEvent, Competition as DomainCompetition, } from './domain/types';
+export { venueApiToDomain, eventApiToDomain, competitionApiToDomain, } from './domain/mappers';
 //# sourceMappingURL=index.d.ts.map

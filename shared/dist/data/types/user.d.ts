@@ -1,5 +1,8 @@
 import { EventType } from "../enums/eventTypes";
 import { CompetitionRole } from "../enums/roles";
+/**
+ * Any user of this software. Auth info is handled by Supabase
+ * */
 export interface User {
     id: string;
     firstName: string;

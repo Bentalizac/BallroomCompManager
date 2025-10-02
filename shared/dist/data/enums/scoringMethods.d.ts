@@ -1,4 +1,4 @@
 export declare enum ScoringMethods {
-    Ballroom = 0
+    Ballroom = "ballroom"
 }
 //# sourceMappingURL=scoringMethods.d.ts.map
