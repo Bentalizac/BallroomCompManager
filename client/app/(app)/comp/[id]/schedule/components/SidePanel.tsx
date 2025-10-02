@@ -1,5 +1,5 @@
 import { ScheduledEvent } from './Timeline';
-import { Alert, AlertDescription } from './ui/alert';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertTriangle, Clock, Users } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
