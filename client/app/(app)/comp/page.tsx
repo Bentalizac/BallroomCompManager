@@ -1,4 +1,5 @@
 import { CompetitionsList } from "@/components/competitions/CompetitionsList";
+import { CreateCompetitionButton } from "@/components/competitions/CreateCompetitionButton";
 
 export default function CompetitionsPage() {
     return (
@@ -9,6 +10,11 @@ export default function CompetitionsPage() {
             </div>
             
             <CompetitionsList />
+            
+            {/* Create Competition Button */}
+            <div className="mt-12 border-t border-gray-200 pt-8">
+                <CreateCompetitionButton />
+            </div>
         </div>
     );
 }

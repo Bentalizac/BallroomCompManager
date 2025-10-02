@@ -14,7 +14,9 @@
     "db:migrate": "supabase migration up",
     "db:generate-types": "supabase gen types typescript --local > server/src/dal/database.types.ts",
     "db:new-migration": "supabase migration new",
-    "db:dashboard": "supabase dashboard"
+    "db:dashboard": "supabase dashboard",
+    "db:seed": "supabase db reset && psql \"$DATABASE_URL\" -f server/supabase/seed/seed.sql",
+    "test:rls": "cd server && ts-node ../scripts/rls-smoke.ts"
   },
   "keywords": [],
   "author": "",

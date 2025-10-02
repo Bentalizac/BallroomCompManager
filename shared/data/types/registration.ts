@@ -1,4 +1,4 @@
-import { eventRoles } from "../enums/eventRoles";
+import { EventRoles } from "../enums/eventRoles";
 
 export interface Registration {
   id: string;

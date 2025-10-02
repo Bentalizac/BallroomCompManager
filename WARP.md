@@ -103,9 +103,67 @@ npm run db:new-migration migration_name
 
 # Open Supabase dashboard
 npm run db:dashboard
+
+# Seed database with test data
+npm run db:seed
+
+# Test Row Level Security policies
+npm run test:rls
 ```
 
+### Security & Authorization
+
+The system implements hardened Row Level Security (RLS) and role-based access control:
+
+**Role Enums**: Consistent enum-based roles prevent 'Judge' vs 'judge' drift
+- `participant_role`: 'spectator', 'competitor', 'organizer', 'judge'
+- `event_role`: 'competitor', 'judge', 'scrutineer'
+
+**JWT Authentication**: Server verifies Supabase JWT tokens for all protected operations
+
+**RLS Policies**: Database-level security enforces:
+- Competitors can only manage their own registrations
+- Organizers have full access to their competition data
+- Judges can only modify results for events they're judging
+- Public read access to results, restricted write access
+
+**CSV Export Endpoints**:
+- `GET /export/event/:id/results.csv` - Competition results (admin only)
+- `GET /export/event/:id/registrations.csv` - Event registrations (admin only)
+- Development mode allows unauthenticated access for testing
+
 ## Development Workflow
+
+### Local Rehearsal (Mock Competition)
+
+To shadow a mock competition and test live results safely:
+
+```bash
+# 1. Start and set up database
+npm run db:start
+npm run db:generate-types
+
+# 2. Seed with mock competition data
+npm run db:seed
+
+# 3. Start the server
+cd server && npm run dev
+
+# 4. Test CSV exports (development mode)
+curl http://localhost:3001/export/event/80000000-8000-8000-8000-800000000001/results.csv
+curl http://localhost:3001/export/event/80000000-8000-8000-8000-800000000001/registrations.csv
+
+# 5. Verify RLS policies
+npm run test:rls
+```
+
+The seed data creates:
+- **Competition**: Bay Area Open Championship 2024
+- **Admin**: Alice Admin (can export CSVs)
+- **Competitors**: David, Eve, Frank, Grace
+- **Judges**: Bob Judge, Carol Scrutineer
+- **Events**: Amateur Standard, Amateur Latin, Professional Smooth
+- **Sample Results**: For completed events
 
 ### Working with Shared Types
 1. When adding new types or utilities, add them to the `shared` package

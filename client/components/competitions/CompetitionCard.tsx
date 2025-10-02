@@ -7,16 +7,18 @@ import {
   useCanRegister,
   useRegisterForCompetition,
 } from "@/hooks/useCompetitions";
+import { useAuth } from "@/providers/auth/authProvider";
 
 interface CompetitionCardProps {
   competitionId: string;
-  userId?: string; // In real app, this would come from auth context
 }
 
 export function CompetitionCard({
   competitionId,
-  userId = "user-1",
 }: CompetitionCardProps) {
+  // Get authenticated user from auth context
+  const { user } = useAuth();
+  const userId = user?.id;
   // Fetch competition data
   const { data: competition, isLoading, error } = useCompetition(competitionId);
 
@@ -27,13 +29,13 @@ export function CompetitionCard({
   const { data: userRegistration } = useUserRegistration(competitionId, userId);
 
   // Check if user can register
-  const { canRegister, reason } = useCanRegister(competition, userRegistration);
+  const { canRegister, reason } = useCanRegister(competition, userRegistration, !!user);
 
   // Registration mutation
   const registerMutation = useRegisterForCompetition();
 
   const handleRegister = () => {
-    if (canRegister) {
+    if (canRegister && userId) {
       registerMutation.mutate({
         competitionId,
         userId,
@@ -133,8 +135,8 @@ export function CompetitionCard({
         )}
       </div>
 
-      {/* Registration Status */}
-      {userRegistration && (
+      {/* Registration Status - Only show if user is authenticated */}
+      {user && userRegistration && (
         <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded">
           <p className="text-sm font-medium text-blue-800">
             Registration Status:{" "}
@@ -149,7 +151,19 @@ export function CompetitionCard({
       )}
 
       {/* Registration Button */}
-      {canRegister ? (
+      {!user ? (
+        // Anonymous user - show login prompt
+        <div className="w-full bg-gray-100 text-gray-600 px-4 py-2 rounded text-center">
+          <p className="text-sm mb-2">Sign in to register for competitions</p>
+          <button
+            onClick={() => window.location.href = '/auth'}
+            className="text-blue-600 hover:text-blue-800 font-medium text-sm"
+          >
+            Sign In
+          </button>
+        </div>
+      ) : canRegister ? (
+        // Authenticated user can register
         <button
           onClick={handleRegister}
           disabled={registerMutation.isLoading}
@@ -160,6 +174,7 @@ export function CompetitionCard({
             : "Register for Competition"}
         </button>
       ) : (
+        // Authenticated user cannot register (already registered, competition started, etc.)
         <div className="w-full bg-gray-100 text-gray-500 px-4 py-2 rounded text-center">
           {reason}
         </div>

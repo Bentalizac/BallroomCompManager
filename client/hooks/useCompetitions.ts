@@ -108,13 +108,21 @@ export function useCompetitionDisplay(competition: Competition | undefined) {
 // Hook to check if user can register for a competition
 export function useCanRegister(
   competition: Competition | undefined,
-  userRegistration: CompetitionRegistration | undefined
+  userRegistration: CompetitionRegistration | undefined,
+  isAuthenticated: boolean = true
 ) {
   return useMemo(() => {
     if (!competition) {
       return {
         canRegister: false,
         reason: 'Competition not found'
+      };
+    }
+
+    if (!isAuthenticated) {
+      return {
+        canRegister: false,
+        reason: 'Please sign in to register'
       };
     }
 
@@ -142,10 +150,10 @@ export function useCanRegister(
       canRegister: true,
       reason: null
     };
-  }, [competition, userRegistration]);
+  }, [competition, userRegistration, isAuthenticated]);
 }
 
-// Hook to create a new competition (admin only)
+// Hook to create a new competition
 export function useCreateCompetition() {
   const utils = trpc.useContext();
   
@@ -188,6 +196,57 @@ export function useDeleteCompetition() {
     },
     onError: (error) => {
       console.error('Failed to delete competition:', error.message);
+    }
+  });
+}
+
+// Hook to create a new event for a competition
+export function useCreateEvent() {
+  const utils = trpc.useContext();
+  
+  return trpc.event.create.useMutation({
+    onSuccess: (data) => {
+      // Invalidate related queries
+      utils.competition.getAll.invalidate();
+      utils.competition.getById.invalidate({ id: data.competitionId });
+      utils.competition.getEvents.invalidate({ competitionId: data.competitionId });
+    },
+    onError: (error) => {
+      console.error('Failed to create event:', error.message);
+    }
+  });
+}
+
+// Hook to update an event (admin only)
+export function useUpdateEvent() {
+  const utils = trpc.useContext();
+  
+  return trpc.event.update.useMutation({
+    onSuccess: (data) => {
+      // Invalidate related queries
+      utils.competition.getAll.invalidate();
+      utils.competition.getById.invalidate({ id: data.competitionId });
+      utils.competition.getEvents.invalidate({ competitionId: data.competitionId });
+    },
+    onError: (error) => {
+      console.error('Failed to update event:', error.message);
+    }
+  });
+}
+
+// Hook to delete an event (admin only)
+export function useDeleteEvent() {
+  const utils = trpc.useContext();
+  
+  return trpc.event.delete.useMutation({
+    onSuccess: () => {
+      // Invalidate all related queries since we don't know the competition ID
+      utils.competition.getAll.invalidate();
+      utils.competition.getById.invalidate();
+      utils.competition.getEvents.invalidate();
+    },
+    onError: (error) => {
+      console.error('Failed to delete event:', error.message);
     }
   });
 }

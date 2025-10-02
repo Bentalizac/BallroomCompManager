@@ -60,8 +60,6 @@ export function CompetitionsList() {
           <CompetitionCard 
             key={competition.id} 
             competitionId={competition.id}
-            // In a real app, userId would come from auth context
-            userId="user-4" 
           />
         ))}
       </div>
