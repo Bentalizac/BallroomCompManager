@@ -48,7 +48,10 @@ export function VenueColumn({
   };
 
   // Filter events for this day/venue and calculate positions
-  const venueEvents = scheduledEvents.filter(event => event.day === day && event.venue === venue);
+  const venueEvents = scheduledEvents.filter(event => 
+    event.day.toDateString() === day.toDateString() && 
+    event.venue.name === venue.name
+  );
   const eventPositions = useEventPositioning(venueEvents);
 
   return (

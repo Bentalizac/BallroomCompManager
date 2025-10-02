@@ -1,4 +1,4 @@
-import { Venue, Day, EventCategory } from '../types';
+import { Venue } from '../types';
 
 // Time constants
 export const TIME_CONSTANTS = {
@@ -18,33 +18,8 @@ export const LAYOUT_CONSTANTS = {
   DRAG_PREVIEW_WIDTH: 180 // Width of drag preview in pixels
 } as const;
 
-// Available venues
-export const VENUES = [Venue.WILK, Venue.RB] as const;
-
-// Available days
-export const DAYS = [Day.DAY_1, Day.DAY_2] as const;
-
-// Event colors by category
-export const EVENT_COLORS = {
-  [EventCategory.LATIN]: '#b8a8d4',
-  [EventCategory.BALLROOM]: '#8fa4d4',
-  [EventCategory.OTHER]: '#d4a8b8'
-} as const;
-
 // Generate time slots array
 export const TIME_SLOTS = Array.from(
   { length: TIME_CONSTANTS.TOTAL_SLOTS }, 
   (_, i) => TIME_CONSTANTS.START_TIME + i * TIME_CONSTANTS.SLOT_INTERVAL
 );
-
-// Day labels
-export const DAY_LABELS = {
-  [Day.DAY_1]: '10/9',
-  [Day.DAY_2]: '10/10'
-} as const;
-
-// Venue labels
-export const VENUE_LABELS = {
-  [Venue.WILK]: 'Wilk',
-  [Venue.RB]: 'RB'
-} as const;

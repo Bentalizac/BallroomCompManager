@@ -1,4 +1,4 @@
-import { ScheduledEvent, Event, EventData } from '../types';
+import { ScheduledEvent, Event, Venue } from '../types';
 
 /**
  * Check if two events overlap in time
@@ -31,10 +31,13 @@ export function groupEventsByVenueAndDay(events: ScheduledEvent[]): {
  */
 export function filterEventsByVenueAndDay(
   events: ScheduledEvent[], 
-  day: '10/9' | '10/10', 
-  venue: 'Wilk' | 'RB'
+  day: Date, 
+  venue: Venue
 ): ScheduledEvent[] {
-  return events.filter(event => event.day === day && event.venue === venue);
+  return events.filter(event => 
+    event.day.toDateString() === day.toDateString() && 
+    event.venue.name === venue.name
+  );
 }
 
 /**
@@ -90,8 +93,12 @@ export function scheduledEventToBasicEvent(scheduledEvent: ScheduledEvent): Even
         : scheduledEvent.event.id,
       name: scheduledEvent.event.name,
       category: scheduledEvent.event.category,
-      division: scheduledEvent.event.division,
-      type: scheduledEvent.event.type
+      competitionId: scheduledEvent.event.competitionId,
+      competitors: scheduledEvent.event.competitors,
+      judges: scheduledEvent.event.judges,
+      scoring: scheduledEvent.event.scoring,
+      startDate: scheduledEvent.event.startDate,
+      endDate: scheduledEvent.event.endDate
     },
     color: scheduledEvent.color
   };
@@ -104,8 +111,8 @@ export function createScheduledEvent(
   event: Event,
   startTime: number,
   duration: number,
-  day: '10/9' | '10/10',
-  venue: 'Wilk' | 'RB'
+  day: Date,
+  venue: Venue
 ): ScheduledEvent {
   return {
     ...event,

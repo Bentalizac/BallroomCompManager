@@ -1,28 +1,30 @@
 import { useCallback } from 'react';
-import { Event, ScheduledEvent } from '../types';
+import { Event, ScheduledEvent, Venue } from '../types';
 import { LAYOUT_CONSTANTS } from '../constants';
 import { createScheduledEvent } from '../utils';
 
 export interface TimelineOperations {
-  handleEventDrop: (event: Event, day: '10/9' | '10/10', venue: 'Wilk' | 'RB', timeSlot: number) => void;
-  handleEventMove: (eventId: string, newDay: '10/9' | '10/10', newVenue: 'Wilk' | 'RB', newTimeSlot: number) => void;
+  handleEventDrop: (event: Event, day: Date, venue: Venue, timeSlot: number) => void;
+  handleEventMove: (eventId: string, newDay: Date, newVenue: Venue, newTimeSlot: number) => void;
   handleEventUpdate: (eventId: string, updates: Partial<ScheduledEvent>) => void;
 }
 
 export interface UseTimelineOperationsProps {
   setScheduledEvents: React.Dispatch<React.SetStateAction<ScheduledEvent[]>>;
+  setAvailableEvents?: React.Dispatch<React.SetStateAction<Event[]>>;
   onEventUpdate?: (eventId: string, updates: Partial<ScheduledEvent>) => void;
 }
 
 export function useTimelineOperations({
   setScheduledEvents,
+  setAvailableEvents,
   onEventUpdate
 }: UseTimelineOperationsProps): TimelineOperations {
   
   const handleEventDrop = useCallback((
     event: Event, 
-    day: '10/9' | '10/10', 
-    venue: 'Wilk' | 'RB', 
+    day: Date, 
+    venue: Venue, 
     timeSlot: number
   ) => {
     const newScheduledEvent = createScheduledEvent(
@@ -34,12 +36,17 @@ export function useTimelineOperations({
     );
     
     setScheduledEvents(prev => [...prev, newScheduledEvent]);
-  }, [setScheduledEvents]);
+    
+    // Remove from available events
+    if (setAvailableEvents) {
+      setAvailableEvents(prev => prev.filter(e => e.event.id !== event.event.id));
+    }
+  }, [setScheduledEvents, setAvailableEvents]);
 
   const handleEventMove = useCallback((
     eventId: string, 
-    newDay: '10/9' | '10/10', 
-    newVenue: 'Wilk' | 'RB', 
+    newDay: Date, 
+    newVenue: Venue, 
     newTimeSlot: number
   ) => {
     setScheduledEvents(prev => 

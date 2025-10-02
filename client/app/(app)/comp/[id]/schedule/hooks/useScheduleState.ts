@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Event, ScheduledEvent } from '../types';
-import { mockEvents, mockScheduledEvents } from '../data/mockData';
+import { mockEvents } from '../data/mockData';
 import { scheduledEventToBasicEvent } from '../utils';
 
 export interface ScheduleState {
@@ -22,7 +22,7 @@ export interface ScheduleActions {
 export function useScheduleState(): ScheduleState & ScheduleActions {
   const [selectedEvent, setSelectedEvent] = useState<ScheduledEvent | null>(null);
   const [availableEvents, setAvailableEvents] = useState<Event[]>(mockEvents);
-  const [scheduledEvents, setScheduledEvents] = useState<ScheduledEvent[]>(mockScheduledEvents);
+  const [scheduledEvents, setScheduledEvents] = useState<ScheduledEvent[]>([]);
 
   const handleEventDrop = useCallback((event: Event) => {
     // Remove from available events when dropped on timeline

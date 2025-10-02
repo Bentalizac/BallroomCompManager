@@ -1,21 +1,16 @@
-export interface EventData {
-  id: string;
-  name: string;
-  category: 'Latin' | 'Ballroom' | 'Other';
-  division?: string;
-  type?: string;
-}
+import { EventType } from '@/../shared/data/enums/eventTypes';
+import { CompEvent } from '@/../shared/data/types/event';
 
 export interface Event {
-  event: EventData;
+  event: CompEvent;
   color: string;
 }
 
 export interface ScheduledEvent extends Event {
   startTime: number; // minutes from midnight
   duration: number; // minutes
-  day: '10/9' | '10/10';
-  venue: 'Wilk' | 'RB';
+  day: Date;
+  venue: Venue;
 }
 
 export interface EventPosition {
@@ -23,36 +18,37 @@ export interface EventPosition {
   totalColumns: number;
 }
 
-// Enums for better type safety
-export enum Venue {
-  WILK = 'Wilk',
-  RB = 'RB'
+export interface Venue {
+  name: string;
 }
 
-export enum Day {
-  DAY_1 = '10/9',
-  DAY_2 = '10/10'
-}
-
-export enum EventCategory {
-  LATIN = 'Latin',
-  BALLROOM = 'Ballroom',
-  OTHER = 'Other'
-}
-
-// Component Props Interfaces
-export interface TimelineProps {
+export interface DayColumnProps {
+  day: Date;
+  onEventDrop: (event: Event, day: Date, venue: Venue, timeSlot: number) => void;
+  onEventMove: (eventId: string, newDay: Date, newVenue: Venue, newTimeSlot: number) => void;
+  scheduledEvents: ScheduledEvent[];
   onEventSelect: (event: ScheduledEvent | null) => void;
   selectedEvent: ScheduledEvent | null;
-  scheduledEvents: ScheduledEvent[];
-  setScheduledEvents: React.Dispatch<React.SetStateAction<ScheduledEvent[]>>;
+  onEventUpdate: (eventId: string, updates: Partial<ScheduledEvent>) => void;
+  locations: Venue[];
+}
+
+
+export interface TimelineProps {
+    onEventSelect: (event: ScheduledEvent | null) => void;
+    selectedEvent: ScheduledEvent | null;
+    scheduledEvents: ScheduledEvent[];
+    setScheduledEvents: React.Dispatch<React.SetStateAction<ScheduledEvent[]>>;
+    setAvailableEvents?: React.Dispatch<React.SetStateAction<Event[]>>;
+    days: Date[];
+    locations: Venue[];
 }
 
 export interface VenueColumnProps {
-  day: '10/9' | '10/10';
-  venue: 'Wilk' | 'RB';
-  onEventDrop: (event: Event, day: '10/9' | '10/10', venue: 'Wilk' | 'RB', timeSlot: number) => void;
-  onEventMove: (eventId: string, newDay: '10/9' | '10/10', newVenue: 'Wilk' | 'RB', newTimeSlot: number) => void;
+  day: Date;
+  venue: Venue;
+  onEventDrop: (event: Event, day: Date, venue: Venue, timeSlot: number) => void;
+  onEventMove: (eventId: string, newDay: Date, newVenue: Venue, newTimeSlot: number) => void;
   scheduledEvents: ScheduledEvent[];
   onEventSelect: (event: ScheduledEvent | null) => void;
   selectedEvent: ScheduledEvent | null;
@@ -64,7 +60,7 @@ export interface ScheduledEventProps {
   onEventSelect: (event: ScheduledEvent | null) => void;
   selectedEvent: ScheduledEvent | null;
   onEventUpdate: (eventId: string, updates: Partial<ScheduledEvent>) => void;
-  onEventMove: (eventId: string, newDay: '10/9' | '10/10', newVenue: 'Wilk' | 'RB', newTimeSlot: number) => void;
+  onEventMove: (eventId: string, newDay: Date, newVenue: Venue, newTimeSlot: number) => void;
 }
 
 export interface SidePanelProps {

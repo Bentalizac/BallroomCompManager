@@ -157,19 +157,22 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
             <div className="bg-white rounded-lg p-4 space-y-3">
               <div>
                 <div className="font-medium text-gray-900">{selectedEvent.event.name}</div>
-                <div className="text-sm text-gray-600">{selectedEvent.event.division}</div>
-                <div className="text-sm text-gray-600">{selectedEvent.event.type}</div>
+                <div className="text-sm text-gray-600">{selectedEvent.event.category}</div>
               </div>
               
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Day:</span>
-                  <span className="font-medium">{selectedEvent.day}</span>
+                  <span className="font-medium">{selectedEvent.day.toLocaleDateString('en-US', { 
+                    weekday: 'long', 
+                    month: 'short', 
+                    day: 'numeric' 
+                  })}</span>
                 </div>
                 
                 <div className="flex justify-between items-center">
                   <span className="text-gray-600">Venue:</span>
-                  <span className="font-medium">{selectedEvent.venue}</span>
+                  <span className="font-medium">{selectedEvent.venue.name}</span>
                 </div>
                 
                 <div className="space-y-1">

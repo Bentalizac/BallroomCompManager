@@ -2,8 +2,9 @@ import { useDrag } from 'react-dnd';
 import { GripVertical, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
-import { Event, EventData, DraggableEventProps, EventsCategoryProps, EventsListProps } from '../../types';
+import { Event, DraggableEventProps, EventsCategoryProps, EventsListProps } from '../../types';
 import { mockEvents } from '../../data/mockData';
+import { EventType } from '@/../shared/data/enums/eventTypes';
 
 
 function DraggableEvent({ event, onDragEnd }: DraggableEventProps) {
@@ -14,9 +15,11 @@ function DraggableEvent({ event, onDragEnd }: DraggableEventProps) {
       isDragging: monitor.isDragging(),
     }),
     end: (item, monitor) => {
-      // If the item was dropped on a valid target, remove it from the list
+      // Only call onDragEnd if the item was successfully dropped
+      // The drop handler will manage the actual removal from the list
       if (monitor.didDrop() && onDragEnd) {
-        onDragEnd(event.event.id);
+        // We'll let the drop target handle the event management
+        // onDragEnd(event.event.id);
       }
     },
   });
@@ -64,9 +67,9 @@ export function EventsList({ events = mockEvents, onEventDrop }: EventsListProps
     setLocalEvents(prevEvents => prevEvents.filter(event => event.event.id !== eventId));
   };
 
-  const latinEvents = localEvents.filter(e => e.event.category === 'Latin');
-  const ballroomEvents = localEvents.filter(e => e.event.category === 'Ballroom');
-  const otherEvents = localEvents.filter(e => e.event.category === 'Other');
+  const latinEvents = localEvents.filter(e => e.event.category === EventType.Latin);
+  const ballroomEvents = localEvents.filter(e => e.event.category === EventType.Ballroom);
+  const otherEvents = localEvents.filter(e => e.event.category === EventType.Other);
 
   return (
     <div className="w-64 bg-secondary flex flex-col h-full">
