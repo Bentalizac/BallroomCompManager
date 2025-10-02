@@ -1,6 +1,7 @@
 import { useDrag } from 'react-dnd';
 import { GripVertical, Plus } from 'lucide-react';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
+import { useState, useEffect } from 'react';
 
 export interface Event {
   id: string;
@@ -13,20 +14,27 @@ export interface Event {
 
 interface DraggableEventProps {
   event: Event;
+  onDragEnd?: (eventId: string) => void;
 }
 
-function DraggableEvent({ event }: DraggableEventProps) {
+function DraggableEvent({ event, onDragEnd }: DraggableEventProps) {
   const [{ isDragging }, drag] = useDrag({
     type: 'event',
     item: { ...event },
     collect: (monitor) => ({
       isDragging: monitor.isDragging(),
     }),
+    end: (item, monitor) => {
+      // If the item was dropped on a valid target, remove it from the list
+      if (monitor.didDrop() && onDragEnd) {
+        onDragEnd(event.id);
+      }
+    },
   });
 
   return (
     <div
-      ref={drag}
+      ref={drag as any}
       className={`flex items-center gap-2 px-3 py-2 bg-white/50 rounded cursor-grab hover:bg-white/70 transition-colors ${
         isDragging ? 'opacity-50' : ''
       }`}
@@ -40,15 +48,16 @@ function DraggableEvent({ event }: DraggableEventProps) {
 interface EventsCategoryProps {
   title: string;
   events: Event[];
+  onDragEnd?: (eventId: string) => void;
 }
 
-function EventsCategory({ title, events }: EventsCategoryProps) {
+function EventsCategory({ title, events, onDragEnd }: EventsCategoryProps) {
   return (
     <div className="mb-6">
       <h3 className="font-medium mb-3 text-gray-700">{title}</h3>
       <div className="space-y-2">
         {events.map((event) => (
-          <DraggableEvent key={event.id} event={event} />
+          <DraggableEvent key={event.id} event={event} onDragEnd={onDragEnd} />
         ))}
       </div>
     </div>
@@ -72,23 +81,45 @@ const mockEvents: Event[] = [
   { id: '14', name: 'Cabaret', category: 'Other', division: 'Cabaret', type: 'Entertainment', color: '#a8c4d4' },
 ];
 
-export function EventsList() {
-  const latinEvents = mockEvents.filter(e => e.category === 'Latin');
-  const ballroomEvents = mockEvents.filter(e => e.category === 'Ballroom');
-  const otherEvents = mockEvents.filter(e => e.category === 'Other');
+interface EventsListProps {
+  events?: Event[];
+  onEventDrop?: (event: Event) => void;
+}
+
+export function EventsList({ events = mockEvents, onEventDrop }: EventsListProps) {
+  const [localEvents, setLocalEvents] = useState<Event[]>(events);
+
+  // Update local events when props change
+  useEffect(() => {
+    setLocalEvents(events);
+  }, [events]);
+
+  const handleDragEnd = (eventId: string) => {
+    const droppedEvent = localEvents.find(event => event.id === eventId);
+    if (droppedEvent && onEventDrop) {
+      onEventDrop(droppedEvent);
+    }
+    setLocalEvents(prevEvents => prevEvents.filter(event => event.id !== eventId));
+  };
+
+  const latinEvents = localEvents.filter(e => e.category === 'Latin');
+  const ballroomEvents = localEvents.filter(e => e.category === 'Ballroom');
+  const otherEvents = localEvents.filter(e => e.category === 'Other');
 
   return (
-    <div className="w-64 bg-[#d4c8e4] p-4 overflow-y-auto">
-      <div className="flex items-center justify-between mb-4">
+    <div className="w-64 bg-secondary flex flex-col h-full">
+      <div className="flex items-center justify-between p-4 flex-shrink-0">
         <h2 className="font-medium text-gray-700">Events</h2>
         <Button size="sm" variant="ghost" className="p-1 h-auto">
           <Plus className="w-4 h-4" />
         </Button>
       </div>
       
-      <EventsCategory title="Latin" events={latinEvents} />
-      <EventsCategory title="Ballroom" events={ballroomEvents} />
-      <EventsCategory title="Other" events={otherEvents} />
+      <div className="flex-1 overflow-y-auto p-4 pt-0">
+        <EventsCategory title="Latin" events={latinEvents} onDragEnd={handleDragEnd} />
+        <EventsCategory title="Ballroom" events={ballroomEvents} onDragEnd={handleDragEnd} />
+        <EventsCategory title="Other" events={otherEvents} onDragEnd={handleDragEnd} />
+      </div>
     </div>
   );
 }

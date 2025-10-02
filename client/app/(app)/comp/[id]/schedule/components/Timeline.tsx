@@ -1,6 +1,50 @@
-import { useState, useRef } from 'react';
-import { useDrop, useDrag } from 'react-dnd';
+import { useState, useRef, useEffect } from 'react';
+import { useDrop, useDrag, useDragLayer } from 'react-dnd';
 import { Event } from './EventsList';
+
+// Custom drag layer for consistent drag preview
+function CustomDragLayer() {
+  const { item, itemType, isDragging, currentOffset } = useDragLayer((monitor) => ({
+    item: monitor.getItem(),
+    itemType: monitor.getItemType(),
+    isDragging: monitor.isDragging(),
+    currentOffset: monitor.getSourceClientOffset(),
+  }));
+
+  if (!isDragging || itemType !== 'scheduled-event' || !currentOffset) {
+    return null;
+  }
+
+  const height = (item.duration / 15) * 12; // Same calculation as in ResizableEvent
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        pointerEvents: 'none',
+        zIndex: 100,
+        left: currentOffset.x,
+        top: currentOffset.y,
+        width: '200px', // Fixed width for the drag preview
+      }}
+    >
+      <div
+        className="rounded shadow-lg border-2 border-transparent opacity-80"
+        style={{ 
+          backgroundColor: item.color + '80',
+          height: `${height}px`,
+          minHeight: '12px'
+        }}
+      >
+        <div className="p-1 h-full overflow-hidden relative">
+          <div className="text-xs font-medium text-gray-800 truncate">
+            {item.name}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export interface ScheduledEvent extends Event {
   startTime: number; // minutes from midnight
@@ -12,6 +56,8 @@ export interface ScheduledEvent extends Event {
 interface TimelineProps {
   onEventSelect: (event: ScheduledEvent | null) => void;
   selectedEvent: ScheduledEvent | null;
+  scheduledEvents: ScheduledEvent[];
+  setScheduledEvents: React.Dispatch<React.SetStateAction<ScheduledEvent[]>>;
 }
 
 interface ResizableEventProps {
@@ -29,7 +75,7 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
   const startHeightRef = useRef(0);
 
   // Make the event draggable
-  const [{ isDragState }, drag] = useDrag({
+  const [{ isDragState }, drag, preview] = useDrag({
     type: 'scheduled-event',
     item: () => {
       setIsDragging(true);
@@ -43,11 +89,17 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
     }),
   });
 
+  // Use empty drag preview to hide the default preview
+  useEffect(() => {
+    preview(new Image(), { captureDraggingState: true });
+  }, [preview]);
+
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsResizing(true);
     startYRef.current = e.clientY;
+    // Always use the current event duration
     startHeightRef.current = event.duration;
 
     const handleMouseMove = (e: MouseEvent) => {
@@ -71,9 +123,9 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
 
   return (
     <div
-      ref={drag}
-      className={`absolute left-0 top-0 w-full rounded shadow-sm border-2 ${
-        selectedEvent?.id === event.id ? 'border-blue-500' : 'border-transparent'
+      ref={drag as any}
+      className={`absolute left-0 top-0 w-full rounded shadow-sm border-2 transition-colors ${
+        selectedEvent?.id === event.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
       } ${isDragState || isDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'} ${isResizing ? 'cursor-ns-resize' : ''}`}
       style={{ 
         backgroundColor: event.color + '80',
@@ -91,20 +143,27 @@ function ResizableEvent({ event, onEventSelect, selectedEvent, onEventUpdate, on
         <div className="text-xs font-medium text-gray-800 truncate">
           {event.name}
         </div>
+        {selectedEvent?.id === event.id && (
+          <div className="absolute top-1 right-1 text-xs text-blue-600 font-medium">
+            DEL
+          </div>
+        )}
         {/* Resize handle */}
         <div
-          className="absolute bottom-0 left-0 w-full h-2 cursor-ns-resize hover:bg-black/10"
+          className="absolute bottom-0 left-0 w-full h-3 cursor-ns-resize hover:bg-black/20 flex items-end justify-center"
           onMouseDown={handleResizeStart}
-        />
+          style={{ zIndex: 10 }}
+        >
+          <div className="w-8 h-1 bg-gray-400 rounded-full opacity-50 hover:opacity-100" />
+        </div>
       </div>
     </div>
   );
 }
 
-interface DroppableTimeSlotProps {
+interface DroppableVenueColumnProps {
   day: '10/9' | '10/10';
   venue: 'Wilk' | 'RB';
-  timeSlot: number;
   onEventDrop: (event: Event, day: '10/9' | '10/10', venue: 'Wilk' | 'RB', timeSlot: number) => void;
   onEventMove: (eventId: string, newDay: '10/9' | '10/10', newVenue: 'Wilk' | 'RB', newTimeSlot: number) => void;
   scheduledEvents: ScheduledEvent[];
@@ -113,26 +172,61 @@ interface DroppableTimeSlotProps {
   onEventUpdate: (eventId: string, updates: Partial<ScheduledEvent>) => void;
 }
 
-function DroppableTimeSlot({ 
+function DroppableVenueColumn({ 
   day, 
   venue, 
-  timeSlot, 
   onEventDrop,
   onEventMove,
   scheduledEvents, 
   onEventSelect, 
   selectedEvent,
   onEventUpdate 
-}: DroppableTimeSlotProps) {
+}: DroppableVenueColumnProps) {
+  const dropRef = useRef<HTMLDivElement>(null);
+
   const [{ isOver }, drop] = useDrop({
     accept: ['event', 'scheduled-event'],
-    drop: (item: Event | ScheduledEvent) => {
-      if ('startTime' in item) {
-        // This is a scheduled event being moved
-        onEventMove(item.id, day, venue, timeSlot);
-      } else {
-        // This is a new event from the events list
-        onEventDrop(item, day, venue, timeSlot);
+    drop: (item: Event | ScheduledEvent, monitor) => {
+      const clientOffset = monitor.getClientOffset();
+      const componentRect = dropRef.current?.getBoundingClientRect();
+      
+      if (clientOffset && componentRect) {
+        // Calculate the relative position within the drop zone
+        const relativeY = clientOffset.y - componentRect.top;
+        
+        // Debug logging
+        console.log('Drop position:', {
+          clientY: clientOffset.y,
+          componentTop: componentRect.top,
+          relativeY: relativeY,
+        });
+        
+        // Convert pixel position to time slots
+        // Each time slot is 15 minutes and takes up 12px
+        // So: pixels / 12 = number of 15-minute slots from start
+        const slotsFromStart = relativeY / 12;
+        const minutesFromStart = slotsFromStart * 15;
+        const calculatedTime = 480 + minutesFromStart; // 480 = 8:00am start
+        
+        // Round to nearest 15-minute increment
+        const timeSlot = Math.round(calculatedTime / 15) * 15;
+        const clampedTimeSlot = Math.max(480, Math.min(1200, timeSlot)); // Clamp between 8am and 8pm
+        
+        console.log('Time calculation:', {
+          slotsFromStart,
+          minutesFromStart,
+          calculatedTime,
+          timeSlot,
+          clampedTimeSlot
+        });
+        
+        if ('startTime' in item) {
+          // This is a scheduled event being moved
+          onEventMove(item.id, day, venue, clampedTimeSlot);
+        } else {
+          // This is a new event from the events list
+          onEventDrop(item, day, venue, clampedTimeSlot);
+        }
       }
     },
     collect: (monitor) => ({
@@ -140,80 +234,80 @@ function DroppableTimeSlot({
     }),
   });
 
-  const eventsAtSlot = scheduledEvents.filter(
-    event => event.day === day && event.venue === venue && 
-    timeSlot >= event.startTime && timeSlot < event.startTime + event.duration
-  );
-
-  const formatTimeString = (minutes: number) => {
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
-    const ampm = hours < 12 ? 'am' : 'pm';
-    return `${displayHours}:${mins.toString().padStart(2, '0')}${ampm}`;
+  // Combine refs
+  const combinedRef = (node: HTMLDivElement) => {
+    drop(node);
+    dropRef.current = node;
   };
 
   return (
     <div
-      ref={drop}
-      className={`relative h-12 border-b border-gray-200 ${isOver ? 'bg-blue-50' : ''}`}
+      ref={combinedRef}
+      className={`relative ${isOver ? 'bg-blue-50' : ''}`}
+      style={{ minHeight: `${56 * 12}px` }} // 56 time slots * 12px each
     >
-      {timeSlot % 120 === 0 && ( // Show time labels every 2 hours
-        <div className="absolute -left-16 top-0 text-xs text-gray-500 w-14 text-right">
-          {formatTimeString(timeSlot)}
+      {/* Time grid lines */}
+      {timeSlots.map((timeSlot) => (
+        <div
+          key={timeSlot}
+          className="relative h-12 border-b border-gray-200"
+        >
+          {timeSlot % 120 === 0 && ( // Show time labels every 2 hours
+            <div className="absolute -left-16 top-0 text-xs text-gray-500 w-14 text-right">
+              {formatTimeString(timeSlot)}
+            </div>
+          )}
         </div>
-      )}
+      ))}
       
-      {eventsAtSlot.map((event) => {
-        const isMainSlot = timeSlot === event.startTime;
-        
-        if (!isMainSlot) return null;
-        
-        return (
-          <ResizableEvent
-            key={event.id}
-            event={event}
-            onEventSelect={onEventSelect}
-            selectedEvent={selectedEvent}
-            onEventUpdate={onEventUpdate}
-            onEventMove={onEventMove}
-          />
-        );
-      })}
+      {/* Render events */}
+      {scheduledEvents
+        .filter(event => event.day === day && event.venue === venue)
+        .map((event) => {
+          const topPosition = ((event.startTime - 480) / 15) * 12;
+          
+          // Debug logging
+          console.log('Event positioning:', {
+            eventName: event.name,
+            startTime: event.startTime,
+            minutesFromStart: event.startTime - 480,
+            slotsFromStart: (event.startTime - 480) / 15,
+            topPosition: topPosition
+          });
+          
+          return (
+            <div
+              key={event.id}
+              className="absolute left-0 w-full"
+              style={{
+                top: `${topPosition}px`, // Position based on start time
+              }}
+            >
+              <ResizableEvent
+                event={event}
+                onEventSelect={onEventSelect}
+                selectedEvent={selectedEvent}
+                onEventUpdate={onEventUpdate}
+                onEventMove={onEventMove}
+              />
+            </div>
+          );
+        })}
     </div>
   );
 }
 
+const formatTimeString = (minutes: number) => {
+  const hours = Math.floor(minutes / 60);
+  const mins = minutes % 60;
+  const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+  const ampm = hours < 12 ? 'am' : 'pm';
+  return `${displayHours}:${mins.toString().padStart(2, '0')}${ampm}`;
+};
+
 const timeSlots = Array.from({ length: 56 }, (_, i) => 480 + i * 15); // 8:00am to 10:00pm in 15-min intervals
 
-export function Timeline({ onEventSelect, selectedEvent }: TimelineProps) {
-  const [scheduledEvents, setScheduledEvents] = useState<ScheduledEvent[]>([
-    {
-      id: 'scheduled-1',
-      name: 'Amateur Latin',
-      category: 'Latin',
-      division: 'Amateur',
-      type: 'Latin',
-      color: '#b8a8d4',
-      startTime: 660, // 11:00am
-      duration: 90, // 1.5 hours
-      day: '10/9',
-      venue: 'Wilk'
-    },
-    {
-      id: 'scheduled-2',
-      name: 'Class 484',
-      category: 'Ballroom',
-      division: 'Class',
-      type: 'Ballroom',
-      color: '#8fa4d4',
-      startTime: 840, // 2:00pm
-      duration: 120, // 2 hours
-      day: '10/9',
-      venue: 'RB'
-    }
-  ]);
-
+export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, setScheduledEvents }: TimelineProps) {
   const handleEventDrop = (event: Event, day: '10/9' | '10/10', venue: 'Wilk' | 'RB', timeSlot: number) => {
     const newScheduledEvent: ScheduledEvent = {
       ...event,
@@ -246,26 +340,21 @@ export function Timeline({ onEventSelect, selectedEvent }: TimelineProps) {
   };
 
   return (
-    <div className="flex-1 bg-white">
-      <div className="border-b border-gray-200 p-4">
-        <h2 className="font-medium text-center">Schedule</h2>
-      </div>
-      
-      <div className="flex">
-        {/* Day 1 - 10/9 */}
-        <div className="flex-1 border-r border-gray-200">
-          <div className="border-b border-gray-200 p-3 text-center font-medium">10/9</div>
-          <div className="flex">
-            {/* Wilk venue */}
-            <div className="flex-1 border-r border-gray-200">
-              <div className="border-b border-gray-200 p-2 text-center text-sm font-medium">Wilk</div>
-              <div className="relative pl-16">
-                {timeSlots.map((timeSlot) => (
-                  <DroppableTimeSlot
-                    key={`10/9-wilk-${timeSlot}`}
+    <div className="flex-1 bg-white flex flex-col h-full">
+      <CustomDragLayer />      
+      <div className="flex-1 overflow-auto">
+        <div className="flex h-full">
+          {/* Day 1 - 10/9 */}
+          <div className="flex-1 border-r border-gray-200">
+            <div className="border-b border-gray-200 p-3 text-center font-medium sticky top-0 bg-white z-10">10/9</div>
+            <div className="flex">
+              {/* Wilk venue */}
+              <div className="flex-1 border-r border-gray-200">
+                <div className="border-b border-gray-200 p-2 text-center text-sm font-medium sticky top-[49px] bg-white z-10">Wilk</div>
+                <div className="relative pl-16">
+                  <DroppableVenueColumn
                     day="10/9"
                     venue="Wilk"
-                    timeSlot={timeSlot}
                     onEventDrop={handleEventDrop}
                     onEventMove={handleEventMove}
                     scheduledEvents={scheduledEvents}
@@ -273,20 +362,16 @@ export function Timeline({ onEventSelect, selectedEvent }: TimelineProps) {
                     selectedEvent={selectedEvent}
                     onEventUpdate={handleEventUpdate}
                   />
-                ))}
+                </div>
               </div>
-            </div>
-            
-            {/* RB venue */}
-            <div className="flex-1">
-              <div className="border-b border-gray-200 p-2 text-center text-sm font-medium">RB</div>
-              <div className="relative">
-                {timeSlots.map((timeSlot) => (
-                  <DroppableTimeSlot
-                    key={`10/9-rb-${timeSlot}`}
+              
+              {/* RB venue */}
+              <div className="flex-1">
+                <div className="border-b border-gray-200 p-2 text-center text-sm font-medium sticky top-[49px] bg-white z-10">RB</div>
+                <div className="relative">
+                  <DroppableVenueColumn
                     day="10/9"
                     venue="RB"
-                    timeSlot={timeSlot}
                     onEventDrop={handleEventDrop}
                     onEventMove={handleEventMove}
                     scheduledEvents={scheduledEvents}
@@ -294,26 +379,22 @@ export function Timeline({ onEventSelect, selectedEvent }: TimelineProps) {
                     selectedEvent={selectedEvent}
                     onEventUpdate={handleEventUpdate}
                   />
-                ))}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        
-        {/* Day 2 - 10/10 */}
-        <div className="flex-1">
-          <div className="border-b border-gray-200 p-3 text-center font-medium">10/10</div>
-          <div className="flex">
-            {/* Wilk venue */}
-            <div className="flex-1 border-r border-gray-200">
-              <div className="border-b border-gray-200 p-2 text-center text-sm font-medium">Wilk</div>
-              <div className="relative">
-                {timeSlots.map((timeSlot) => (
-                  <DroppableTimeSlot
-                    key={`10/10-wilk-${timeSlot}`}
+          
+          {/* Day 2 - 10/10 */}
+          <div className="flex-1">
+            <div className="border-b border-gray-200 p-3 text-center font-medium sticky top-0 bg-white z-10">10/10</div>
+            <div className="flex">
+              {/* Wilk venue */}
+              <div className="flex-1 border-r border-gray-200">
+                <div className="border-b border-gray-200 p-2 text-center text-sm font-medium sticky top-[49px] bg-white z-10">Wilk</div>
+                <div className="relative">
+                  <DroppableVenueColumn
                     day="10/10"
                     venue="Wilk"
-                    timeSlot={timeSlot}
                     onEventDrop={handleEventDrop}
                     onEventMove={handleEventMove}
                     scheduledEvents={scheduledEvents}
@@ -321,20 +402,16 @@ export function Timeline({ onEventSelect, selectedEvent }: TimelineProps) {
                     selectedEvent={selectedEvent}
                     onEventUpdate={handleEventUpdate}
                   />
-                ))}
+                </div>
               </div>
-            </div>
-            
-            {/* RB venue */}
-            <div className="flex-1">
-              <div className="border-b border-gray-200 p-2 text-center text-sm font-medium">RB</div>
-              <div className="relative">
-                {timeSlots.map((timeSlot) => (
-                  <DroppableTimeSlot
-                    key={`10/10-rb-${timeSlot}`}
+              
+              {/* RB venue */}
+              <div className="flex-1">
+                <div className="border-b border-gray-200 p-2 text-center text-sm font-medium sticky top-[49px] bg-white z-10">RB</div>
+                <div className="relative">
+                  <DroppableVenueColumn
                     day="10/10"
                     venue="RB"
-                    timeSlot={timeSlot}
                     onEventDrop={handleEventDrop}
                     onEventMove={handleEventMove}
                     scheduledEvents={scheduledEvents}
@@ -342,7 +419,7 @@ export function Timeline({ onEventSelect, selectedEvent }: TimelineProps) {
                     selectedEvent={selectedEvent}
                     onEventUpdate={handleEventUpdate}
                   />
-                ))}
+                </div>
               </div>
             </div>
           </div>
