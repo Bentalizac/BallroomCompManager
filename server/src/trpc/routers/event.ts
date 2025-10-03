@@ -42,7 +42,7 @@ export const eventRouter = router({
           id: registration.id,
           eventId: registration.event_info_id,
           role: registration.role,
-          status: registration.registration_status,
+          registrationStatus: registration.registration_status,
           registrationDate: new Date().toISOString(),
         };
       } catch (error) {
@@ -77,7 +77,7 @@ export const eventRouter = router({
           id: reg.id,
           eventId: reg.event_info_id,
           role: reg.role,
-          status: reg.registration_status,
+          registrationStatus: reg.registration_status,
           eventName: reg.event_info?.name,
           eventStartDate: reg.event_info?.start_date,
         }));
@@ -225,7 +225,7 @@ export const eventRouter = router({
           endDate: event.end_date,
           competitionId: event.comp_id,
           categoryRulesetId: event.category_ruleset_id,
-          status: event.event_status,
+          eventStatus: event.event_status,
         };
       } catch (error) {
         if (process.env.NODE_ENV === 'development') console.error("Event creation failed:", error);
@@ -332,7 +332,7 @@ export const eventRouter = router({
           startDate: updatedEvent.start_date,
           endDate: updatedEvent.end_date,
           competitionId: updatedEvent.comp_id,
-          status: updatedEvent.event_status,
+          eventStatus: updatedEvent.event_status,
         };
       } catch (error) {
         if (process.env.NODE_ENV === 'development') console.error("Event update failed:", error);
