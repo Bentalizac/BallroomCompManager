@@ -1,23 +1,24 @@
-import { getSupabaseUser, getSupabaseAdmin } from './supabase';
+import { getSupabaseUser } from './supabase';
 import type { Database } from './database.types';
 
 type EventRegistration = Database['public']['Tables']['event_registration']['Row'];
-type EventRegistrationInsert = Database['public']['Tables']['event_registration']['Insert'];
+
 type CompParticipant = Database['public']['Tables']['comp_participant']['Row'];
-type UserInfo = Database['public']['Tables']['user_info']['Row'];
 
 /**
- * Register a user for a specific event
+ * Register a user for a specific event (respects RLS via user token)
  */
 export async function registerUserForEvent(
+  userToken: string,
   userId: string,
   eventId: string,
   role: 'competitor' | 'judge' | 'scrutineer' = 'competitor'
 ): Promise<EventRegistration> {
-  // Use admin client to bypass RLS for system operations
-  const supabase = getSupabaseAdmin();
+  const supabase = getSupabaseUser(userToken);
   
-  console.log('🎯 Starting event registration:', { userId, eventId, role });
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🎯 Starting event registration:', { userId, eventId, role });
+  }
 
   // 1. Get the event info to find the competition ID
   const { data: eventInfo, error: eventError } = await supabase
@@ -33,7 +34,7 @@ export async function registerUserForEvent(
   
   console.log('✅ Found event:', eventInfo.name, 'in competition:', eventInfo.comp_id);
 
-  // 2. Check if user exists in user_info table
+  // 2. Check if user exists in user_info table (RLS respects user scope)
   const { data: existingUserInfo, error: userInfoError } = await supabase
     .from('user_info')
     .select('id, email, firstname, lastname')
@@ -142,10 +143,11 @@ export async function registerUserForEvent(
  * Get user's registrations for a competition
  */
 export async function getUserEventRegistrations(
+  userToken: string,
   userId: string,
   competitionId: string
 ): Promise<EventRegistration[]> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getSupabaseUser(userToken);
   
   const { data: registrations, error } = await supabase
     .from('event_registration')
@@ -179,10 +181,11 @@ export async function getUserEventRegistrations(
  * Cancel/withdraw from an event registration  
  */
 export async function cancelEventRegistration(
+  userToken: string,
   userId: string,
   registrationId: string
 ): Promise<void> {
-  const supabase = getSupabaseAdmin();
+  const supabase = getSupabaseUser(userToken);
   
   // First verify the registration belongs to the user
   const { data: registration, error: fetchError } = await supabase

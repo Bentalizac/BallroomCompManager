@@ -1,5 +1,5 @@
 import type { Database } from '../dal/database.types';
-import type { VenueApi, EventApi, CompetitionApi, EventStatus } from '@ballroomcompmanager/shared/api/schemas';
+import type { VenueApi, EventApi, CompetitionApi, EventStatus } from '@ballroomcompmanager/shared';
 
 // Type aliases for selected row shapes using Database types
 export type VenueRow = Pick<Database['public']['Tables']['venue']['Row'], 'id' | 'name' | 'city' | 'state'>;

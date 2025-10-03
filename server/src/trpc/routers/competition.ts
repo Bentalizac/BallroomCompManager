@@ -39,7 +39,7 @@ export const competitionRouter = router({
       .order("start_date", { ascending: true });
 
     if (error) {
-      console.error("Error fetching competitions:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching competitions:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch competitions",
@@ -85,7 +85,7 @@ export const competitionRouter = router({
         .single();
 
       if (error && error.code !== "PGRST116") {
-        console.error("Error fetching competition:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch competition",
@@ -121,7 +121,7 @@ export const competitionRouter = router({
         .order("start_date", { ascending: true });
 
       if (error) {
-        console.error("Error fetching events:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching events:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch events",
@@ -167,7 +167,7 @@ export const competitionRouter = router({
         .order("event_info.start_date", { ascending: true });
 
       if (error) {
-        console.error("Error fetching event registrations:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching event registrations:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch event registrations",
@@ -209,7 +209,7 @@ export const competitionRouter = router({
 
       try {
         // Create competition
-        console.log("🎯 Creating competition with data:", {
+        if (process.env.NODE_ENV === 'development') console.log("🎯 Creating competition with data:", {
           name: input.name,
           start_date: input.startDate,
           end_date: input.endDate,
@@ -228,13 +228,13 @@ export const competitionRouter = router({
           .select()
           .single();
 
-        console.log("🎯 Competition creation result:", {
+        if (process.env.NODE_ENV === 'development') console.log("🎯 Competition creation result:", {
           competition,
           compError,
         });
 
         if (compError || !competition) {
-          console.error("❌ Error creating competition:", {
+          if (process.env.NODE_ENV === 'development') console.error("❌ Error creating competition:", {
             error: compError,
             message: compError?.message,
             details: compError?.details,
@@ -258,7 +258,7 @@ export const competitionRouter = router({
           });
 
         if (participantError) {
-          console.error("Error creating participant record:", participantError);
+          if (process.env.NODE_ENV === 'development') console.error("Error creating participant record:", participantError);
           // Don't fail the whole operation, but log it
         }
 
@@ -271,7 +271,7 @@ export const competitionRouter = router({
           });
 
         if (adminError) {
-          console.error("Error creating admin record:", adminError);
+          if (process.env.NODE_ENV === 'development') console.error("Error creating admin record:", adminError);
           // Don't fail the whole operation, but log it
         }
 
@@ -283,7 +283,7 @@ export const competitionRouter = router({
           venueId: competition.venue_id,
         };
       } catch (error) {
-        console.error("Competition creation failed:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Competition creation failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -360,7 +360,7 @@ export const competitionRouter = router({
           .single();
 
         if (error || !competition) {
-          console.error("Error updating competition:", error);
+          if (process.env.NODE_ENV === 'development') console.error("Error updating competition:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to update competition",
@@ -375,7 +375,7 @@ export const competitionRouter = router({
           venueId: competition.venue_id,
         };
       } catch (error) {
-        console.error("Competition update failed:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Competition update failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -418,7 +418,7 @@ export const competitionRouter = router({
           .eq("id", input.id);
 
         if (error) {
-          console.error("Error deleting competition:", error);
+          if (process.env.NODE_ENV === 'development') console.error("Error deleting competition:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to delete competition",
@@ -427,7 +427,7 @@ export const competitionRouter = router({
 
         return { success: true };
       } catch (error) {
-        console.error("Competition deletion failed:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Competition deletion failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:

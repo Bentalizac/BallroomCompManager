@@ -41,7 +41,7 @@ export const userRouter = router({
       .order("event_info.start_date", { ascending: true });
 
     if (error) {
-      console.error("Error fetching user registrations:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching user registrations:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch registrations",
@@ -78,7 +78,7 @@ export const userRouter = router({
         .single();
 
       if (error) {
-        console.error("Error updating user profile:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Error updating user profile:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to update profile",

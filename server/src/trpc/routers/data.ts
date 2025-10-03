@@ -8,21 +8,23 @@ export const dataRouter = router({
   // Get all venues
   getVenues: publicProcedure.query(async () => {
     const supabase = getSupabaseAnon();
-    console.log("🏢 Fetching venues...");
+    if (process.env.NODE_ENV === 'development') console.log("🏢 Fetching venues...");
 
     const { data: venues, error } = await supabase
       .from("venue")
       .select("*")
       .order("name", { ascending: true });
 
-    console.log("🏢 Venues query result:", {
-      venues,
-      error,
-      count: venues?.length,
-    });
+    if (process.env.NODE_ENV === 'development') {
+      console.log("🏢 Venues query result:", {
+        venues,
+        error,
+        count: venues?.length,
+      });
+    }
 
     if (error) {
-      console.error("Error fetching venues:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching venues:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch venues",
@@ -41,7 +43,7 @@ export const dataRouter = router({
       .order("name", { ascending: true });
 
     if (error) {
-      console.error("Error fetching event categories:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching event categories:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch event categories",
@@ -69,7 +71,7 @@ export const dataRouter = router({
       .order("name", { ascending: true });
 
     if (error) {
-      console.error("Error fetching rulesets:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching rulesets:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch rulesets",
@@ -88,7 +90,7 @@ export const dataRouter = router({
       .order("name", { ascending: true });
 
     if (error) {
-      console.error("Error fetching scoring methods:", error);
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching scoring methods:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch scoring methods",
@@ -135,7 +137,7 @@ export const dataRouter = router({
           .single();
 
         if (error || !venue) {
-          console.error("Error creating venue:", error);
+          if (process.env.NODE_ENV === 'development') console.error("Error creating venue:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to create venue",
@@ -153,7 +155,7 @@ export const dataRouter = router({
           googleMapsUrl: venue.google_maps_url,
         };
       } catch (error) {
-        console.error("Venue creation failed:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Venue creation failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:

@@ -24,7 +24,7 @@ export const eventRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      console.log("🎯 Registering user for event:", {
+      if (process.env.NODE_ENV === 'development') console.log("🎯 Registering user for event:", {
         userId: ctx.userId,
         eventId: input.eventId,
         role: input.role,
@@ -32,6 +32,7 @@ export const eventRouter = router({
 
       try {
         const registration = await registerUserForEvent(
+          ctx.userToken!,
           ctx.userId,
           input.eventId,
           input.role,
@@ -45,7 +46,7 @@ export const eventRouter = router({
           registrationDate: new Date().toISOString(),
         };
       } catch (error) {
-        console.error("❌ Event registration failed:", error);
+        if (process.env.NODE_ENV === 'development') console.error("❌ Event registration failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -64,21 +65,24 @@ export const eventRouter = router({
 
       try {
         const registrations = await getUserEventRegistrations(
+          ctx.userToken!,
           ctx.userId,
           input.competitionId,
         );
 
-        return registrations.map((reg) => ({
+        type EventInfoLite = { name: string; start_date: string } | null | undefined;
+        type RegJoined = typeof registrations[number] & { event_info?: EventInfoLite };
+
+        return (registrations as RegJoined[]).map((reg) => ({
           id: reg.id,
           eventId: reg.event_info_id,
           role: reg.role,
           status: reg.registration_status,
-          // Add event info if available from the join
-          eventName: (reg as any).event_info?.name,
-          eventStartDate: (reg as any).event_info?.start_date,
+          eventName: reg.event_info?.name,
+          eventStartDate: reg.event_info?.start_date,
         }));
       } catch (error) {
-        console.error("Error fetching user event registrations:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Error fetching user event registrations:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch registrations",
@@ -95,10 +99,10 @@ export const eventRouter = router({
       }
 
       try {
-        await cancelEventRegistration(ctx.userId, input.registrationId);
+        await cancelEventRegistration(ctx.userToken!, ctx.userId, input.registrationId);
         return { success: true };
       } catch (error) {
-        console.error("Error cancelling registration:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Error cancelling registration:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -176,7 +180,7 @@ export const eventRouter = router({
             .single();
 
           if (newCRError || !newCR) {
-            console.error("Error creating category-ruleset:", newCRError);
+            if (process.env.NODE_ENV === 'development') console.error("Error creating category-ruleset:", newCRError);
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
               message: "Failed to create category-ruleset combination",
@@ -185,7 +189,7 @@ export const eventRouter = router({
 
           categoryRuleset = newCR;
         } else if (crError) {
-          console.error("Error checking category-ruleset:", crError);
+          if (process.env.NODE_ENV === 'development') console.error("Error checking category-ruleset:", crError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to validate category-ruleset combination",
@@ -207,7 +211,7 @@ export const eventRouter = router({
           .single();
 
         if (eventError || !event) {
-          console.error("Error creating event:", eventError);
+          if (process.env.NODE_ENV === 'development') console.error("Error creating event:", eventError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to create event",
@@ -224,7 +228,7 @@ export const eventRouter = router({
           status: event.event_status,
         };
       } catch (error) {
-        console.error("Event creation failed:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Event creation failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -315,7 +319,7 @@ export const eventRouter = router({
           .single();
 
         if (error || !updatedEvent) {
-          console.error("Error updating event:", error);
+          if (process.env.NODE_ENV === 'development') console.error("Error updating event:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to update event",
@@ -331,7 +335,7 @@ export const eventRouter = router({
           status: updatedEvent.event_status,
         };
       } catch (error) {
-        console.error("Event update failed:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Event update failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -386,7 +390,7 @@ export const eventRouter = router({
           .eq("id", input.id);
 
         if (error) {
-          console.error("Error deleting event:", error);
+          if (process.env.NODE_ENV === 'development') console.error("Error deleting event:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to delete event",
@@ -395,7 +399,7 @@ export const eventRouter = router({
 
         return { success: true };
       } catch (error) {
-        console.error("Event deletion failed:", error);
+        if (process.env.NODE_ENV === 'development') console.error("Event deletion failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
