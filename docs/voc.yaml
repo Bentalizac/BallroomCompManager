@@ -1,0 +1,188 @@
+# Voice of Customer - Pain Points Analysis
+# Structured format for easy AI parsing and pain point assessment
+
+metadata:
+  version: "1.0"
+  last_updated: "2025-10-03"
+  description: "Voice of Customer pain points for ballroom competition management software"
+
+# Template for adding new pain points
+template:
+  user_type: "string"  # e.g., "Event Organizers", "Judges", "Staff", "Competitors", "Studios"
+  pain_point:
+    id: "unique_identifier"  # e.g., "org_001", "comp_001"
+    title: "Brief title of the pain point"
+    description: "Detailed description of the issue"
+    severity: "Critical|High|Medium|Low"  # Impact level
+    frequency: "High|Medium|Low"  # How often this occurs
+    solution: "Proposed solution or approach"
+    priority: "High|Medium|Low"  # Development priority
+    status: "identified|in_progress|completed|deferred"  # Implementation status
+    tags: []  # Optional tags for categorization
+    notes: "Additional context or considerations"
+
+# Actual pain points data
+pain_points:
+  event_organizers:
+    - id: "org_001"
+      title: "Air gap between registration and software input"
+      description: "Manual transfer from registration forms to NDCA Premier creates delays and makes updates difficult"
+      severity: "High"
+      frequency: "High"
+      solution: "Software can provide an online registration form that feeds directly into the software"
+      priority: "High"
+      status: "identified"
+      tags: ["registration", "automation", "core_feature"]
+      notes: "This is a core feature that needs to be nailed"
+
+    - id: "org_002"
+      title: "Manual costume change collision prevention"
+      description: "Organizer manually reviews competitor lists per event to prevent scheduling conflicts for same dancers"
+      severity: "Medium"
+      frequency: "High"
+      solution: "Software can automatically check for costume changes and flag conflicts"
+      priority: "High"
+      status: "identified"
+      tags: ["scheduling", "automation", "differentiation"]
+      notes: "This is a feature that sets our software apart from others"
+
+    - id: "org_003"
+      title: "Managing liability forms"
+      description: "Each venue has its own liability forms and this is apparently complicated"
+      severity: "Medium"
+      frequency: "Medium"
+      solution: "TBD - may be out of scope for this software"
+      priority: "Low"
+      status: "identified"
+      tags: ["legal", "venue_specific", "out_of_scope"]
+      notes: "This may be out of scope for this software"
+
+    - id: "org_004"
+      title: "Printer issues"
+      description: "Technical problems with printing during events"
+      severity: "High"
+      frequency: "Medium"
+      solution: "Make printers irrelevant or ensure wide printer compatibility with fallback to CSV export"
+      priority: "Medium"
+      status: "identified"
+      tags: ["printing", "backup", "technical"]
+      notes: "Need emergency fallback to export to CSVs and print"
+
+    - id: "org_005"
+      title: "Loss of internet connection"
+      description: "Events can lose internet connectivity, making cloud-only solutions unusable"
+      severity: "Critical"
+      frequency: "Low"
+      solution: "Software needs to be able to run offline and sync when internet is available"
+      priority: "High"
+      status: "identified"
+      tags: ["offline", "sync", "must_have", "core_feature"]
+      notes: "Must have feature - otherwise software is limited in many venues and same as existing solutions"
+
+    - id: "org_006"
+      title: "Staff organization and assignments"
+      description: "Managing staff assignments and ensuring all tasks are completed"
+      severity: "Medium"
+      frequency: "Medium"
+      solution: "Software can help manage staff assignments and send reminders"
+      priority: "Low"
+      status: "identified"
+      tags: ["staff_management", "modular", "future_feature"]
+      notes: "Likely out of scope - could be added as modular add-on later, not core feature"
+
+  judges:
+    # No specific pain points identified yet
+    
+  staff:
+    # No specific pain points identified yet
+
+  competitors:
+    - id: "comp_001"
+      title: "Delay in results posting"
+      description: "Results are posted manually and can take a long time to be available online"
+      severity: "High"
+      frequency: "High"
+      solution: "Software can automatically post results online as soon as they are available"
+      priority: "High"
+      status: "identified"
+      tags: ["results", "automation", "core_feature", "competitive_advantage"]
+      notes: "This is a staple of other software - we need to nail this better than they do"
+
+    - id: "comp_002"
+      title: "Managing registrations"
+      description: "Difficulty tracking which events you're registered for and managing changes"
+      severity: "Medium"
+      frequency: "Medium"
+      solution: "Software can provide a competitor portal for viewing and managing registrations"
+      priority: "Medium"
+      status: "identified"
+      tags: ["registration", "portal", "nice_to_have"]
+      notes: "Nice to have feature, but not core"
+
+    - id: "comp_003"
+      title: "Up to date schedules and heat lists"
+      description: "Competitors need current information about when and where they are dancing"
+      severity: "High"
+      frequency: "High"
+      solution: "Software can provide real-time updates to schedules and heat lists"
+      priority: "High"
+      status: "identified"
+      tags: ["scheduling", "real_time", "core_feature"]
+      notes: "Core feature that needs to be nailed"
+
+    - id: "comp_004"
+      title: "Post-event results viewing"
+      description: "Need straightforward and easy navigation for viewing results after events"
+      severity: "Medium"
+      frequency: "Medium"
+      solution: "Software can provide a user-friendly interface for viewing results"
+      priority: "High"
+      status: "identified"
+      tags: ["results", "ui_ux", "community_expectation"]
+      notes: "Community expectation that results are publicly viewable"
+
+  studios:
+    # No specific pain points identified yet
+
+# Priority matrix for quick assessment
+priority_summary:
+  high_priority:
+    count: 6
+    items:
+      - "org_001: Registration automation"
+      - "org_002: Costume change collision detection" 
+      - "org_005: Offline capability"
+      - "comp_001: Automated results posting"
+      - "comp_003: Real-time schedules"
+      - "comp_004: User-friendly results viewing"
+      
+  medium_priority:
+    count: 2
+    items:
+      - "org_004: Printer compatibility"
+      - "comp_002: Registration management portal"
+      
+  low_priority:
+    count: 2
+    items:
+      - "org_003: Liability form management"
+      - "org_006: Staff assignment management"
+
+# Categories for development planning
+feature_categories:
+  core_features:
+    - "Registration automation"
+    - "Offline capability with sync"
+    - "Real-time scheduling"
+    - "Automated results posting"
+    
+  differentiating_features:
+    - "Costume change collision detection"
+    - "Superior results interface"
+    
+  nice_to_have:
+    - "Competitor portal"
+    - "Staff management tools"
+    
+  out_of_scope:
+    - "Liability form management"

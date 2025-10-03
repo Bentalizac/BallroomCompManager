@@ -1,0 +1,49 @@
+# VOC Pain Point Template
+# Copy this template when adding new pain points to voc.yaml
+
+# New Pain Point Template
+new_pain_point:
+  id: ""              # Format: "{user_type_prefix}_{number}" (e.g., "org_007", "comp_005", "judge_001", "staff_001", "studio_001")
+  title: ""           # Brief, descriptive title
+  description: ""     # Detailed description of the problem
+  severity: ""        # Critical | High | Medium | Low
+  frequency: ""       # High | Medium | Low (how often does this occur?)
+  solution: ""        # Proposed solution or approach
+  priority: ""        # High | Medium | Low (development priority)
+  status: "identified" # identified | in_progress | completed | deferred
+  tags: []            # Array of tags for categorization (see examples below)
+  notes: ""           # Additional context, constraints, or considerations
+
+# Common Tags for Categorization:
+# - User type: "organizer", "competitor", "judge", "staff", "studio"
+# - Feature category: "core_feature", "nice_to_have", "differentiation", "must_have"
+# - Technical: "offline", "sync", "automation", "real_time", "ui_ux"
+# - Domain: "registration", "scheduling", "results", "printing", "legal"
+# - Status: "out_of_scope", "future_feature", "modular", "competitive_advantage"
+
+# User Type Prefixes for IDs:
+# - Event Organizers: "org_"
+# - Competitors: "comp_"
+# - Judges: "judge_"
+# - Staff: "staff_"
+# - Studios: "studio_"
+
+# Severity Guidelines:
+# - Critical: System unusable, major business impact, security issues
+# - High: Significant impact on user experience or business operations
+# - Medium: Moderate impact, workarounds available
+# - Low: Minor inconvenience, cosmetic issues
+
+# Frequency Guidelines:
+# - High: Occurs in most/all events or sessions
+# - Medium: Occurs regularly but not always
+# - Low: Occurs occasionally or in specific circumstances
+
+# Priority Guidelines:
+# - High: Must have for MVP, competitive advantage, or critical user need
+# - Medium: Important but can be deferred to later releases
+# - Low: Nice to have, future consideration, or out of scope
+
+# Example Usage:
+# Copy the new_pain_point template above, fill in the fields, and add it to the appropriate 
+# user_type section in voc.yaml under pain_points.
