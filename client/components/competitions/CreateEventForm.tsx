@@ -1,14 +1,16 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useCreateEvent } from '@/hooks/useCompetitions';
 import { useEventCategories, useRulesets } from '@/hooks/useData';
+import { localInputToUtcIso, utcIsoToLocalInput, getCurrentTimeInZone } from '@/lib/datetime';
 
 interface CreateEventFormProps {
   competitionId: string;
   competitionName?: string;
   competitionStartDate?: string;
   competitionEndDate?: string;
+  competitionTimeZone: string; // IANA time zone identifier
   onSuccess?: (eventId: string) => void;
   onCancel?: () => void;
 }
@@ -18,13 +20,14 @@ export function CreateEventForm({
   competitionName,
   competitionStartDate,
   competitionEndDate,
+  competitionTimeZone,
   onSuccess, 
   onCancel 
 }: CreateEventFormProps) {
   const [formData, setFormData] = useState({
     name: '',
-    startDate: competitionStartDate || '',
-    endDate: competitionStartDate || '',
+    startAt: '', // datetime-local format in competition timezone
+    endAt: '',   // datetime-local format in competition timezone
     categoryId: '',
     rulesetId: '',
   });
@@ -34,6 +37,43 @@ export function CreateEventForm({
   const { data: rulesets, isLoading: rulesetsLoading } = useRulesets();
   const createEvent = useCreateEvent();
 
+  // Initialize default times in competition timezone
+  useEffect(() => {
+    try {
+      // Set default start time to current time in competition timezone
+      const currentTime = getCurrentTimeInZone(competitionTimeZone);
+      
+      // If we have competition start date, use that as default, otherwise use current time
+      let defaultStartAt = currentTime;
+      if (competitionStartDate) {
+        // Convert competition start date to datetime-local format at 9:00 AM in competition timezone
+        defaultStartAt = `${competitionStartDate}T09:00`;
+      }
+      
+      // Default end time is 3 hours after start time
+      let defaultEndAt = currentTime;
+      if (competitionStartDate) {
+        defaultEndAt = `${competitionStartDate}T17:00`;
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        startAt: defaultStartAt,
+        endAt: defaultEndAt,
+      }));
+    } catch (error) {
+      console.error('Failed to set default times:', error);
+      // Fallback to basic datetime-local format
+      const now = new Date();
+      const isoString = now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
+      setFormData(prev => ({
+        ...prev,
+        startAt: isoString,
+        endAt: isoString,
+      }));
+    }
+  }, [competitionStartDate, competitionTimeZone]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
     
@@ -41,32 +81,34 @@ export function CreateEventForm({
       newErrors.name = 'Event name is required';
     }
     
-    if (!formData.startDate) {
-      newErrors.startDate = 'Start date is required';
+    if (!formData.startAt) {
+      newErrors.startAt = 'Start time is required';
     }
     
-    if (!formData.endDate) {
-      newErrors.endDate = 'End date is required';
+    if (!formData.endAt) {
+      newErrors.endAt = 'End time is required';
     }
     
-    if (formData.startDate && formData.endDate) {
-      const startDate = new Date(formData.startDate);
-      const endDate = new Date(formData.endDate);
-      if (startDate > endDate) {
-        newErrors.endDate = 'End date must be after or equal to start date';
+    if (formData.startAt && formData.endAt) {
+      const startAt = new Date(formData.startAt);
+      const endAt = new Date(formData.endAt);
+      
+      if (startAt >= endAt) {
+        newErrors.endAt = 'End time must be after start time';
       }
       
       // Check if dates are within competition date range
       if (competitionStartDate && competitionEndDate) {
-        const compStart = new Date(competitionStartDate);
-        const compEnd = new Date(competitionEndDate);
+        // Convert competition dates to datetime for comparison (using start of day and end of day)
+        const compStart = new Date(`${competitionStartDate}T00:00`);
+        const compEnd = new Date(`${competitionEndDate}T23:59`);
         
-        if (startDate < compStart) {
-          newErrors.startDate = 'Event start date cannot be before competition start date';
+        if (startAt < compStart) {
+          newErrors.startAt = 'Event start time cannot be before competition start date';
         }
         
-        if (endDate > compEnd) {
-          newErrors.endDate = 'Event end date cannot be after competition end date';
+        if (endAt > compEnd) {
+          newErrors.endAt = 'Event end time cannot be after competition end date';
         }
       }
     }
@@ -91,11 +133,15 @@ export function CreateEventForm({
     }
 
     try {
+      // Convert local datetime-local inputs to UTC ISO strings
+      const startAtUtc = localInputToUtcIso(formData.startAt, competitionTimeZone);
+      const endAtUtc = localInputToUtcIso(formData.endAt, competitionTimeZone);
+      
       const result = await createEvent.mutateAsync({
         competitionId,
         name: formData.name.trim(),
-        startDate: formData.startDate,
-        endDate: formData.endDate,
+        startAt: startAtUtc,
+        endAt: endAtUtc,
         categoryId: formData.categoryId,
         rulesetId: formData.rulesetId,
       });
@@ -105,6 +151,10 @@ export function CreateEventForm({
       }
     } catch (error) {
       console.error('Failed to create event:', error);
+      // Handle timezone conversion errors specifically
+      if (error instanceof Error && error.message.includes('Failed to convert')) {
+        setErrors({ general: 'Invalid date/time format. Please check your entries.' });
+      }
     }
   };
 
@@ -236,42 +286,48 @@ export function CreateEventForm({
             })()
           )}
 
-          {/* Date Range */}
+          {/* Timezone Info */}
+          <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+            <h4 className="text-sm font-medium text-blue-800 mb-1">
+              Competition Time Zone: {competitionTimeZone}
+            </h4>
+            <p className="text-sm text-blue-700">
+              All event times will be converted to UTC for storage and displayed in the competition's local time.
+            </p>
+          </div>
+
+          {/* DateTime Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
-                Event Start Date *
+              <label htmlFor="startAt" className="block text-sm font-medium text-gray-700 mb-2">
+                Event Start Time *
               </label>
               <input
-                type="date"
-                id="startDate"
-                value={formData.startDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
-                min={competitionStartDate}
-                max={competitionEndDate}
+                type="datetime-local"
+                id="startAt"
+                value={formData.startAt}
+                onChange={(e) => setFormData(prev => ({ ...prev, startAt: e.target.value }))}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.startDate ? 'border-red-300' : 'border-gray-300'
+                  errors.startAt ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>}
+              {errors.startAt && <p className="mt-1 text-sm text-red-600">{errors.startAt}</p>}
             </div>
 
             <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
-                Event End Date *
+              <label htmlFor="endAt" className="block text-sm font-medium text-gray-700 mb-2">
+                Event End Time *
               </label>
               <input
-                type="date"
-                id="endDate"
-                value={formData.endDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
-                min={formData.startDate || competitionStartDate}
-                max={competitionEndDate}
+                type="datetime-local"
+                id="endAt"
+                value={formData.endAt}
+                onChange={(e) => setFormData(prev => ({ ...prev, endAt: e.target.value }))}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.endDate ? 'border-red-300' : 'border-gray-300'
+                  errors.endAt ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
+              {errors.endAt && <p className="mt-1 text-sm text-red-600">{errors.endAt}</p>}
             </div>
           </div>
 
@@ -311,10 +367,10 @@ export function CreateEventForm({
         </form>
 
         {/* Error Messages */}
-        {createEvent.error && (
+        {(createEvent.error || errors.general) && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-600">
-              Failed to create event: {createEvent.error.message}
+              {errors.general || `Failed to create event: ${createEvent.error?.message}`}
             </p>
           </div>
         )}

@@ -7,6 +7,8 @@ import {
   cancelEventRegistration,
 } from "../../dal/eventRegistration";
 import { getSupabaseUser } from "../../dal/supabase";
+import { EventApi } from "@ballroomcompmanager/shared";
+import { mapEventRowToDTO } from "../mappers";
 
 export const eventRouter = router({
   // Register user for a specific event
@@ -119,10 +121,8 @@ export const eventRouter = router({
       z.object({
         competitionId: z.string().uuid(),
         name: z.string().min(1, "Event name is required"),
-        startDate: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
-        endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+        startAt: z.string().datetime(), // ISO 8601 UTC timestamp
+        endAt: z.string().datetime(),   // ISO 8601 UTC timestamp
         categoryId: z.string().uuid(),
         rulesetId: z.string().uuid(),
       }),
@@ -149,13 +149,13 @@ export const eventRouter = router({
         });
       }
 
-      // Validate dates
-      const startDate = new Date(input.startDate);
-      const endDate = new Date(input.endDate);
-      if (startDate > endDate) {
+      // Validate timestamps
+      const startAt = new Date(input.startAt);
+      const endAt = new Date(input.endAt);
+      if (startAt >= endAt) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "End date must be after or equal to start date",
+          message: "End time must be after start time",
         });
       }
 
@@ -196,13 +196,28 @@ export const eventRouter = router({
           });
         }
 
+        // Get competition time zone for response
+        const { data: comp, error: compError } = await supabase
+          .from("comp_info")
+          .select("time_zone")
+          .eq("id", input.competitionId)
+          .single();
+          
+        if (compError || !comp) {
+          if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", compError);
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Competition not found",
+          });
+        }
+
         // Create the event
         const { data: event, error: eventError } = await supabase
           .from("event_info")
           .insert({
             name: input.name,
-            start_date: input.startDate,
-            end_date: input.endDate,
+            start_at: input.startAt,
+            end_at: input.endAt,
             category_ruleset_id: categoryRuleset!.id,
             comp_id: input.competitionId,
             event_status: "scheduled",
@@ -218,15 +233,9 @@ export const eventRouter = router({
           });
         }
 
-        return {
-          id: event.id,
-          name: event.name,
-          startDate: event.start_date,
-          endDate: event.end_date,
-          competitionId: event.comp_id,
-          categoryRulesetId: event.category_ruleset_id,
-          eventStatus: event.event_status,
-        };
+        // Use mapper and validate with zod
+        const mapped = mapEventRowToDTO(event, comp.time_zone);
+        return EventApi.parse(mapped);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') console.error("Event creation failed:", error);
         throw new TRPCError({
@@ -243,14 +252,8 @@ export const eventRouter = router({
       z.object({
         id: z.string().uuid(),
         name: z.string().min(1).optional(),
-        startDate: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
-        endDate: z
-          .string()
-          .regex(/^\d{4}-\d{2}-\d{2}$/)
-          .optional(),
+        startAt: z.string().datetime().optional(), // ISO 8601 UTC timestamp
+        endAt: z.string().datetime().optional(),   // ISO 8601 UTC timestamp
         eventStatus: z
           .enum(["scheduled", "current", "completed", "cancelled"])
           .optional(),
@@ -292,23 +295,38 @@ export const eventRouter = router({
         });
       }
 
-      // Validate dates if both provided
-      if (input.startDate && input.endDate) {
-        const startDate = new Date(input.startDate);
-        const endDate = new Date(input.endDate);
-        if (startDate > endDate) {
+      // Validate timestamps if both provided
+      if (input.startAt && input.endAt) {
+        const startAt = new Date(input.startAt);
+        const endAt = new Date(input.endAt);
+        if (startAt >= endAt) {
           throw new TRPCError({
             code: "BAD_REQUEST",
-            message: "End date must be after or equal to start date",
+            message: "End time must be after start time",
           });
         }
       }
 
       try {
+        // Get competition time zone for response
+        const { data: comp, error: compError } = await supabase
+          .from("comp_info")
+          .select("time_zone")
+          .eq("id", event.comp_id)
+          .single();
+          
+        if (compError || !comp) {
+          if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", compError);
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Competition not found",
+          });
+        }
+        
         const updateData: any = {};
         if (input.name) updateData.name = input.name;
-        if (input.startDate) updateData.start_date = input.startDate;
-        if (input.endDate) updateData.end_date = input.endDate;
+        if (input.startAt) updateData.start_at = input.startAt;
+        if (input.endAt) updateData.end_at = input.endAt;
         if (input.eventStatus) updateData.event_status = input.eventStatus;
 
         const { data: updatedEvent, error } = await supabase
@@ -326,14 +344,9 @@ export const eventRouter = router({
           });
         }
 
-        return {
-          id: updatedEvent.id,
-          name: updatedEvent.name,
-          startDate: updatedEvent.start_date,
-          endDate: updatedEvent.end_date,
-          competitionId: updatedEvent.comp_id,
-          eventStatus: updatedEvent.event_status,
-        };
+        // Use mapper and validate with zod
+        const mapped = mapEventRowToDTO(updatedEvent, comp.time_zone);
+        return EventApi.parse(mapped);
       } catch (error) {
         if (process.env.NODE_ENV === 'development') console.error("Event update failed:", error);
         throw new TRPCError({

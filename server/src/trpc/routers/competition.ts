@@ -21,6 +21,7 @@ export const competitionRouter = router({
         name,
         start_date,
         end_date,
+        time_zone,
         venue:venue_id (
           id,
           name,
@@ -30,9 +31,11 @@ export const competitionRouter = router({
         events:event_info (
           id,
           name,
-          start_date,
-          end_date,
-          event_status
+          start_at,
+          end_at,
+          event_status,
+          comp_id,
+          category_ruleset_id
         )
       `,
       )
@@ -66,6 +69,7 @@ export const competitionRouter = router({
           name,
           start_date,
           end_date,
+          time_zone,
           venue:venue_id (
             id,
             name,
@@ -75,9 +79,11 @@ export const competitionRouter = router({
           events:event_info (
             id,
             name,
-            start_date,
-            end_date,
-            event_status
+            start_at,
+            end_at,
+            event_status,
+            comp_id,
+            category_ruleset_id
           )
         `,
         )
@@ -106,19 +112,37 @@ export const competitionRouter = router({
     .input(z.object({ competitionId: z.string() }))
     .query(async ({ input }) => {
       const supabase = getSupabaseAnon();
+      
+      // First get competition time zone
+      const { data: comp, error: compError } = await supabase
+        .from("comp_info")
+        .select("time_zone")
+        .eq("id", input.competitionId)
+        .single();
+        
+      if (compError || !comp) {
+        if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", compError);
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Competition not found",
+        });
+      }
+      
       const { data: events, error } = await supabase
         .from("event_info")
         .select(
           `
           id,
           name,
-          start_date,
-          end_date,
-          event_status
+          start_at,
+          end_at,
+          event_status,
+          comp_id,
+          category_ruleset_id
         `,
         )
         .eq("comp_id", input.competitionId)
-        .order("start_date", { ascending: true });
+        .order("start_at", { ascending: true });
 
       if (error) {
       if (process.env.NODE_ENV === 'development') console.error("Error fetching events:", error);
@@ -128,8 +152,8 @@ export const competitionRouter = router({
         });
       }
 
-      // Map DB rows to DTOs
-      const mapped = (events || []).map(mapEventRowToDTO);
+      // Map DB rows to DTOs with competition time zone
+      const mapped = (events || []).map(event => mapEventRowToDTO(event, comp.time_zone));
 
       // Validate with zod schema
       return z.array(EventApi).parse(mapped);
@@ -186,6 +210,7 @@ export const competitionRouter = router({
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
         endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+        timeZone: z.string().default("UTC"), // IANA time zone identifier
         venueId: z.string().uuid().optional(),
       }),
     )
@@ -223,6 +248,7 @@ export const competitionRouter = router({
             name: input.name,
             start_date: input.startDate,
             end_date: input.endDate,
+            time_zone: input.timeZone,
             venue_id: input.venueId || null,
           })
           .select()
@@ -280,6 +306,7 @@ export const competitionRouter = router({
           name: competition.name,
           startDate: competition.start_date,
           endDate: competition.end_date,
+          timeZone: competition.time_zone,
           venueId: competition.venue_id,
         };
       } catch (error) {
@@ -308,6 +335,7 @@ export const competitionRouter = router({
           .string()
           .regex(/^\d{4}-\d{2}-\d{2}$/)
           .optional(),
+        timeZone: z.string().optional(), // IANA time zone identifier
         venueId: z.string().uuid().nullable().optional(),
       }),
     )
@@ -350,6 +378,7 @@ export const competitionRouter = router({
         if (input.name) updateData.name = input.name;
         if (input.startDate) updateData.start_date = input.startDate;
         if (input.endDate) updateData.end_date = input.endDate;
+        if (input.timeZone) updateData.time_zone = input.timeZone;
         if (input.venueId !== undefined) updateData.venue_id = input.venueId;
 
         const { data: competition, error } = await supabase
@@ -372,6 +401,7 @@ export const competitionRouter = router({
           name: competition.name,
           startDate: competition.start_date,
           endDate: competition.end_date,
+          timeZone: competition.time_zone,
           venueId: competition.venue_id,
         };
       } catch (error) {
