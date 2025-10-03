@@ -25,9 +25,9 @@ export function eventApiToDomain(eventApi: EventApi): Event {
   return {
     id: eventApi.id,
     name: eventApi.name,
-    startDate: parseDate(eventApi.startDate),
-    endDate: parseDate(eventApi.endDate),
-    status: eventApi.status,
+    startDate: new Date(eventApi.startAt), // Parse ISO timestamp directly
+    endDate: new Date(eventApi.endAt),     // Parse ISO timestamp directly
+    status: eventApi.eventStatus,
   };
 }
 

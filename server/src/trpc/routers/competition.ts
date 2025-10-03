@@ -49,8 +49,16 @@ export const competitionRouter = router({
       });
     }
 
+    // Check that we have valid data and not error objects
+    if (!competitions || !Array.isArray(competitions)) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Invalid data structure returned from database",
+      });
+    }
+
     // Map DB rows to DTOs
-    const mapped = (competitions || []).map(mapCompetitionRowToDTO);
+    const mapped = competitions.map(mapCompetitionRowToDTO);
 
     // Validate with zod schema
     return z.array(CompetitionApi).parse(mapped);
@@ -98,7 +106,7 @@ export const competitionRouter = router({
         });
       }
 
-      if (!competition) {
+      if (!competition || typeof competition !== 'object' || 'error' in competition) {
         return null;
       }
 
@@ -152,8 +160,16 @@ export const competitionRouter = router({
         });
       }
 
+      // Check that we have valid data and not error objects
+      if (!events || !Array.isArray(events)) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Invalid events data returned from database",
+        });
+      }
+
       // Map DB rows to DTOs with competition time zone
-      const mapped = (events || []).map(event => mapEventRowToDTO(event, comp.time_zone));
+      const mapped = events.map(event => mapEventRowToDTO(event, comp.time_zone));
 
       // Validate with zod schema
       return z.array(EventApi).parse(mapped);

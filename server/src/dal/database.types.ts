@@ -74,6 +74,7 @@ export type Database = {
           id: string
           name: string
           start_date: string
+          time_zone: string
           venue_id: string | null
         }
         Insert: {
@@ -82,6 +83,7 @@ export type Database = {
           id?: string
           name: string
           start_date: string
+          time_zone?: string
           venue_id?: string | null
         }
         Update: {
@@ -90,6 +92,7 @@ export type Database = {
           id?: string
           name?: string
           start_date?: string
+          time_zone?: string
           venue_id?: string | null
         }
         Relationships: [
@@ -231,28 +234,34 @@ export type Database = {
         Row: {
           category_ruleset_id: string
           comp_id: string
+          end_at: string
           end_date: string
           event_status: string
           id: string
           name: string
+          start_at: string
           start_date: string
         }
         Insert: {
           category_ruleset_id: string
           comp_id: string
+          end_at: string
           end_date: string
           event_status?: string
           id?: string
           name: string
+          start_at: string
           start_date: string
         }
         Update: {
           category_ruleset_id?: string
           comp_id?: string
+          end_at?: string
           end_date?: string
           event_status?: string
           id?: string
           name?: string
+          start_at?: string
           start_date?: string
         }
         Relationships: [

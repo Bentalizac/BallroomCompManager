@@ -211,13 +211,18 @@ export const eventRouter = router({
           });
         }
 
-        // Create the event
+        // Create the event (need both timestamps and date fields for compatibility)
+        const startDate = startAt.toISOString().split('T')[0]; // Extract date part (YYYY-MM-DD)
+        const endDate = endAt.toISOString().split('T')[0];     // Extract date part (YYYY-MM-DD)
+        
         const { data: event, error: eventError } = await supabase
           .from("event_info")
           .insert({
             name: input.name,
             start_at: input.startAt,
             end_at: input.endAt,
+            start_date: startDate,
+            end_date: endDate,
             category_ruleset_id: categoryRuleset!.id,
             comp_id: input.competitionId,
             event_status: "scheduled",
@@ -325,8 +330,14 @@ export const eventRouter = router({
         
         const updateData: any = {};
         if (input.name) updateData.name = input.name;
-        if (input.startAt) updateData.start_at = input.startAt;
-        if (input.endAt) updateData.end_at = input.endAt;
+        if (input.startAt) {
+          updateData.start_at = input.startAt;
+          updateData.start_date = new Date(input.startAt).toISOString().split('T')[0];
+        }
+        if (input.endAt) {
+          updateData.end_at = input.endAt;
+          updateData.end_date = new Date(input.endAt).toISOString().split('T')[0];
+        }
         if (input.eventStatus) updateData.event_status = input.eventStatus;
 
         const { data: updatedEvent, error } = await supabase
