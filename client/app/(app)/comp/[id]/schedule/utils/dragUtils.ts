@@ -39,7 +39,7 @@ export function calculateEventRenderPosition(
   widthPercentage: number;
 } {
   // Calculate top position based on start time
-  const topPosition = ((startTime - TIME_CONSTANTS.START_TIME) / TIME_CONSTANTS.SLOT_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
+  const topPosition = ((startTime - TIME_CONSTANTS.START_TIME) / TIME_CONSTANTS.LINE_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
   
   // Calculate width and left offset for overlapping events
   const gapPercentage = totalColumns > 1 ? 1 : 0; // 1% gap between events
@@ -60,7 +60,7 @@ export function calculateEventRenderPosition(
 export function calculateResizeDelta(
   deltaY: number,
   currentDuration: number,
-  minDuration: number = TIME_CONSTANTS.SLOT_INTERVAL
+  minDuration: number = TIME_CONSTANTS.LINE_INTERVAL
 ): number {
   const deltaMinutes = Math.round(pixelsToMinutes(deltaY));
   return Math.max(minDuration, currentDuration + deltaMinutes);
@@ -72,6 +72,6 @@ export function calculateResizeDelta(
 export function getDragItemHeight(duration: number): number {
   return Math.max(
     TIME_CONSTANTS.PIXELS_PER_SLOT, // Minimum height
-    (duration / TIME_CONSTANTS.SLOT_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT
+    (duration / TIME_CONSTANTS.LINE_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT
   );
 }

@@ -56,21 +56,21 @@ export function parseDuration(durationStr: string): number | null {
  * Convert minutes to pixels based on timeline scale
  */
 export function minutesToPixels(minutes: number): number {
-  return (minutes / TIME_CONSTANTS.SLOT_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
+  return (minutes / TIME_CONSTANTS.LINE_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
 }
 
 /**
  * Convert pixels to minutes based on timeline scale
  */
 export function pixelsToMinutes(pixels: number): number {
-  return (pixels / TIME_CONSTANTS.PIXELS_PER_SLOT) * TIME_CONSTANTS.SLOT_INTERVAL;
+  return (pixels / TIME_CONSTANTS.PIXELS_PER_SLOT) * TIME_CONSTANTS.LINE_INTERVAL;
 }
 
 /**
  * Round time to nearest slot interval
  */
 export function roundToNearestSlot(minutes: number): number {
-  return Math.round(minutes / TIME_CONSTANTS.SLOT_INTERVAL) * TIME_CONSTANTS.SLOT_INTERVAL;
+  return Math.round(minutes / TIME_CONSTANTS.LINE_INTERVAL) * TIME_CONSTANTS.LINE_INTERVAL;
 }
 
 /**

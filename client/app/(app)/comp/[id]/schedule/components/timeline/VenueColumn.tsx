@@ -5,6 +5,7 @@ import { useEventPositioning } from '../../hooks';
 import { calculateTimeSlotFromPosition, calculateEventRenderPosition } from '../../utils';
 import { TimeGrid } from './TimeGrid';
 import { ScheduledEventComponent } from './ScheduledEventComponent';
+import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
 
 export function VenueColumn({ 
   day, 
@@ -58,7 +59,7 @@ export function VenueColumn({
     <div
       ref={combinedRef}
       className={`relative ${isOver ? 'bg-blue-50' : ''}`}
-      style={{ minHeight: `${56 * 12}px` }} // 56 time slots * 12px each
+      style={{ minHeight: `${TIME_CONSTANTS.TOTAL_LINES * LAYOUT_CONSTANTS.GRID_SLOT_HEIGHT}px` }}
     >
       {/* Time grid lines */}
       <TimeGrid />
@@ -72,6 +73,8 @@ export function VenueColumn({
             position.totalColumns
           );
           
+          const eventHeight = (event.duration / TIME_CONSTANTS.LINE_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
+          
           return (
             <div
               key={event.event.id}
@@ -80,6 +83,7 @@ export function VenueColumn({
                 top: `${topPosition}px`,
                 left: `${leftPercentage}%`,
                 width: `${widthPercentage}%`,
+                height: `${eventHeight}px`,
               }}
             >
               <ScheduledEventComponent
