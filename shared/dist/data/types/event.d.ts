@@ -1,10 +1,11 @@
+import { EventType } from "../enums/eventTypes";
 import { ScoringMethods } from "../enums/scoringMethods";
-import { Competition } from "./competition";
 import { Participant } from "./user";
-export interface CompEvent extends Competition {
+export interface CompEvent {
+    id: string;
     competitionId: string;
     /** Event category as submitted by competition organizer */
-    category: string;
+    category: EventType;
     /** Event name */
     name: string;
     /**Participants assigned to event with competitor role */
@@ -13,5 +14,7 @@ export interface CompEvent extends Competition {
     judges: Participant[];
     /**Scoring type */
     scoring: ScoringMethods;
+    startDate: Date | null;
+    endDate: Date | null;
 }
 //# sourceMappingURL=event.d.ts.map
