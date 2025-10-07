@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, authedProcedure } from "../base";
 import { getSupabaseUser } from "../../dal/supabase";
-
+import { registerForCompSchema } from "@ballroomcompmanager/shared"
 export const userRouter = router({
   // Get current user's registrations (all competitions)
   getMyRegistrations: authedProcedure.query(async ({ ctx }) => {
@@ -50,6 +50,68 @@ export const userRouter = router({
 
     return registrations || [];
   }),
+
+  // Register for a competition
+  registerForComp: authedProcedure
+    .input(z.object(registerForCompSchema))
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.userId || !ctx.userToken) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const supabase = getSupabaseUser(ctx.userToken!);
+      
+      // Check if user is already registered for this comp
+
+      const { data: existingRegs, error: fetchError } = await supabase
+        .from("comp_participant")
+        .select("id")
+        .eq("user_id", ctx.userId)
+        .eq("comp_id", input.competitionId);
+
+      if (fetchError) {
+        if (process.env.NODE_ENV === 'development') console.error("Error checking existing registrations:", fetchError);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to check existing registrations",
+        });
+      }
+
+      if (existingRegs && existingRegs.length > 0) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User is already registered for this competition",
+        });
+      }
+
+      // Create participant entries for each role
+      const participantInserts = input.roles.map(role => ({
+        user_id: ctx.userId,
+        comp_id: input.competitionId,
+        role: role as "spectator" | "competitor" | "organizer" | "judge",
+        participation_status: "active"
+      }));
+
+      const { data: newParticipants, error: participantError } = await supabase
+        .from("comp_participant")
+        .insert(participantInserts)
+        .select();
+
+      if (participantError || !newParticipants) {
+        if (process.env.NODE_ENV === 'development') console.error("Error creating participants:", participantError);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create participant registrations",
+        });
+      }
+
+      return {
+        success: true,
+        participantIds: newParticipants.map(p => p.id),
+        roles: input.roles,
+        message: "Successfully registered for competition",
+      };
+    }),
 
   // Update user profile
   updateProfile: authedProcedure

@@ -65,13 +65,33 @@ export function getSupabaseUser(userToken: string): SupabaseClient<Database> {
     );
   }
   
-  const client = createClient<Database>(supabaseUrl, supabaseAnonKey);
-  
-  // Set the user's JWT token to respect RLS with user context
-  client.auth.setSession({
-    access_token: userToken,
-    refresh_token: '', // Not needed for server-side operations
+  // Create client with anon key
+  const client = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+    },
+    global: {
+      headers: {
+        Authorization: `Bearer ${userToken}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation',
+      },
+    },
   });
+  
+  // Alternative: try to set the session after creation
+  // This approach attempts to set the user context properly
+  const session = {
+    access_token: userToken,
+    refresh_token: '',
+    expires_in: 3600,
+    token_type: 'bearer',
+    user: null, // Will be populated by Supabase
+  };
+  
+  // This should set the auth context for RLS
+  client.auth.setSession(session);
   
   return client;
 }

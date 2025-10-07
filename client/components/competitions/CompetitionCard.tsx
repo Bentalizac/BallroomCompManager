@@ -8,6 +8,7 @@ import {
   useRegisterForCompetition,
 } from "@/hooks/useCompetitions";
 import { useAuth } from "@/providers/auth/authProvider";
+import { CompRoles } from "@ballroomcompmanager/shared";
 
 interface CompetitionCardProps {
   competitionId: string;
@@ -41,6 +42,7 @@ export function CompetitionCard({ competitionId }: CompetitionCardProps) {
       registerMutation.mutate({
         competitionId,
         userId,
+        roles: [CompRoles.Spectator], // Default to spectator role
       });
     }
   };
@@ -171,9 +173,7 @@ export function CompetitionCard({ competitionId }: CompetitionCardProps) {
           disabled={registerMutation.isLoading}
           className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {registerMutation.isLoading
-            ? "Registering..."
-            : "Register for Competition"}
+          {registerMutation.isLoading ? "Registering..." : "Register"}
         </button>
       ) : (
         // Authenticated user cannot register (already registered, competition started, etc.)

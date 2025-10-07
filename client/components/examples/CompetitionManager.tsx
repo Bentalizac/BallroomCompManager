@@ -7,6 +7,7 @@ import {
   useRegisterForCompetition,
   useMyRegistrations
 } from '@/hooks/useCompetitions';
+import { CompRoles } from '@ballroomcompmanager/shared';
 
 export function CompetitionManager() {
   const [isCreating, setIsCreating] = useState(false);
@@ -76,6 +77,7 @@ export function CompetitionManager() {
       await registerMutation.mutateAsync({
         competitionId,
         userId: 'current-user-id', // This would come from auth context
+        roles: [CompRoles.Spectator], // Default to spectator role
       });
       alert('Successfully registered!');
     } catch (error) {

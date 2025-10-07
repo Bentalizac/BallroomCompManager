@@ -2,6 +2,7 @@ import { Competition } from "../../data/types/competition";
 import { CompEvent } from "../../data/types/event";
 import { Registration } from "../../data/types/registration";
 import { ScoringMethods } from "../../data/enums/scoringMethods";
+import { EventType } from "../../data/enums/eventTypes";
 import { mockParticipants, mockUsers } from "../user/fakeUsers";
 import { BallroomCompetitor } from "../../data/types/userExtensions";
 
@@ -10,11 +11,10 @@ export const mockEvents: CompEvent[] = [
   {
     id: "event-1",
     competitionId: "comp-1",
-    category: "Amateur",
+    category: EventType.Other,
     name: "Newcomer Standard",
     startDate: new Date("2024-03-15T09:00:00"),
     endDate: new Date("2024-03-15T11:00:00"),
-    events: [], // Self-reference, empty for events
     competitors: mockParticipants.filter(
       (p) => p.eventId === "event-1" && p.role === "competitor",
     ),
@@ -26,11 +26,10 @@ export const mockEvents: CompEvent[] = [
   {
     id: "event-2",
     competitionId: "comp-1",
-    category: "Amateur",
+    category: EventType.Other,
     name: "Newcomer Latin",
     startDate: new Date("2024-03-15T13:00:00"),
     endDate: new Date("2024-03-15T15:00:00"),
-    events: [],
     competitors: mockParticipants.filter(
       (p) => p.eventId === "event-2" && p.role === "competitor",
     ),
@@ -42,11 +41,10 @@ export const mockEvents: CompEvent[] = [
   {
     id: "event-3",
     competitionId: "comp-1",
-    category: "Pro-Am",
+    category: EventType.Other,
     name: "Bronze Standard",
     startDate: new Date("2024-03-15T16:00:00"),
     endDate: new Date("2024-03-15T17:30:00"),
-    events: [],
     competitors: mockParticipants.filter(
       (p) => p.eventId === "event-3" && p.role === "competitor",
     ),

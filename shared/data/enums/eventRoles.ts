@@ -6,3 +6,10 @@ export enum EventRoles {
   Spectator = "spectator",
   Scrutineer = "scrutineer",
 }
+
+export enum CompRoles {
+  Organizer = "organizer",
+  Competitor = "competitor",
+  Judge = "judge",
+  Spectator = "spectator",
+}
