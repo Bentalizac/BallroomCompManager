@@ -63,12 +63,11 @@ export function ScheduledEventComponent({
   return (
     <div
       ref={drag as any}
-      className={`absolute left-0 top-0 w-full rounded shadow-sm border-2 transition-colors ${
+      className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
         selectedEvent?.event.id === event.event.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
       } ${isDragState || isDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'} ${isResizing ? 'cursor-ns-resize' : ''}`}
       style={{ 
         backgroundColor: getEventDisplayColor(event, 0.5),
-        height: `${height}px`,
         minHeight: '12px'
       }}
       onClick={(e) => {

@@ -55,8 +55,8 @@ export function validateDurationString(durationStr: string): ValidationResult {
     return { isValid: false, errors, warnings };
   }
   
-  if (parsedDuration < TIME_CONSTANTS.SLOT_INTERVAL) {
-    errors.push(`Duration must be at least ${TIME_CONSTANTS.SLOT_INTERVAL} minutes`);
+  if (parsedDuration < TIME_CONSTANTS.LINE_INTERVAL) {
+    errors.push(`Duration must be at least ${TIME_CONSTANTS.LINE_INTERVAL} minutes`);
   }
   
   if (parsedDuration > 480) { // 8 hours
@@ -83,8 +83,8 @@ export function validateScheduledEvent(event: ScheduledEvent): ValidationResult 
   }
   
   // Validate duration
-  if (event.duration < TIME_CONSTANTS.SLOT_INTERVAL) {
-    errors.push(`Duration must be at least ${TIME_CONSTANTS.SLOT_INTERVAL} minutes`);
+  if (event.duration < TIME_CONSTANTS.LINE_INTERVAL) {
+    errors.push(`Duration must be at least ${TIME_CONSTANTS.LINE_INTERVAL} minutes`);
   }
   
   // Validate end time

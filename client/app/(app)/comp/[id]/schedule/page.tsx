@@ -22,7 +22,11 @@ export default function Page() {
     handleEventDrop,
     handleEventReturnToList,
     handleEventUpdate,
-    handleEventDelete
+    handleEventDelete,
+    days,
+    setDays,
+    locations,
+    setLocations
   } = useScheduleState();
 
   // Set up keyboard shortcuts
@@ -40,8 +44,7 @@ export default function Page() {
     }
   };
 
-  const Days: Date[] = [new Date('2025-10-09'), new Date('2025-10-10')];
-  const locations: Venue[] = [{ name: 'Wilk' }, { name: 'RB' }];
+
 
   return (
     <DndProvider backend={HTML5Backend}>
@@ -57,7 +60,7 @@ export default function Page() {
           setScheduledEvents={setScheduledEvents}
           setAvailableEvents={setAvailableEvents}
           onEventMove={handleEventMove}
-          days={Days}
+          days={days}
           locations={locations}
         />
         <SidePanel 
