@@ -1,6 +1,5 @@
 import { EventType, RoundLevel } from "../enums/eventTypes";
 import { ScoringMethods } from "../enums/scoringMethods";
-import { Competition } from "./competition";
 import { Participant } from "./user";
 
 export interface CompEvent {

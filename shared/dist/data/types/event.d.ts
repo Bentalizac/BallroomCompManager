@@ -1,4 +1,4 @@
-import { EventType } from "../enums/eventTypes";
+import { EventType, RoundLevel } from "../enums/eventTypes";
 import { ScoringMethods } from "../enums/scoringMethods";
 import { Participant } from "./user";
 export interface CompEvent {
@@ -16,5 +16,19 @@ export interface CompEvent {
     scoring: ScoringMethods;
     startDate: Date | null;
     endDate: Date | null;
+}
+export interface EventRound {
+    id: string;
+    eventId: string;
+    roundLevel: RoundLevel;
+    startTime: Date | null;
+    endTime: Date | null;
+}
+export interface RoundHeat {
+    id: string;
+    roundId: string;
+    heatNumber: number;
+    startTime: Date | null;
+    endTime: Date | null;
 }
 //# sourceMappingURL=event.d.ts.map

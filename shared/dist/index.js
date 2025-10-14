@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.competitionApiToDomain = exports.eventApiToDomain = exports.venueApiToDomain = exports.getEventInfoSchema = exports.createEventSchema = exports.getCompetitionInfoSchema = exports.createCompetitionSchema = exports.registerForCompSchema = exports.CompetitionApi = exports.EventApi = exports.VenueApi = exports.EventStatus = exports.mockParticipants = exports.mockBallroomCompetitors = exports.mockUsers = exports.EventRoles = exports.CompRoles = exports.ScoringMethods = exports.CompetitionRole = void 0;
+exports.extractYearFromSlug = exports.extractNameFromSlug = exports.isValidCompetitionSlug = exports.generateCompetitionSlugWithSuffix = exports.generateCompetitionSlug = exports.competitionApiToDomain = exports.eventApiToDomain = exports.venueApiToDomain = exports.getEventInfoSchema = exports.createEventSchema = exports.getCompetitionInfoSchema = exports.createCompetitionSchema = exports.registerForCompSchema = exports.CompetitionApi = exports.EventApi = exports.VenueApi = exports.EventStatus = exports.mockParticipants = exports.mockBallroomCompetitors = exports.mockUsers = exports.EventRoles = exports.CompRoles = exports.ScoringMethods = exports.CompetitionRole = void 0;
 // Enums exports
 var roles_1 = require("./data/enums/roles");
 Object.defineProperty(exports, "CompetitionRole", { enumerable: true, get: function () { return roles_1.CompetitionRole; } });
@@ -32,4 +32,11 @@ var mappers_1 = require("./domain/mappers");
 Object.defineProperty(exports, "venueApiToDomain", { enumerable: true, get: function () { return mappers_1.venueApiToDomain; } });
 Object.defineProperty(exports, "eventApiToDomain", { enumerable: true, get: function () { return mappers_1.eventApiToDomain; } });
 Object.defineProperty(exports, "competitionApiToDomain", { enumerable: true, get: function () { return mappers_1.competitionApiToDomain; } });
+// Utility exports
+var slugs_1 = require("./utils/slugs");
+Object.defineProperty(exports, "generateCompetitionSlug", { enumerable: true, get: function () { return slugs_1.generateCompetitionSlug; } });
+Object.defineProperty(exports, "generateCompetitionSlugWithSuffix", { enumerable: true, get: function () { return slugs_1.generateCompetitionSlugWithSuffix; } });
+Object.defineProperty(exports, "isValidCompetitionSlug", { enumerable: true, get: function () { return slugs_1.isValidCompetitionSlug; } });
+Object.defineProperty(exports, "extractNameFromSlug", { enumerable: true, get: function () { return slugs_1.extractNameFromSlug; } });
+Object.defineProperty(exports, "extractYearFromSlug", { enumerable: true, get: function () { return slugs_1.extractYearFromSlug; } });
 //# sourceMappingURL=index.js.map

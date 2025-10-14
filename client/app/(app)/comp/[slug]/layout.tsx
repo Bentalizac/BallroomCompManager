@@ -1,22 +1,7 @@
 "use client";
 
 import React from "react";
-import { IdProvider } from "@/providers/compIdProvider/compIdProvider";
 import { CompetitionLayout } from "@/components/competitions/CompetitionLayout";
-
-function LayoutWithContext({ 
-  slug, 
-  children 
-}: { 
-  slug: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <CompetitionLayout slug={slug}>
-      {children}
-    </CompetitionLayout>
-  );
-}
 
 export default function RootLayout({
   children,
@@ -28,10 +13,8 @@ export default function RootLayout({
   const { slug } = React.use(params);
   
   return (
-    <IdProvider id={slug}>
-      <LayoutWithContext slug={slug}>
-        {children}
-      </LayoutWithContext>
-    </IdProvider>
+    <CompetitionLayout slug={slug}>
+      {children}
+    </CompetitionLayout>
   );
 }

@@ -5,12 +5,14 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth/authProvider";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
 import { useState, useEffect } from "react";
+import { Shield } from "lucide-react";
 
 type MenuItem = {
   title: string;
   href?: string;
   onClick?: () => void;
   children?: { title: string; href: string }[];
+  isAdmin?: boolean; // Flag for admin styling
 };
 
 export function AppHeader() {
@@ -23,16 +25,20 @@ export function AppHeader() {
   const competitionMatch = pathname.match(/^\/comp\/([^\/]+)/);
   const competitionSlug = competitionMatch ? competitionMatch[1] : null;
 
-  // Fetch user role (simplified - you may want to move this to a custom hook)
+  // Fetch user role - enhanced for admin detection
   useEffect(() => {
     if (user) {
-      // TODO: Replace with actual role fetching logic
-      // This is a placeholder - implement your role fetching logic here
-      setUserRole("admin"); // Default to admin for now
+      // TODO: Replace with actual role fetching logic based on competition context
+      // For now, default to admin to enable admin functionality
+      // In production, this should check:
+      // 1. User's global admin status
+      // 2. User's role in the specific competition (if competitionSlug exists)
+      // 3. Competition-specific permissions
+      setUserRole("admin"); // Default to admin for development
     } else {
       setUserRole(null);
     }
-  }, [user]);
+  }, [user, competitionSlug]);
 
   const getNavItems = (): MenuItem[] => {
     if (!user) {
@@ -44,18 +50,18 @@ export function AppHeader() {
           { title: "Results", href: `/comp/${competitionSlug}/results` },
           { title: "Register", href: `/comp/${competitionSlug}/register` },
           { title: "Rules", href: `/comp/${competitionSlug}/rules` },
-          { 
-            title: "Login", 
-            onClick: () => redirectToAuth(pathname)
-          }
+          {
+            title: "Login",
+            onClick: () => redirectToAuth(pathname),
+          },
         ];
       }
       return [
         { title: "Home", href: "/home" },
-        { 
-          title: "Login", 
-          onClick: () => redirectToAuth(pathname)
-        }
+        {
+          title: "Login",
+          onClick: () => redirectToAuth(pathname),
+        },
       ];
     }
 
@@ -78,21 +84,16 @@ export function AppHeader() {
       // Add admin/judge items based on role
       if (userRole === "admin" || userRole === "organizer") {
         competitionItems.push({
-          title: "Manage",
+          title: "Admin",
+          isAdmin: true, // Flag for special styling
           children: [
-            { title: "Dashboard", href: `/comp/${competitionSlug}/manage` },
+            { title: "Events", href: `/comp/${competitionSlug}/events` },
             {
-              title: "Schedule",
-              href: `/comp/${competitionSlug}/manage/schedule`,
+              title: "Registrants",
+              href: `/comp/${competitionSlug}/registrants`,
             },
-            {
-              title: "Settings",
-              href: `/comp/${competitionSlug}/manage/settings`,
-            },
-            {
-              title: "Analytics",
-              href: `/comp/${competitionSlug}/manage/analytics`,
-            },
+            { title: "Schedule", href: `/comp/${competitionSlug}/schedule` },
+            { title: "Settings", href: `/comp/${competitionSlug}/settings` },
           ],
         });
       }
@@ -141,19 +142,28 @@ export function AppHeader() {
   return (
     <header className="w-full px-4 py-3 bg-accent border-b">
       <div className="flex items-center justify-between max-w-7xl mx-auto">
-        <div className="text-xl font-bold text-accent-foreground">
-          <Link href="/home">
-            {competitionSlug
-              ? `Competition ${competitionSlug}`
-              : "BallroomCompManager"}
-          </Link>
+        <div className="flex items-center gap-2">
+          <div className="text-xl font-bold text-accent-foreground">
+            <Link href="/home">
+              {competitionSlug
+                ? `Competition ${competitionSlug}`
+                : "BallroomCompManager"}
+            </Link>
+          </div>
+          {competitionSlug &&
+            (userRole === "admin" || userRole === "organizer") && (
+              <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full border border-blue-200">
+                <Shield className="h-3 w-3" />
+                Admin
+              </div>
+            )}
         </div>
 
         <nav className="hidden md:flex items-center space-x-6">
           {navItems.map((item, index) => (
             <div key={index} className="relative group">
               {item.href ? (
-                <Link 
+                <Link
                   href={item.href}
                   className="text-accent-foreground hover:text-accent-foreground/80 transition-colors"
                 >
@@ -168,16 +178,39 @@ export function AppHeader() {
                 </button>
               ) : (
                 <>
-                  <button className="text-accent-foreground hover:text-accent-foreground/80 transition-colors">
+                  <button
+                    className={`flex items-center gap-2 transition-colors ${
+                      item.isAdmin
+                        ? "text-blue-600 hover:text-blue-700 font-medium"
+                        : "text-accent-foreground hover:text-accent-foreground/80"
+                    }`}
+                  >
+                    {item.isAdmin && <Shield className="h-4 w-4" />}
                     {item.title} ▾
                   </button>
                   {item.children && (
-                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border border-gray-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                    <div
+                      className={`absolute right-0 top-full mt-2 w-48 bg-white border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 ${
+                        item.isAdmin ? "border-blue-200" : "border-gray-200"
+                      }`}
+                    >
+                      {item.isAdmin && (
+                        <div className="px-3 py-2 bg-blue-50 border-b border-blue-100">
+                          <div className="flex items-center gap-2 text-xs font-medium text-blue-600">
+                            <Shield className="h-3 w-3" />
+                            Admin Panel
+                          </div>
+                        </div>
+                      )}
                       {item.children.map((child, childIndex) => (
                         <Link
                           key={childIndex}
                           href={child.href}
-                          className="block px-4 py-2 text-gray-700 hover:bg-gray-50 transition-colors"
+                          className={`block px-4 py-2 transition-colors ${
+                            item.isAdmin
+                              ? "text-gray-700 hover:bg-blue-50 hover:text-blue-700"
+                              : "text-gray-700 hover:bg-gray-50"
+                          }`}
                         >
                           {child.title}
                         </Link>

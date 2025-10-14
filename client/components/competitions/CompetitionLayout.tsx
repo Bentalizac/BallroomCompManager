@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useCompetitionBySlug } from "@/hooks/useCompetitions";
+import { CompProvider, useComp } from "@/providers/compProvider/compProvider";
 import { notFound } from "next/navigation";
 
 interface CompetitionLayoutProps {
@@ -9,8 +9,9 @@ interface CompetitionLayoutProps {
   children: React.ReactNode;
 }
 
-export function CompetitionLayout({ slug, children }: CompetitionLayoutProps) {
-  const { data: competition, isLoading, error } = useCompetitionBySlug(slug);
+// Inner component that handles the loading/error states
+function CompetitionLayoutInner({ children }: { children: React.ReactNode }) {
+  const { competition, isLoading, error } = useComp();
 
   // Show loading state
   if (isLoading) {
@@ -51,8 +52,19 @@ export function CompetitionLayout({ slug, children }: CompetitionLayoutProps) {
     notFound();
   }
 
-  // Competition found - render children
+// Competition found - render children
   return <>{children}</>;
+}
+
+// Main wrapper that provides the context
+export function CompetitionLayout({ slug, children }: CompetitionLayoutProps) {
+  return (
+    <CompProvider slug={slug}>
+      <CompetitionLayoutInner>
+        {children}
+      </CompetitionLayoutInner>
+    </CompProvider>
+  );
 }
 
 export default CompetitionLayout;
