@@ -35,6 +35,7 @@ export function eventApiToDomain(eventApi: EventApi): Event {
 export function competitionApiToDomain(competitionApi: CompetitionApi): Competition {
   return {
     id: competitionApi.id,
+    slug: competitionApi.slug,
     name: competitionApi.name,
     startDate: parseDate(competitionApi.startDate),
     endDate: parseDate(competitionApi.endDate),

@@ -59,6 +59,7 @@ export const mockEvents: CompEvent[] = [
 export const mockCompetitions: Competition[] = [
   {
     id: "BYU",
+    slug: "byu-dancesport-2025",
     name: "BYU DanceSport",
     startDate: new Date("2025-10-15T08:00:00"),
     endDate: new Date("2026-03-15T08:00:00"),
@@ -66,6 +67,7 @@ export const mockCompetitions: Competition[] = [
   },
   {
     id: "comp-2",
+    slug: "spring-fling-dance-competition-2024",
     name: "Spring Fling Dance Competition",
     startDate: new Date("2024-04-20T08:00:00"),
     endDate: new Date("2024-04-20T22:00:00"),
@@ -73,6 +75,7 @@ export const mockCompetitions: Competition[] = [
   },
   {
     id: "comp-3",
+    slug: "summer-salsa-showdown-2024",
     name: "Summer Salsa Showdown",
     startDate: new Date("2024-05-25T08:00:00"),
     endDate: new Date("2024-05-25T22:00:00"),

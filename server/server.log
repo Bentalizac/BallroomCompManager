@@ -1,0 +1,26 @@
+
+> @ballroomcompmanager/server@1.0.0 dev /Users/samuelellsworth/Documents/Sandbox/ballroomcompmanager/server
+> ts-node -r dotenv/config src/server.ts
+
+[dotenv@17.2.3] injecting env (0) from .env -- tip: 🔄 add secrets lifecycle management: https://dotenvx.com/ops
+🔧 Environment check:
+  SUPABASE_URL: Set ✅
+  SUPABASE_ANON_KEY: Set ✅
+  SUPABASE_SERVICE_ROLE_KEY: Set ✅
+  NODE_ENV: development
+
+🚀 Server running on port 3001
+📡 tRPC endpoint: http://localhost:3001/trpc
+🏥 Health check: http://localhost:3001/health
+📊 CSV exports: http://localhost:3001/export/event/:id/results.csv
+📊 CSV exports: http://localhost:3001/export/event/:id/registrations.csv
+📡 GET /health - Origin: none
+📡 GET /trpc/competition.getBySlug?input=%7b%22slug%22%3a%22test-2025%22%7d - Origin: none
+🔍 tRPC Context - Auth Header: Missing
+🔐 JWT: No auth header provided
+🔍 tRPC Context - Auth Result: No user
+📡 GET /trpc/competition.getBySlug?input=%7b%22slug%22%3a%22non-existent-slug-12345%22%7d - Origin: none
+🔍 tRPC Context - Auth Header: Missing
+🔐 JWT: No auth header provided
+🔍 tRPC Context - Auth Result: No user
+ ELIFECYCLE  Command failed.

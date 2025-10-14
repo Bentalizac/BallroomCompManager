@@ -15,9 +15,9 @@ type ProviderProps = {
 };
 
 export const IdProvider: React.FC<ProviderProps> = ({ id, children }) => {
-    // If id is not provided, try to get it from the URL params
+    // If id is not provided, try to get it from the URL params (now using slug)
     const params = useParams();
-    const routeId = id || (params && typeof params.id === 'string' ? params.id : '');
+    const routeId = id || (params && typeof params.slug === 'string' ? params.slug : '');
     return (
         <IdContext.Provider value={{ id: routeId }}>
             {children}

@@ -5,10 +5,11 @@ import type { VenueApi, EventApi, CompetitionApi, EventStatus } from '@ballroomc
 export type VenueRow = Pick<Database['public']['Tables']['venue']['Row'], 'id' | 'name' | 'city' | 'state'>;
 
 export type EventRow = Pick<Database['public']['Tables']['event_info']['Row'], 
-  'id' | 'name' | 'start_at' | 'end_at' | 'event_status' | 'comp_id' | 'category_ruleset_id'>;
+  'id' | 'name' | 'start_date' | 'end_date' | 'event_status' | 'comp_id' | 'category_ruleset_id'>;
 
 export type CompRow = {
   id: string;
+  slug: string;
   name: string;
   start_date: string;
   end_date: string;
@@ -46,8 +47,8 @@ export function mapEventRowToDTO(row: EventRow, compTimeZone: string): EventApi 
   return {
     id: row.id,
     name: row.name,
-    startAt: row.start_at, // Already ISO UTC string from database
-    endAt: row.end_at,     // Already ISO UTC string from database
+    startAt: row.start_date + 'T00:00:00.000Z', // Convert date to ISO UTC timestamp
+    endAt: row.end_date + 'T23:59:59.999Z',     // Convert date to ISO UTC timestamp
     competitionId: row.comp_id,
     categoryRulesetId: row.category_ruleset_id,
     eventStatus,
@@ -59,6 +60,7 @@ export function mapEventRowToDTO(row: EventRow, compTimeZone: string): EventApi 
 export function mapCompetitionRowToDTO(row: CompRow): CompetitionApi {
   return {
     id: row.id,
+    slug: row.slug,
     name: row.name,
     startDate: row.start_date,
     endDate: row.end_date,

@@ -21,6 +21,17 @@ export function useCompetition(id: string | undefined) {
   );
 }
 
+// Hook to get a single competition by slug
+export function useCompetitionBySlug(slug: string | undefined) {
+  return trpc.competition.getBySlug.useQuery(
+    { slug: slug! },
+    {
+      enabled: !!slug, // Only run query if slug is provided
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    }
+  );
+}
+
 // Hook to get user's registration for a competition
 export function useUserRegistration(competitionId: string | undefined, userId: string | undefined) {
   return trpc.competition.getUserRegistration.useQuery(

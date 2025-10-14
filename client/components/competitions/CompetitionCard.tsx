@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  useCompetition,
+  useCompetitionBySlug,
   useCompetitionDisplay,
   useUserRegistration,
   useCanRegister,
@@ -11,25 +11,25 @@ import { useAuth } from "@/providers/auth/authProvider";
 import { CompRoles } from "@ballroomcompmanager/shared";
 
 interface CompetitionCardProps {
-  competitionId: string;
+  competitionSlug: string;
 }
 
-export function CompetitionCard({ competitionId }: CompetitionCardProps) {
+export function CompetitionCard({ competitionSlug }: CompetitionCardProps) {
   // Get authenticated user from auth context
   const { user } = useAuth();
   const userId = user?.id;
   // Fetch competition data
-  const { data: competition, isLoading, error } = useCompetition(competitionId);
+  const { data: competition, isLoading, error } = useCompetitionBySlug(competitionSlug);
 
   // Get computed display data
-  const displayData = useCompetitionDisplay(competition);
+  const displayData = useCompetitionDisplay(competition || undefined);
 
-  // Check user's registration status
-  const { data: userRegistration } = useUserRegistration(competitionId, userId);
+  // Check user's registration status  
+  const { data: userRegistration } = useUserRegistration(competition?.id, userId);
 
   // Check if user can register
   const { canRegister, reason } = useCanRegister(
-    competition,
+    competition || undefined,
     userRegistration,
     !!user,
   );
@@ -38,9 +38,9 @@ export function CompetitionCard({ competitionId }: CompetitionCardProps) {
   const registerMutation = useRegisterForCompetition();
 
   const handleRegister = () => {
-    if (canRegister && userId) {
+    if (canRegister && userId && competition?.id) {
       registerMutation.mutate({
-        competitionId,
+        competitionId: competition.id,
         userId,
         roles: [CompRoles.Spectator], // Default to spectator role
       });
@@ -170,10 +170,10 @@ export function CompetitionCard({ competitionId }: CompetitionCardProps) {
         // Authenticated user can register
         <button
           onClick={handleRegister}
-          disabled={registerMutation.isLoading}
+          disabled={registerMutation.isPending}
           className="w-full bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {registerMutation.isLoading ? "Registering..." : "Register"}
+          {registerMutation.isPending ? "Registering..." : "Register"}
         </button>
       ) : (
         // Authenticated user cannot register (already registered, competition started, etc.)

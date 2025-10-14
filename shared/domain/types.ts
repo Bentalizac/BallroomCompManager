@@ -17,6 +17,7 @@ export interface Event {
 
 export interface Competition {
   id: string;
+  slug: string;
   name: string;
   startDate: Date;
   endDate: Date;

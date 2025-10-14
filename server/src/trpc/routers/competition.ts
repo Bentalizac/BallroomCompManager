@@ -18,6 +18,7 @@ export const competitionRouter = router({
       .select(
         `
         id,
+        slug,
         name,
         start_date,
         end_date,
@@ -31,8 +32,8 @@ export const competitionRouter = router({
         events:event_info (
           id,
           name,
-          start_at,
-          end_at,
+          start_date,
+          end_date,
           event_status,
           comp_id,
           category_ruleset_id
@@ -74,6 +75,7 @@ export const competitionRouter = router({
         .select(
           `
           id,
+          slug,
           name,
           start_date,
           end_date,
@@ -87,8 +89,8 @@ export const competitionRouter = router({
           events:event_info (
             id,
             name,
-            start_at,
-            end_at,
+            start_date,
+            end_date,
             event_status,
             comp_id,
             category_ruleset_id
@@ -96,6 +98,58 @@ export const competitionRouter = router({
         `,
         )
         .eq("id", input.id)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+      if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch competition",
+        });
+      }
+
+      if (!competition || typeof competition !== 'object' || 'error' in competition) {
+        return null;
+      }
+
+      // Map DB row to DTO and validate
+      const mapped = mapCompetitionRowToDTO(competition);
+      return CompetitionApi.parse(mapped);
+    }),
+
+  // Get competition by slug
+  getBySlug: publicProcedure
+    .input(z.object({ slug: z.string() }))
+    .query(async ({ input }) => {
+      const supabase = getSupabaseAnon();
+      const { data: competition, error } = await supabase
+        .from("comp_info")
+        .select(
+          `
+          id,
+          slug,
+          name,
+          start_date,
+          end_date,
+          time_zone,
+          venue:venue_id (
+            id,
+            name,
+            city,
+            state
+          ),
+          events:event_info (
+            id,
+            name,
+            start_date,
+            end_date,
+            event_status,
+            comp_id,
+            category_ruleset_id
+          )
+        `,
+        )
+        .eq("slug", input.slug)
         .single();
 
       if (error && error.code !== "PGRST116") {
@@ -142,15 +196,15 @@ export const competitionRouter = router({
           `
           id,
           name,
-          start_at,
-          end_at,
+          start_date,
+          end_date,
           event_status,
           comp_id,
           category_ruleset_id
         `,
         )
         .eq("comp_id", input.competitionId)
-        .order("start_at", { ascending: true });
+        .order("start_date", { ascending: true });
 
       if (error) {
       if (process.env.NODE_ENV === 'development') console.error("Error fetching events:", error);
@@ -267,7 +321,7 @@ export const competitionRouter = router({
             time_zone: input.timeZone,
             venue_id: input.venueId || null,
           })
-          .select()
+          .select('id, slug, name, start_date, end_date, time_zone, venue_id')
           .single();
 
         if (process.env.NODE_ENV === 'development') console.log("🎯 Competition creation result:", {
@@ -319,6 +373,7 @@ export const competitionRouter = router({
 
         return {
           id: competition.id,
+          slug: competition.slug,
           name: competition.name,
           startDate: competition.start_date,
           endDate: competition.end_date,

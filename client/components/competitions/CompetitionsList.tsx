@@ -59,7 +59,7 @@ export function CompetitionsList() {
         {competitions.map(competition => (
           <CompetitionCard 
             key={competition.id} 
-            competitionId={competition.id}
+            competitionSlug={competition.slug}
           />
         ))}
       </div>

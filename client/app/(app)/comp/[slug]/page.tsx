@@ -1,5 +1,5 @@
 interface PageProps {
-  params: { id: string };
+  params: { slug: string };
 }
 
 import { Hero } from "@/components/custom/hero"

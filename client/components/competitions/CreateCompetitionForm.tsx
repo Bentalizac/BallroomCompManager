@@ -86,7 +86,8 @@ export function CreateCompetitionForm({ onSuccess, onCancel }: CreateCompetition
       if (onSuccess) {
         onSuccess(result.id);
       } else {
-        router.push(`/comp/${result.id}`);
+        // Use slug for navigation now that API returns it
+        router.push(`/comp/${result.slug}`);
       }
     } catch (error) {
       console.error('Failed to create competition:', error);

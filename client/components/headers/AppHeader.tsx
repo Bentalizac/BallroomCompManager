@@ -19,9 +19,9 @@ export function AppHeader() {
   const { redirectToAuth } = useAuthRedirect();
   const [userRole, setUserRole] = useState<string | null>(null);
 
-  // Extract competition ID from pathname
+  // Extract competition slug from pathname
   const competitionMatch = pathname.match(/^\/comp\/([^\/]+)/);
-  const competitionId = competitionMatch ? competitionMatch[1] : null;
+  const competitionSlug = competitionMatch ? competitionMatch[1] : null;
 
   // Fetch user role (simplified - you may want to move this to a custom hook)
   useEffect(() => {
@@ -37,13 +37,13 @@ export function AppHeader() {
   const getNavItems = (): MenuItem[] => {
     if (!user) {
       // Guest navigation for app routes
-      if (competitionId) {
+      if (competitionSlug) {
         return [
-          { title: "Home", href: `/comp/${competitionId}` },
-          { title: "Schedule", href: `/comp/${competitionId}/schedule` },
-          { title: "Results", href: `/comp/${competitionId}/results` },
-          { title: "Register", href: `/comp/${competitionId}/register` },
-          { title: "Rules", href: `/comp/${competitionId}/rules` },
+          { title: "Home", href: `/comp/${competitionSlug}` },
+          { title: "Schedule", href: `/comp/${competitionSlug}/schedule` },
+          { title: "Results", href: `/comp/${competitionSlug}/results` },
+          { title: "Register", href: `/comp/${competitionSlug}/register` },
+          { title: "Rules", href: `/comp/${competitionSlug}/rules` },
           { 
             title: "Login", 
             onClick: () => redirectToAuth(pathname)
@@ -66,13 +66,13 @@ export function AppHeader() {
     ];
 
     // Add competition-specific items if in competition context
-    if (competitionId) {
+    if (competitionSlug) {
       const competitionItems: MenuItem[] = [
-        { title: "Overview", href: `/comp/${competitionId}` },
-        { title: "Schedule", href: `/comp/${competitionId}/schedule` },
-        { title: "Results", href: `/comp/${competitionId}/results` },
-        { title: "Register", href: `/comp/${competitionId}/register` },
-        { title: "Rules", href: `/comp/${competitionId}/rules` },
+        { title: "Overview", href: `/comp/${competitionSlug}` },
+        { title: "Schedule", href: `/comp/${competitionSlug}/schedule` },
+        { title: "Results", href: `/comp/${competitionSlug}/results` },
+        { title: "Register", href: `/comp/${competitionSlug}/register` },
+        { title: "Rules", href: `/comp/${competitionSlug}/rules` },
       ];
 
       // Add admin/judge items based on role
@@ -80,18 +80,18 @@ export function AppHeader() {
         competitionItems.push({
           title: "Manage",
           children: [
-            { title: "Dashboard", href: `/comp/${competitionId}/manage` },
+            { title: "Dashboard", href: `/comp/${competitionSlug}/manage` },
             {
               title: "Schedule",
-              href: `/comp/${competitionId}/manage/schedule`,
+              href: `/comp/${competitionSlug}/manage/schedule`,
             },
             {
               title: "Settings",
-              href: `/comp/${competitionId}/manage/settings`,
+              href: `/comp/${competitionSlug}/manage/settings`,
             },
             {
               title: "Analytics",
-              href: `/comp/${competitionId}/manage/analytics`,
+              href: `/comp/${competitionSlug}/manage/analytics`,
             },
           ],
         });
@@ -101,8 +101,8 @@ export function AppHeader() {
         competitionItems.push({
           title: "Run",
           children: [
-            { title: "Judge", href: `/comp/${competitionId}/run/judge` },
-            { title: "On-Deck", href: `/comp/${competitionId}/run/ondeck` },
+            { title: "Judge", href: `/comp/${competitionSlug}/run/judge` },
+            { title: "On-Deck", href: `/comp/${competitionSlug}/run/ondeck` },
           ],
         });
       }
@@ -143,8 +143,8 @@ export function AppHeader() {
       <div className="flex items-center justify-between max-w-7xl mx-auto">
         <div className="text-xl font-bold text-accent-foreground">
           <Link href="/home">
-            {competitionId
-              ? `Competition ${competitionId}`
+            {competitionSlug
+              ? `Competition ${competitionSlug}`
               : "BallroomCompManager"}
           </Link>
         </div>

@@ -285,25 +285,26 @@ function createPreset(
 
 
 export const eventPresets: EventPreset[] = [
-    // Amateur Latin: Global -> Amateur -> Amateur Latin -> Specific
-    createPreset(
-        basePresets.amateur, 
-        basePresets.amateurLatin, 
-        {
-            name: "Amateur Latin",
-            dances: ["Cha Cha", "Rumba", "Samba", "Paso Doble", "Jive"]
-        }
-    ),
+    // TODO: Fix missing amateur and amateurLatin presets
+    // // Amateur Latin: Global -> Amateur -> Amateur Latin -> Specific
+    // createPreset(
+    //     basePresets.amateur, 
+    //     basePresets.amateurLatin, 
+    //     {
+    //         name: "Amateur Latin",
+    //         dances: ["Cha Cha", "Rumba", "Samba", "Paso Doble", "Jive"]
+    //     }
+    // ),
     
-    // Amateur Standard: Global -> Amateur -> Amateur Standard -> Specific  
-    createPreset(
-        basePresets.amateur,
-        basePresets.amateurStandard,
-        {
-            name: "Amateur Standard", 
-            dances: ["Waltz", "Tango", "Viennese Waltz", "Foxtrot", "Quickstep"]
-        }
-    ),
+    // // Amateur Standard: Global -> Amateur -> Amateur Standard -> Specific  
+    // createPreset(
+    //     basePresets.amateur,
+    //     basePresets.amateurStandard,
+    //     {
+    //         name: "Amateur Standard", 
+    //         dances: ["Waltz", "Tango", "Viennese Waltz", "Foxtrot", "Quickstep"]
+    //     }
+    // ),
     
     // Novice Latin: Global -> Novice -> Novice Latin -> Specific
     createPreset(

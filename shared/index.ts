@@ -52,3 +52,12 @@ export {
   eventApiToDomain,
   competitionApiToDomain,
 } from "./domain/mappers";
+
+// Utility exports
+export {
+  generateCompetitionSlug,
+  generateCompetitionSlugWithSuffix,
+  isValidCompetitionSlug,
+  extractNameFromSlug,
+  extractYearFromSlug,
+} from "./utils/slugs";
