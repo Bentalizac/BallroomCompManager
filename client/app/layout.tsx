@@ -1,5 +1,6 @@
 import "./globals.css";
 import { AuthProvider } from "@/providers/auth/authProvider";
+import { UserProvider } from "@/providers/user/userProvider";
 import { TRPCProvider } from "@/providers/trpc/trpcProvider";
 import type { Metadata } from "next";
 
@@ -18,7 +19,9 @@ export default function RootLayout({
       <body>
         <TRPCProvider>
           <AuthProvider>
-            {children}
+            <UserProvider>
+              {children}
+            </UserProvider>
           </AuthProvider>
         </TRPCProvider>
       </body>

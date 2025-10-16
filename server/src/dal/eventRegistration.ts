@@ -35,7 +35,7 @@ export async function registerUserForEvent(
   console.log('✅ Found event:', eventInfo.name, 'in competition:', eventInfo.comp_id);
 
   // 2. Check if user exists in user_info table (RLS respects user scope)
-  const { data: existingUserInfo, error: userInfoError } = await supabase
+  let { data: existingUserInfo, error: userInfoError } = await supabase
     .from('user_info')
     .select('id, email, firstname, lastname')
     .eq('id', userId)
@@ -46,15 +46,74 @@ export async function registerUserForEvent(
     throw new Error('Error checking user information');
   }
 
-  // 3. If user doesn't exist in user_info, create them
-  // Note: In production, this might be handled by triggers when users sign up
+  // 3. If user doesn't exist in user_info, create it from auth user data
   if (!existingUserInfo) {
-    console.log('👤 User not found in user_info, will be created by trigger or needs manual creation');
-    // For now, we'll assume the user_info entry should exist
-    throw new Error('User information not found. Please ensure user profile is complete.');
+    console.log('👤 User not found in user_info, creating from auth data...');
+    
+    // Get authenticated user data from Supabase
+    const { data: { user: authUser }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !authUser) {
+      console.error('❌ Error getting auth user:', authError);
+      throw new Error('User authentication data not found');
+    }
+    
+    console.log('🔍 Auth user data:', {
+      id: authUser.id,
+      email: authUser.email,
+      userMetadata: authUser.user_metadata
+    });
+    
+    // Create user_info entry from auth data
+    const { data: newUserInfo, error: createUserError } = await supabase
+      .from('user_info')
+      .insert({
+        id: userId,
+        role: 'user', // Default role
+        email: authUser.email || '',
+        firstname: authUser.user_metadata?.firstname || authUser.user_metadata?.first_name || '',
+        lastname: authUser.user_metadata?.lastname || authUser.user_metadata?.last_name || '',
+      })
+      .select('id, email, firstname, lastname')
+      .single();
+      
+    if (createUserError) {
+      console.error('❌ Error creating user_info:', createUserError);
+      throw new Error('Failed to create user profile. Please try again.');
+    }
+    
+    if (!newUserInfo) {
+      console.error('❌ No user_info returned after creation');
+      throw new Error('Failed to create user profile. Please try again.');
+    }
+    
+    console.log('✅ Created user_info:', newUserInfo.email);
+    existingUserInfo = newUserInfo;
   }
 
-  console.log('✅ User info found:', existingUserInfo.email);
+  console.log('✅ User info available:', existingUserInfo.email);
+
+  // 3.5. Check if user profile is complete (email, firstname, lastname)
+  const missingFields: string[] = [];
+  if (!existingUserInfo.email || existingUserInfo.email.trim() === '') {
+    missingFields.push('email');
+  }
+  if (!existingUserInfo.firstname || existingUserInfo.firstname.trim() === '') {
+    missingFields.push('firstname');
+  }
+  if (!existingUserInfo.lastname || existingUserInfo.lastname.trim() === '') {
+    missingFields.push('lastname');
+  }
+  
+  if (missingFields.length > 0) {
+    console.log('❌ User profile incomplete. Missing fields:', missingFields);
+    const error = new Error(`User profile is incomplete. Missing fields: ${missingFields.join(', ')}. Please complete your profile before registering.`);
+    (error as any).code = 'PROFILE_INCOMPLETE';
+    (error as any).missingFields = missingFields;
+    throw error;
+  }
+  
+  console.log('✅ User profile is complete');
 
   // 4. Check if user is already a participant in this competition
   let { data: compParticipant, error: participantError } = await supabase

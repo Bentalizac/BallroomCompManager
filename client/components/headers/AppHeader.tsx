@@ -4,7 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/providers/auth/authProvider";
 import { useAuthRedirect } from "@/hooks/useAuthRedirect";
-import { useState, useEffect } from "react";
+import { useUserRole } from "@/hooks/useUserRole";
+import { useCompetitionBySlug } from "@/hooks/useCompetitionBySlug";
 import { Shield } from "lucide-react";
 
 type MenuItem = {
@@ -19,26 +20,20 @@ export function AppHeader() {
   const { user } = useAuth();
   const pathname = usePathname();
   const { redirectToAuth } = useAuthRedirect();
-  const [userRole, setUserRole] = useState<string | null>(null);
 
   // Extract competition slug from pathname
   const competitionMatch = pathname.match(/^\/comp\/([^\/]+)/);
   const competitionSlug = competitionMatch ? competitionMatch[1] : null;
 
-  // Fetch user role - enhanced for admin detection
-  useEffect(() => {
-    if (user) {
-      // TODO: Replace with actual role fetching logic based on competition context
-      // For now, default to admin to enable admin functionality
-      // In production, this should check:
-      // 1. User's global admin status
-      // 2. User's role in the specific competition (if competitionSlug exists)
-      // 3. Competition-specific permissions
-      setUserRole("admin"); // Default to admin for development
-    } else {
-      setUserRole(null);
-    }
-  }, [user, competitionSlug]);
+  // Get competition details and user role
+  const { competitionId } = useCompetitionBySlug(competitionSlug || undefined);
+  const {
+    role: userRole,
+    isAdmin,
+    isOrganizer,
+    isJudge,
+    isLoading: roleLoading,
+  } = useUserRole(competitionId);
 
   const getNavItems = (): MenuItem[] => {
     if (!user) {
@@ -66,10 +61,7 @@ export function AppHeader() {
     }
 
     // Authenticated navigation
-    const baseItems: MenuItem[] = [
-      { title: "Home", href: "/home" },
-      { title: "Dashboard", href: "/dashboard" },
-    ];
+    const baseItems: MenuItem[] = [{ title: "Home", href: "/home" }];
 
     // Add competition-specific items if in competition context
     if (competitionSlug) {
@@ -82,11 +74,12 @@ export function AppHeader() {
       ];
 
       // Add admin/judge items based on role
-      if (userRole === "admin" || userRole === "organizer") {
+      if (isAdmin || isOrganizer) {
         competitionItems.push({
           title: "Admin",
           isAdmin: true, // Flag for special styling
           children: [
+            { title: "Overview", href: `/comp/${competitionSlug}` },
             { title: "Events", href: `/comp/${competitionSlug}/events` },
             {
               title: "Registrants",
@@ -98,7 +91,7 @@ export function AppHeader() {
         });
       }
 
-      if (userRole === "admin" || userRole === "judge") {
+      if (isAdmin || isJudge) {
         competitionItems.push({
           title: "Run",
           children: [
@@ -150,13 +143,12 @@ export function AppHeader() {
                 : "BallroomCompManager"}
             </Link>
           </div>
-          {competitionSlug &&
-            (userRole === "admin" || userRole === "organizer") && (
-              <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full border border-blue-200">
-                <Shield className="h-3 w-3" />
-                Admin
-              </div>
-            )}
+          {competitionSlug && (isAdmin || isOrganizer) && (
+            <div className="flex items-center gap-1 px-2 py-1 text-xs font-medium text-blue-600 bg-blue-50 rounded-full border border-blue-200">
+              <Shield className="h-3 w-3" />
+              {isAdmin ? "Admin" : "Organizer"}
+            </div>
+          )}
         </div>
 
         <nav className="hidden md:flex items-center space-x-6">

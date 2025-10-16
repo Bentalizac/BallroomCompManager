@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext } from 'react';
-import { useCompetitionBySlug } from '@/hooks/useCompetitions';
-import type { CompetitionApiType } from '@ballroomcompmanager/shared';
+import React, { createContext, useContext } from "react";
+import { useCompetitionBySlug } from "@/hooks/useCompetitions";
+import type { CompetitionApiType } from "@ballroomcompmanager/shared";
 
 type CompProviderContextType = {
   competition: CompetitionApiType | null | undefined;
@@ -18,7 +18,10 @@ type CompProviderProps = {
   children: React.ReactNode;
 };
 
-export const CompProvider: React.FC<CompProviderProps> = ({ slug, children }) => {
+export const CompProvider: React.FC<CompProviderProps> = ({
+  slug,
+  children,
+}) => {
   const { data: competition, isLoading, error } = useCompetitionBySlug(slug);
 
   const contextValue: CompProviderContextType = {
@@ -29,27 +32,25 @@ export const CompProvider: React.FC<CompProviderProps> = ({ slug, children }) =>
   };
 
   return (
-    <CompContext.Provider value={contextValue}>
-      {children}
-    </CompContext.Provider>
+    <CompContext.Provider value={contextValue}>{children}</CompContext.Provider>
   );
 };
 
 // Custom hook to use the competition context
 export const useComp = () => {
   const context = useContext(CompContext);
-  
+
   if (!context) {
-    throw new Error('useComp must be used within a CompProvider');
+    throw new Error("useComp must be used within a CompProvider");
   }
-  
+
   return context;
 };
 
 // Hook for components that need just the competition data (with loading/error handling)
 export const useCompetition = () => {
   const { competition, isLoading, error } = useComp();
-  
+
   return {
     competition,
     isLoading,

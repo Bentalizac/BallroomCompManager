@@ -49,6 +49,19 @@ export const eventRouter = router({
         };
       } catch (error) {
         if (process.env.NODE_ENV === 'development') console.error("❌ Event registration failed:", error);
+        
+        // Handle profile incomplete errors specifically
+        if (error instanceof Error && (error as any).code === 'PROFILE_INCOMPLETE') {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: error.message,
+            cause: {
+              code: 'PROFILE_INCOMPLETE',
+              missingFields: (error as any).missingFields || []
+            }
+          });
+        }
+        
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:

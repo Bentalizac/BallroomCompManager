@@ -3,6 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { router, authedProcedure } from "../base";
 import { getSupabaseUser } from "../../dal/supabase";
 import { registerForCompSchema } from "@ballroomcompmanager/shared"
+import { getUserProfile, updateUserProfile, checkProfileStatus, type ProfileUpdateData } from "../../dal/userProfile";
 export const userRouter = router({
   // Get current user's registrations (all competitions)
   getMyRegistrations: authedProcedure.query(async ({ ctx }) => {
@@ -148,5 +149,180 @@ export const userRouter = router({
       }
 
       return updatedUser;
+    }),
+
+  // Get user's role in a specific competition
+  getUserRoleInCompetition: authedProcedure
+    .input(z.object({ competitionId: z.string().uuid() }))
+    .query(async ({ input, ctx }) => {
+      if (!ctx.userId || !ctx.userToken) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const supabase = getSupabaseUser(ctx.userToken);
+
+      // Primary source of truth: Check if user is a competition admin
+      const { data: adminCheck, error: adminError } = await supabase
+        .from("competition_admins")
+        .select("id")
+        .eq("comp_id", input.competitionId)
+        .eq("user_id", ctx.userId)
+        .single();
+
+      const isAdmin = !adminError && adminCheck;
+
+      // Get user's participant roles in the competition
+      const { data: participantRoles, error: participantError } = await supabase
+        .from("comp_participant")
+        .select("id, role, participation_status")
+        .eq("comp_id", input.competitionId)
+        .eq("user_id", ctx.userId)
+        .eq("participation_status", "active");
+
+      if (participantError && participantError.code !== 'PGRST116') {
+        if (process.env.NODE_ENV === 'development') console.error("Error fetching participant roles:", participantError);
+      }
+
+      // If user is an admin but doesn't have an organizer participant role, create one
+      if (isAdmin && (!participantRoles || participantRoles.length === 0 || 
+          !participantRoles.some(p => p.role === 'organizer'))) {
+        try {
+          const { error: insertError } = await supabase
+            .from("comp_participant")
+            .insert({
+              user_id: ctx.userId,
+              comp_id: input.competitionId,
+              role: 'organizer',
+              participation_status: 'active'
+            });
+
+          if (insertError) {
+            if (process.env.NODE_ENV === 'development') {
+              console.error("Error creating organizer participant record:", insertError);
+            }
+          } else {
+            // Refetch participant roles after insertion
+            const { data: updatedRoles } = await supabase
+              .from("comp_participant")
+              .select("id, role, participation_status")
+              .eq("comp_id", input.competitionId)
+              .eq("user_id", ctx.userId)
+              .eq("participation_status", "active");
+            
+            if (updatedRoles) {
+              participantRoles?.push(...updatedRoles.filter(r => 
+                !participantRoles.some(p => p.id === r.id)));
+            }
+          }
+        } catch (error) {
+          if (process.env.NODE_ENV === 'development') {
+            console.error("Error syncing admin to participant:", error);
+          }
+        }
+      }
+
+      // Determine the highest level role
+      let highestRole: string | null = null;
+      
+      if (isAdmin) {
+        // Admins always have admin role, regardless of participant table
+        highestRole = "admin";
+      } else if (participantRoles && participantRoles.length > 0) {
+        // Priority: organizer > judge > competitor > spectator
+        const rolePriority: Record<string, number> = {
+          organizer: 3,
+          judge: 2, 
+          competitor: 1,
+          spectator: 0
+        };
+        
+        const topRole = participantRoles.reduce((prev, current) => {
+          const prevPriority = rolePriority[prev.role] || -1;
+          const currentPriority = rolePriority[current.role] || -1;
+          return currentPriority > prevPriority ? current : prev;
+        });
+        
+        highestRole = topRole.role;
+      }
+
+      return {
+        role: highestRole,
+        isAdmin: !!isAdmin,
+        isOrganizer: !!isAdmin || (participantRoles && participantRoles.some(p => p.role === 'organizer')),
+        participantRoles: participantRoles || [],
+        hasAccess: !!isAdmin || (participantRoles && participantRoles.length > 0)
+      };
+    }),
+
+  // Get current user's profile
+  getMyProfile: authedProcedure.query(async ({ ctx }) => {
+    if (!ctx.userId || !ctx.userToken) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    try {
+      const profile = await getUserProfile(ctx.userToken, ctx.userId);
+      return profile;
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error fetching user profile:", error);
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch profile",
+      });
+    }
+  }),
+
+  // Check if user profile is complete
+  checkProfileStatus: authedProcedure.query(async ({ ctx }) => {
+    if (!ctx.userId || !ctx.userToken) {
+      throw new TRPCError({ code: "UNAUTHORIZED" });
+    }
+
+    try {
+      const status = await checkProfileStatus(ctx.userToken, ctx.userId);
+      return status;
+    } catch (error) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error("Error checking profile status:", error);
+      }
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to check profile status",
+      });
+    }
+  }),
+
+  // Complete/update user profile
+  completeProfile: authedProcedure
+    .input(
+      z.object({
+        email: z.string().email().min(1, "Email is required"),
+        firstname: z.string().min(1, "First name is required"),
+        lastname: z.string().min(1, "Last name is required"),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.userId || !ctx.userToken) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      try {
+        const updatedProfile = await updateUserProfile(ctx.userToken, ctx.userId, {
+          email: input.email,
+          firstname: input.firstname,
+          lastname: input.lastname
+        });
+        return updatedProfile;
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error updating user profile:", error);
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to update profile",
+        });
+      }
     }),
 });
