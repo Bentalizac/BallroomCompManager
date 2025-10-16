@@ -7,7 +7,6 @@ import type { CompetitionApiType } from "@ballroomcompmanager/shared";
 type CompProviderContextType = {
   competition: CompetitionApiType | null | undefined;
   isLoading: boolean;
-  error: Error | null;
   slug: string;
 };
 
@@ -27,7 +26,6 @@ export const CompProvider: React.FC<CompProviderProps> = ({
   const contextValue: CompProviderContextType = {
     competition,
     isLoading,
-    error: error || null,
     slug,
   };
 
@@ -49,12 +47,11 @@ export const useComp = () => {
 
 // Hook for components that need just the competition data (with loading/error handling)
 export const useCompetition = () => {
-  const { competition, isLoading, error } = useComp();
+  const { competition, isLoading } = useComp();
 
   return {
     competition,
     isLoading,
-    error,
   };
 };
 

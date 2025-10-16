@@ -1,7 +1,10 @@
-import { trpc } from '@/lib/trpc';
-import { useMemo } from 'react';
-import type { CompetitionApiType, DomainCompetition } from '@ballroomcompmanager/shared';
-import { competitionApiToDomain } from '@ballroomcompmanager/shared';
+import { trpc } from "@/lib/trpc";
+import { useMemo } from "react";
+import type {
+  CompetitionApiType,
+  DomainCompetition,
+} from "@ballroomcompmanager/shared";
+import { competitionApiToDomain } from "@ballroomcompmanager/shared";
 
 // Hook to get all competitions
 export function useCompetitions() {
@@ -17,7 +20,7 @@ export function useCompetition(id: string | undefined) {
     {
       enabled: !!id, // Only run query if id is provided
       staleTime: 1000 * 60 * 5, // 5 minutes
-    }
+    },
   );
 }
 
@@ -28,12 +31,15 @@ export function useCompetitionBySlug(slug: string | undefined) {
     {
       enabled: !!slug, // Only run query if slug is provided
       staleTime: 1000 * 60 * 5, // 5 minutes
-    }
+    },
   );
 }
 
 // Hook to get user's registration for a competition
-export function useUserRegistration(competitionId: string | undefined, userId: string | undefined) {
+export function useUserRegistration(
+  competitionId: string | undefined,
+  userId: string | undefined,
+) {
   return trpc.competition.getUserRegistration.useQuery(
     {
       competitionId: competitionId!,
@@ -42,14 +48,14 @@ export function useUserRegistration(competitionId: string | undefined, userId: s
     {
       enabled: !!(competitionId && userId),
       staleTime: 1000 * 60 * 2, // 2 minutes (registration status might change)
-    }
+    },
   );
 }
 
 // Hook to register for a competition
 export function useRegisterForCompetition() {
   const utils = trpc.useContext();
-  
+
   return trpc.user.registerForComp.useMutation({
     onSuccess: (data, variables) => {
       // Invalidate and refetch related queries
@@ -59,13 +65,13 @@ export function useRegisterForCompetition() {
         competitionId: variables.competitionId,
         userId: variables.userId,
       });
-      utils.competition.getRegistrations.invalidate({ 
-        competitionId: variables.competitionId 
+      utils.competition.getRegistrations.invalidate({
+        competitionId: variables.competitionId,
       });
     },
     onError: (error) => {
-      console.error('Registration failed:', error);
-    }
+      console.error("Registration failed:", error);
+    },
   });
 }
 
@@ -76,40 +82,44 @@ export function useCompetitionRegistrations(competitionId: string | undefined) {
     {
       enabled: !!competitionId,
       staleTime: 1000 * 60 * 2, // 2 minutes
-    }
+    },
   );
 }
 
 // Custom hook for competition display data with computed fields
-export function useCompetitionDisplay(competition: CompetitionApiType | undefined) {
+export function useCompetitionDisplay(
+  competition: CompetitionApiType | undefined,
+) {
   return useMemo(() => {
     if (!competition) return null;
-    
+
     const now = new Date();
     // Parse dates from YYYY-MM-DD string format
-    const startDate = new Date(competition.startDate + 'T00:00:00.000Z');
-    const endDate = new Date(competition.endDate + 'T00:00:00.000Z');
-    
+    const startDate = new Date(competition.startDate + "T00:00:00.000Z");
+    const endDate = new Date(competition.endDate + "T00:00:00.000Z");
+
     return {
       ...competition,
-      formattedStartDate: startDate.toLocaleDateString('en-US', {
-        weekday: 'long',
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      formattedStartDate: startDate.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       }),
-      formattedStartTime: 'All Day', // Date-only format, no time
-      formattedEndDate: endDate.toLocaleDateString('en-US', {
-        weekday: 'long', 
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
+      formattedStartTime: "All Day", // Date-only format, no time
+      formattedEndDate: endDate.toLocaleDateString("en-US", {
+        weekday: "long",
+        year: "numeric",
+        month: "long",
+        day: "numeric",
       }),
       isUpcoming: startDate > now,
       isOngoing: startDate <= now && endDate >= now,
       isPast: endDate < now,
-      daysUntilStart: Math.ceil((startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)),
-      eventCount: competition.events.length
+      daysUntilStart: Math.ceil(
+        (startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+      ),
+      eventCount: competition.events.length,
     };
   }, [competition]);
 }
@@ -118,37 +128,37 @@ export function useCompetitionDisplay(competition: CompetitionApiType | undefine
 export function useCanRegister(
   competition: CompetitionApiType | undefined,
   userRegistration: { status: string } | undefined,
-  isAuthenticated: boolean = true
+  isAuthenticated: boolean = true,
 ) {
   return useMemo(() => {
     if (!competition) {
       return {
         canRegister: false,
-        reason: 'Competition not found'
+        reason: "Competition not found",
       };
     }
 
     if (!isAuthenticated) {
       return {
         canRegister: false,
-        reason: 'Please sign in to register'
+        reason: "Please sign in to register",
       };
     }
 
     if (userRegistration) {
       return {
         canRegister: false,
-        reason: `Already registered (Status: ${userRegistration.status})`
+        reason: `Already registered (Status: ${userRegistration.status})`,
       };
     }
 
     const now = new Date();
-    const startDate = new Date(competition.startDate + 'T00:00:00.000Z');
-    
+    const startDate = new Date(competition.startDate + "T00:00:00.000Z");
+
     if (startDate <= now) {
       return {
         canRegister: false,
-        reason: 'Competition has already started'
+        reason: "Competition has already started",
       };
     }
 
@@ -157,7 +167,7 @@ export function useCanRegister(
 
     return {
       canRegister: true,
-      reason: null
+      reason: null,
     };
   }, [competition, userRegistration, isAuthenticated]);
 }
@@ -165,22 +175,22 @@ export function useCanRegister(
 // Hook to create a new competition
 export function useCreateCompetition() {
   const utils = trpc.useContext();
-  
+
   return trpc.competition.create.useMutation({
     onSuccess: () => {
       // Invalidate competitions list to show new competition
       utils.competition.getAll.invalidate();
     },
     onError: (error) => {
-      console.error('Failed to create competition:', error.message);
-    }
+      console.error("Failed to create competition:", error.message);
+    },
   });
 }
 
 // Hook to update a competition (admin only)
 export function useUpdateCompetition() {
   const utils = trpc.useContext();
-  
+
   return trpc.competition.update.useMutation({
     onSuccess: (data) => {
       // Invalidate and update specific competition cache
@@ -188,15 +198,15 @@ export function useUpdateCompetition() {
       utils.competition.getById.invalidate({ id: data.id });
     },
     onError: (error) => {
-      console.error('Failed to update competition:', error.message);
-    }
+      console.error("Failed to update competition:", error.message);
+    },
   });
 }
 
 // Hook to delete a competition (admin only)
 export function useDeleteCompetition() {
   const utils = trpc.useContext();
-  
+
   return trpc.competition.delete.useMutation({
     onSuccess: (_, variables) => {
       // Remove from cache and invalidate list
@@ -204,49 +214,53 @@ export function useDeleteCompetition() {
       utils.competition.getById.setData({ id: variables.id }, undefined);
     },
     onError: (error) => {
-      console.error('Failed to delete competition:', error.message);
-    }
+      console.error("Failed to delete competition:", error.message);
+    },
   });
 }
 
 // Hook to create a new event for a competition
 export function useCreateEvent() {
   const utils = trpc.useContext();
-  
+
   return trpc.event.create.useMutation({
     onSuccess: (data) => {
       // Invalidate related queries
       utils.competition.getAll.invalidate();
       utils.competition.getById.invalidate({ id: data.competitionId });
-      utils.competition.getEvents.invalidate({ competitionId: data.competitionId });
+      utils.competition.getEvents.invalidate({
+        competitionId: data.competitionId,
+      });
     },
     onError: (error) => {
-      console.error('Failed to create event:', error.message);
-    }
+      console.error("Failed to create event:", error.message);
+    },
   });
 }
 
 // Hook to update an event (admin only)
 export function useUpdateEvent() {
   const utils = trpc.useContext();
-  
+
   return trpc.event.update.useMutation({
     onSuccess: (data) => {
       // Invalidate related queries
       utils.competition.getAll.invalidate();
       utils.competition.getById.invalidate({ id: data.competitionId });
-      utils.competition.getEvents.invalidate({ competitionId: data.competitionId });
+      utils.competition.getEvents.invalidate({
+        competitionId: data.competitionId,
+      });
     },
     onError: (error) => {
-      console.error('Failed to update event:', error.message);
-    }
+      console.error("Failed to update event:", error.message);
+    },
   });
 }
 
 // Hook to delete an event (admin only)
 export function useDeleteEvent() {
   const utils = trpc.useContext();
-  
+
   return trpc.event.delete.useMutation({
     onSuccess: () => {
       // Invalidate all related queries since we don't know the competition ID
@@ -255,8 +269,8 @@ export function useDeleteEvent() {
       utils.competition.getEvents.invalidate();
     },
     onError: (error) => {
-      console.error('Failed to delete event:', error.message);
-    }
+      console.error("Failed to delete event:", error.message);
+    },
   });
 }
 
@@ -270,14 +284,14 @@ export function useMyRegistrations() {
 // Hook to update user profile
 export function useUpdateProfile() {
   const utils = trpc.useContext();
-  
+
   return trpc.user.updateProfile.useMutation({
     onSuccess: () => {
       // Invalidate user-related queries if you have them
       utils.user.getMyRegistrations.invalidate();
     },
     onError: (error) => {
-      console.error('Failed to update profile:', error.message);
-    }
+      console.error("Failed to update profile:", error.message);
+    },
   });
 }

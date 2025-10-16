@@ -3,10 +3,7 @@ import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, authedProcedure } from "../base";
 import { getSupabaseAnon, getSupabaseUser } from "../../dal/supabase";
 import { CompetitionApi, EventApi } from "@ballroomcompmanager/shared";
-import {
-  mapCompetitionRowToDTO,
-  mapEventRowToDTO,
-} from "../mappers";
+import { mapCompetitionRowToDTO, mapEventRowToDTO } from "../mappers";
 import { getCompetitionSchema } from "../schemas";
 
 export const competitionRouter = router({
@@ -43,7 +40,8 @@ export const competitionRouter = router({
       .order("start_date", { ascending: true });
 
     if (error) {
-      if (process.env.NODE_ENV === 'development') console.error("Error fetching competitions:", error);
+      if (process.env.NODE_ENV === "development")
+        console.error("Error fetching competitions:", error);
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
         message: "Failed to fetch competitions",
@@ -101,14 +99,19 @@ export const competitionRouter = router({
         .single();
 
       if (error && error.code !== "PGRST116") {
-      if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Error fetching competition:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch competition",
         });
       }
 
-      if (!competition || typeof competition !== 'object' || 'error' in competition) {
+      if (
+        !competition ||
+        typeof competition !== "object" ||
+        "error" in competition
+      ) {
         return null;
       }
 
@@ -153,14 +156,19 @@ export const competitionRouter = router({
         .single();
 
       if (error && error.code !== "PGRST116") {
-      if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Error fetching competition:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch competition",
         });
       }
 
-      if (!competition || typeof competition !== 'object' || 'error' in competition) {
+      if (
+        !competition ||
+        typeof competition !== "object" ||
+        "error" in competition
+      ) {
         return null;
       }
 
@@ -174,22 +182,23 @@ export const competitionRouter = router({
     .input(z.object({ competitionId: z.string() }))
     .query(async ({ input }) => {
       const supabase = getSupabaseAnon();
-      
+
       // First get competition time zone
       const { data: comp, error: compError } = await supabase
         .from("comp_info")
         .select("time_zone")
         .eq("id", input.competitionId)
         .single();
-        
+
       if (compError || !comp) {
-        if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", compError);
+        if (process.env.NODE_ENV === "development")
+          console.error("Error fetching competition:", compError);
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Competition not found",
         });
       }
-      
+
       const { data: events, error } = await supabase
         .from("event_info")
         .select(
@@ -207,7 +216,8 @@ export const competitionRouter = router({
         .order("start_date", { ascending: true });
 
       if (error) {
-      if (process.env.NODE_ENV === 'development') console.error("Error fetching events:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Error fetching events:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch events",
@@ -223,7 +233,9 @@ export const competitionRouter = router({
       }
 
       // Map DB rows to DTOs with competition time zone
-      const mapped = events.map(event => mapEventRowToDTO(event, comp.time_zone));
+      const mapped = events.map((event) =>
+        mapEventRowToDTO(event, comp.time_zone),
+      );
 
       // Validate with zod schema
       return z.array(EventApi).parse(mapped);
@@ -261,10 +273,87 @@ export const competitionRouter = router({
         .order("event_info.start_date", { ascending: true });
 
       if (error) {
-      if (process.env.NODE_ENV === 'development') console.error("Error fetching event registrations:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Error fetching event registrations:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch event registrations",
+        });
+      }
+
+      return registrations || [];
+    }),
+
+  // Get a user's regitration for a competition
+  getUserRegistration: publicProcedure
+    .input(z.object({ competitionId: z.string(), userId: z.string() }))
+    .query(async ({ input }) => {
+      const supabase = getSupabaseAnon();
+      const { data: registration, error } = await supabase
+        .from("comp_participant")
+        .select(
+          `
+          user_id,
+          role,
+          participation_status,
+          created_at,
+          user_info!comp_participant_user_id_fkey (
+            id,
+            firstname,
+            lastname,
+            email,
+            role,
+            created_at
+          )
+          `,
+        )
+        .eq("comp_id", input.competitionId)
+        .eq("user_id", input.userId)
+        .single();
+
+      if (error && error.code !== "PGRST116") {
+        if (process.env.NODE_ENV === "development")
+          console.error("Error fetching user registration:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch user registration",
+        });
+      }
+
+      return registration || null;
+    }),
+  // Get all users registered for a competition
+  getRegistrations: publicProcedure
+    .input(z.object({ competitionId: z.string() }))
+    .query(async ({ input }) => {
+      const supabase = getSupabaseAnon();
+      const { data: registrations, error } = await supabase
+        .from("comp_participant")
+        .select(
+          `
+          user_id,
+          role,
+          participation_status,
+          created_at,
+          user_info!comp_participant_user_id_fkey (
+            id,
+            firstname,
+            lastname,
+            email,
+            role,
+            created_at
+          )
+          `,
+        )
+        .eq("comp_id", input.competitionId)
+        .order("role", { ascending: true });
+
+      if (error) {
+        if (process.env.NODE_ENV === "development")
+          console.error("Error fetching registrations:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch registrations",
         });
       }
 
@@ -304,13 +393,14 @@ export const competitionRouter = router({
 
       try {
         // Create competition
-        if (process.env.NODE_ENV === 'development') console.log("🎯 Creating competition with data:", {
-          name: input.name,
-          start_date: input.startDate,
-          end_date: input.endDate,
-          venue_id: input.venueId || null,
-          userId: ctx.userId,
-        });
+        if (process.env.NODE_ENV === "development")
+          console.log("🎯 Creating competition with data:", {
+            name: input.name,
+            start_date: input.startDate,
+            end_date: input.endDate,
+            venue_id: input.venueId || null,
+            userId: ctx.userId,
+          });
 
         const { data: competition, error: compError } = await supabase
           .from("comp_info")
@@ -321,22 +411,24 @@ export const competitionRouter = router({
             time_zone: input.timeZone,
             venue_id: input.venueId || null,
           })
-          .select('id, slug, name, start_date, end_date, time_zone, venue_id')
+          .select("id, slug, name, start_date, end_date, time_zone, venue_id")
           .single();
 
-        if (process.env.NODE_ENV === 'development') console.log("🎯 Competition creation result:", {
-          competition,
-          compError,
-        });
+        if (process.env.NODE_ENV === "development")
+          console.log("🎯 Competition creation result:", {
+            competition,
+            compError,
+          });
 
         if (compError || !competition) {
-          if (process.env.NODE_ENV === 'development') console.error("❌ Error creating competition:", {
-            error: compError,
-            message: compError?.message,
-            details: compError?.details,
-            hint: compError?.hint,
-            code: compError?.code,
-          });
+          if (process.env.NODE_ENV === "development")
+            console.error("❌ Error creating competition:", {
+              error: compError,
+              message: compError?.message,
+              details: compError?.details,
+              hint: compError?.hint,
+              code: compError?.code,
+            });
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: `Failed to create competition: ${compError?.message || "Unknown error"}`,
@@ -354,7 +446,11 @@ export const competitionRouter = router({
           });
 
         if (participantError) {
-          if (process.env.NODE_ENV === 'development') console.error("Error creating participant record:", participantError);
+          if (process.env.NODE_ENV === "development")
+            console.error(
+              "Error creating participant record:",
+              participantError,
+            );
           // Don't fail the whole operation, but log it
         }
 
@@ -367,7 +463,8 @@ export const competitionRouter = router({
           });
 
         if (adminError) {
-          if (process.env.NODE_ENV === 'development') console.error("Error creating admin record:", adminError);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error creating admin record:", adminError);
           // Don't fail the whole operation, but log it
         }
 
@@ -381,7 +478,8 @@ export const competitionRouter = router({
           venueId: competition.venue_id,
         };
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Competition creation failed:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Competition creation failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -460,7 +558,8 @@ export const competitionRouter = router({
           .single();
 
         if (error || !competition) {
-          if (process.env.NODE_ENV === 'development') console.error("Error updating competition:", error);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error updating competition:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to update competition",
@@ -476,7 +575,8 @@ export const competitionRouter = router({
           venueId: competition.venue_id,
         };
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Competition update failed:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Competition update failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -519,7 +619,8 @@ export const competitionRouter = router({
           .eq("id", input.id);
 
         if (error) {
-          if (process.env.NODE_ENV === 'development') console.error("Error deleting competition:", error);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error deleting competition:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to delete competition",
@@ -528,7 +629,8 @@ export const competitionRouter = router({
 
         return { success: true };
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Competition deletion failed:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Competition deletion failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
