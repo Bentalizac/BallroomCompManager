@@ -13,13 +13,13 @@ import Link from "next/link";
 export default function RegisterPage() {
   const { user } = useAuth();
   const { competition } = useComp();
-  
+
   // Use the comprehensive hook for all registration functionality
   const {
     // Registration actions
     register,
     cancel,
-    
+
     // State
     isEventRegistering,
     isRegistrationCancelling,
@@ -27,7 +27,7 @@ export default function RegisterPage() {
     showProfileDialog,
     handleProfileComplete,
     setShowProfileDialog,
-    
+
     // Data
     events,
     userRegistrations,
@@ -42,17 +42,22 @@ export default function RegisterPage() {
 
     try {
       // Always register as competitor for public registration
-      await register(eventId, 'competitor');
+      await register(eventId, "competitor");
     } catch (error) {
       // Profile incomplete errors are handled by the hook
       // Show other errors to the user
-      if (error && typeof error === 'object' && 'data' in error) {
-        const trpcError = error as { data?: { code?: string }; message?: string };
+      if (error && typeof error === "object" && "data" in error) {
+        const trpcError = error as {
+          data?: { code?: string };
+          message?: string;
+        };
         if (trpcError.data?.code !== "PRECONDITION_FAILED") {
-          alert(`Registration failed: ${trpcError.message || 'Unknown error'}`);
+          alert(`Registration failed: ${trpcError.message || "Unknown error"}`);
         }
       } else {
-        alert(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        alert(
+          `Registration failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        );
       }
     }
   };
@@ -61,7 +66,7 @@ export default function RegisterPage() {
     try {
       await cancel(registrationId);
     } catch (error) {
-      const message = error instanceof Error ? error.message : 'Unknown error';
+      const message = error instanceof Error ? error.message : "Unknown error";
       alert(`Cancellation failed: ${message}`);
     }
   };
@@ -88,21 +93,26 @@ export default function RegisterPage() {
 
   return (
     <>
-      <Banner name="Register" />
       <main className="max-w-6xl mx-auto py-10 px-4 space-y-8">
         {/* Welcome Section */}
         <div className="text-center">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Competitor Registration</h1>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">
+            Registration
+          </h1>
           <p className="text-lg text-gray-600 mb-6">
-            Register to compete in events at {competition?.name}. Select the events you want to participate in!
+            Register to compete in events at {competition?.name}.
           </p>
-          
+
           {!user && (
             <Alert className="max-w-2xl mx-auto">
               <AlertCircle className="h-4 w-4" />
               <AlertDescription className="text-left">
-                <strong>Login Required:</strong> You must be logged in to register for events.
-                <Link href="/auth" className="ml-2 text-blue-600 hover:underline">
+                <strong>Login Required:</strong> You must be logged in to
+                register for events.
+                <Link
+                  href="/auth"
+                  className="ml-2 text-blue-600 hover:underline"
+                >
                   Click here to login
                 </Link>
               </AlertDescription>
@@ -110,68 +120,110 @@ export default function RegisterPage() {
           )}
         </div>
 
-        {/* Events List */}
+        {/* Events List and Registration Summary Side by Side */}
         {events && (
-          <EventsList
-            events={events.map(event => ({
-              id: event.id,
-              name: event.name,
-              startDate: event.startAt,
-              endDate: event.endAt,
-              eventStatus: event.eventStatus,
-            }))}
-            userRegistrations={userRegistrations?.map(reg => ({
-              id: reg.id,
-              eventId: reg.eventId,
-              role: reg.participants?.[0]?.role || 'member', // Get role from first participant
-              registrationStatus: reg.status || 'active',
-            })) || []}
-            onRegister={handleRegister}
-            onCancel={handleCancel}
-            isEventRegistering={isEventRegistering}
-            isRegistrationCancelling={isRegistrationCancelling}
-            showRegistration={true}
-            title="Competition Events"
-            description="Select the events you want to compete in"
-          />
-        )}
-
-        {/* Registration Summary */}
-        {user && userRegistrations && userRegistrations.length > 0 && (
-          <div className="bg-blue-50 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Your Registrations
-            </h3>
-            <p className="text-blue-800 mb-4">
-              You are registered for {userRegistrations.length} event{userRegistrations.length !== 1 ? 's' : ''}:
-            </p>
-            <div className="space-y-2">
-              {userRegistrations.map(reg => {
-                const eventName = events?.find(e => e.id === reg.eventId)?.name || 'Unknown Event';
-                const userRole = reg.participants?.find(p => p.userId === user?.id)?.role || 'member';
-                
-                return (
-                  <div key={reg.id} className="flex justify-between items-center bg-white rounded px-4 py-2">
-                    <div className="flex flex-col">
-                      <span className="font-medium">{eventName}</span>
-                      {reg.teamName && (
-                        <span className="text-sm text-gray-500">Team: {reg.teamName}</span>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      <span className="text-sm text-gray-600 capitalize">{userRole}</span>
-                      <div className="text-xs text-gray-500">
-                        {reg.participants?.length || 1} participant{(reg.participants?.length || 1) !== 1 ? 's' : ''}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          <div className="flex flex-col lg:flex-row gap-8">
+            {/* Events List - Takes up more space on larger screens */}
+            <div className="flex-1">
+              <EventsList
+                events={events.map((event) => ({
+                  id: event.id,
+                  name: event.name,
+                  startDate: event.startAt,
+                  endDate: event.endAt,
+                  eventStatus: event.eventStatus,
+                }))}
+                userRegistrations={
+                  userRegistrations?.map((reg) => ({
+                    id: reg.id,
+                    eventId: reg.eventId,
+                    role: reg.participants?.[0]?.role || "member", // Get role from first participant
+                    registrationStatus: reg.status || "active",
+                  })) || []
+                }
+                onRegister={handleRegister}
+                onCancel={handleCancel}
+                isEventRegistering={isEventRegistering}
+                isRegistrationCancelling={isRegistrationCancelling}
+                showRegistration={true}
+                title=" "
+              />
             </div>
+
+            {/* Registration Summary - Always shown when user is logged in */}
+            {user && (
+              <div className="w-full lg:w-96 lg:flex-shrink-0">
+                <div className="bg-blue-50 rounded-lg p-6 sticky top-6">
+                  <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+                    <UserPlus className="h-5 w-5" />
+                    Your Registrations
+                  </h3>
+
+                  {userRegistrations && userRegistrations.length > 0 ? (
+                    <>
+                      <p className="text-blue-800 mb-4">
+                        You are registered for {userRegistrations.length} event
+                        {userRegistrations.length !== 1 ? "s" : ""}:
+                      </p>
+                      <div className="space-y-2">
+                        {userRegistrations.map((reg) => {
+                          const eventName =
+                            events?.find((e) => e.id === reg.eventId)?.name ||
+                            "Unknown Event";
+                          const userRole =
+                            reg.participants?.find((p) => p.userId === user?.id)
+                              ?.role || "member";
+
+                          return (
+                            <div
+                              key={reg.id}
+                              className="flex justify-between items-center bg-white rounded px-4 py-2"
+                            >
+                              <div className="flex flex-col">
+                                <span className="font-medium text-sm">
+                                  {eventName}
+                                </span>
+                                {reg.teamName && (
+                                  <span className="text-xs text-gray-500">
+                                    Team: {reg.teamName}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <span className="text-xs text-gray-600 capitalize">
+                                  {userRole}
+                                </span>
+                                <div className="text-xs text-gray-500">
+                                  {reg.participants?.length || 1} participant
+                                  {(reg.participants?.length || 1) !== 1
+                                    ? "s"
+                                    : ""}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="text-gray-400 mb-2">
+                        <UserPlus className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      </div>
+                      <p className="text-blue-700 text-sm">
+                        Your registrations will be listed here
+                      </p>
+                      <p className="text-blue-600 text-xs mt-1">
+                        Register for events to see them appear in this panel
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
-        
+
         {/* Profile Completion Dialog */}
         <ProfileCompletionDialog
           open={showProfileDialog}
