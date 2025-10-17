@@ -6,6 +6,9 @@ export type { BallroomCompetitor } from "./data/types/userExtensions";
 export type {
   Registration,
   EventRegistration,
+  EventRegistrationParticipant,
+  EventRegistrationEntry,
+  EventRegistrationApi,
 } from "./data/types/registration";
 
 // Enums exports

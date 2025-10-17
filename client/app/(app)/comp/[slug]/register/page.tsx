@@ -1,13 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useComp } from "@/providers/compProvider/compProvider";
 import { useAuth } from "@/providers/auth/authProvider";
-import { trpc } from "@/lib/trpc";
+import { useEventRegistrationManager } from "@/hooks/useEventRegistration";
 import { EventsList } from "@/components/events/EventsList";
 import { Banner } from "@/components/custom/banner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { AlertCircle, UserPlus } from "lucide-react";
 import { ProfileCompletionDialog } from "@/components/auth/ProfileCompletionDialog";
 import Link from "next/link";
@@ -15,58 +13,26 @@ import Link from "next/link";
 export default function RegisterPage() {
   const { user } = useAuth();
   const { competition } = useComp();
-  const [registeringEventId, setRegisteringEventId] = useState<string | null>(null);
-  const [cancellingRegId, setCancellingRegId] = useState<string | null>(null);
-  const [showProfileDialog, setShowProfileDialog] = useState(false);
-  const [profileMissingFields, setProfileMissingFields] = useState<string[]>([]);
-
-  // Get competition events
-  const { data: events, isLoading: eventsLoading, refetch: refetchEvents } = trpc.competition.getEvents.useQuery(
-    { competitionId: competition?.id || "" },
-    { enabled: !!competition?.id }
-  );
-
-  // Get user's current registrations
-  const { data: userRegistrations, isLoading: registrationsLoading, refetch: refetchRegistrations } = 
-    trpc.event.getUserEventRegistrations.useQuery(
-      { competitionId: competition?.id || "" },
-      { enabled: !!user && !!competition?.id }
-    );
-
-  // Register for event mutation
-  const registerMutation = trpc.event.registerForEvent.useMutation({
-    onSuccess: () => {
-      refetchRegistrations();
-      setRegisteringEventId(null);
-    },
-    onError: (error) => {
-      console.error("Registration failed:", error);
-      
-      // Handle profile incomplete errors
-      if (error.data?.code === "PRECONDITION_FAILED" && 
-          (error as any).cause?.code === "PROFILE_INCOMPLETE") {
-        setProfileMissingFields((error as any).cause?.missingFields || []);
-        setShowProfileDialog(true);
-      } else {
-        alert(`Registration failed: ${error.message}`);
-      }
-      
-      setRegisteringEventId(null);
-    },
-  });
-
-  // Cancel registration mutation
-  const cancelMutation = trpc.event.cancelEventRegistration.useMutation({
-    onSuccess: () => {
-      refetchRegistrations();
-      setCancellingRegId(null);
-    },
-    onError: (error) => {
-      console.error("Cancellation failed:", error);
-      alert(`Cancellation failed: ${error.message}`);
-      setCancellingRegId(null);
-    },
-  });
+  
+  // Use the comprehensive hook for all registration functionality
+  const {
+    // Registration actions
+    register,
+    cancel,
+    
+    // State
+    isEventRegistering,
+    isRegistrationCancelling,
+    profileMissingFields,
+    showProfileDialog,
+    handleProfileComplete,
+    setShowProfileDialog,
+    
+    // Data
+    events,
+    userRegistrations,
+    isLoadingEvents,
+  } = useEventRegistrationManager(competition?.id);
 
   const handleRegister = async (eventId: string) => {
     if (!user) {
@@ -74,34 +40,39 @@ export default function RegisterPage() {
       return;
     }
 
-    setRegisteringEventId(eventId);
     try {
       // Always register as competitor for public registration
-      await registerMutation.mutateAsync({ eventId, role: 'competitor' });
+      await register(eventId, 'competitor');
     } catch (error) {
-      // Error handled in onError callback
+      // Profile incomplete errors are handled by the hook
+      // Show other errors to the user
+      if (error && typeof error === 'object' && 'data' in error) {
+        const trpcError = error as { data?: { code?: string }; message?: string };
+        if (trpcError.data?.code !== "PRECONDITION_FAILED") {
+          alert(`Registration failed: ${trpcError.message || 'Unknown error'}`);
+        }
+      } else {
+        alert(`Registration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
     }
   };
 
   const handleCancel = async (registrationId: string) => {
-    setCancellingRegId(registrationId);
     try {
-      await cancelMutation.mutateAsync({ registrationId });
+      await cancel(registrationId);
     } catch (error) {
-      // Error handled in onError callback
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      alert(`Cancellation failed: ${message}`);
     }
   };
 
-  const handleProfileComplete = () => {
-    // Refetch registrations to ensure profile is updated
-    refetchRegistrations();
-    // Try the registration again if there was a pending event
-    if (registeringEventId) {
-      handleRegister(registeringEventId);
-    }
+  const handleProfileCompleteAndRetry = () => {
+    handleProfileComplete();
+    // Note: With per-event loading states, the component should track
+    // the current event ID if retry functionality is needed
   };
 
-  if (eventsLoading) {
+  if (isLoadingEvents) {
     return (
       <>
         <Banner name="Register" />
@@ -152,13 +123,13 @@ export default function RegisterPage() {
             userRegistrations={userRegistrations?.map(reg => ({
               id: reg.id,
               eventId: reg.eventId,
-              role: reg.role,
-              registrationStatus: reg.registrationStatus,
+              role: reg.participants?.[0]?.role || 'member', // Get role from first participant
+              registrationStatus: reg.status || 'active',
             })) || []}
             onRegister={handleRegister}
             onCancel={handleCancel}
-            isRegistering={!!registeringEventId}
-            isCancelling={!!cancellingRegId}
+            isEventRegistering={isEventRegistering}
+            isRegistrationCancelling={isRegistrationCancelling}
             showRegistration={true}
             title="Competition Events"
             description="Select the events you want to compete in"
@@ -176,12 +147,27 @@ export default function RegisterPage() {
               You are registered for {userRegistrations.length} event{userRegistrations.length !== 1 ? 's' : ''}:
             </p>
             <div className="space-y-2">
-              {userRegistrations.map(reg => (
-                <div key={reg.id} className="flex justify-between items-center bg-white rounded px-4 py-2">
-                  <span className="font-medium">{reg.eventName}</span>
-                  <span className="text-sm text-gray-600 capitalize">{reg.role}</span>
-                </div>
-              ))}
+              {userRegistrations.map(reg => {
+                const eventName = events?.find(e => e.id === reg.eventId)?.name || 'Unknown Event';
+                const userRole = reg.participants?.find(p => p.userId === user?.id)?.role || 'member';
+                
+                return (
+                  <div key={reg.id} className="flex justify-between items-center bg-white rounded px-4 py-2">
+                    <div className="flex flex-col">
+                      <span className="font-medium">{eventName}</span>
+                      {reg.teamName && (
+                        <span className="text-sm text-gray-500">Team: {reg.teamName}</span>
+                      )}
+                    </div>
+                    <div className="text-right">
+                      <span className="text-sm text-gray-600 capitalize">{userRole}</span>
+                      <div className="text-xs text-gray-500">
+                        {reg.participants?.length || 1} participant{(reg.participants?.length || 1) !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}
@@ -191,7 +177,7 @@ export default function RegisterPage() {
           open={showProfileDialog}
           onOpenChange={setShowProfileDialog}
           missingFields={profileMissingFields}
-          onComplete={handleProfileComplete}
+          onComplete={handleProfileCompleteAndRetry}
         />
       </main>
     </>

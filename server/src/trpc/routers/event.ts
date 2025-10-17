@@ -2,53 +2,124 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, authedProcedure } from "../base";
 import {
-  registerUserForEvent,
+  createEventRegistration,
   getUserEventRegistrations,
+  getEventRegistrations,
   cancelEventRegistration,
+  removeParticipantFromRegistration,
+  reactivateEventRegistration,
 } from "../../dal/eventRegistration";
 import { getSupabaseUser } from "../../dal/supabase";
 import { EventApi } from "@ballroomcompmanager/shared";
 import { mapEventRowToDTO } from "../mappers";
 
 export const eventRouter = router({
-  // Register user for a specific event
+  // REGISTRATION SYSTEM - supports individual, paired, and team registrations
+  
+  // Register current user for an event (individual registration)
   registerForEvent: authedProcedure
     .input(
       z.object({
-        eventId: z.string(),
-        role: z
-          .enum(["competitor", "judge", "scrutineer"])
-          .default("competitor"),
-      }),
+        eventId: z.string().uuid(),
+        role: z.enum(['competitor', 'judge', 'scrutineer', 'lead', 'follow', 'coach', 'member']).optional(),
+      })
     )
     .mutation(async ({ input, ctx }) => {
       if (!ctx.userId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      if (process.env.NODE_ENV === 'development') console.log("🎯 Registering user for event:", {
-        userId: ctx.userId,
-        eventId: input.eventId,
-        role: input.role,
-      });
+      if (process.env.NODE_ENV === 'development') {
+        console.log("🎯 Registering user for event:", {
+          userId: ctx.userId,
+          eventId: input.eventId,
+          role: input.role || 'member',
+        });
+      }
 
       try {
-        const registration = await registerUserForEvent(
+        const registration = await createEventRegistration(
           ctx.userToken!,
           ctx.userId,
-          input.eventId,
-          input.role,
+          {
+            eventId: input.eventId,
+            participants: [{
+              userId: ctx.userId,
+              role: input.role || 'member', // DAL will handle role mapping
+            }],
+          }
         );
 
-        return {
-          id: registration.id,
-          eventId: registration.event_info_id,
-          role: registration.role,
-          registrationStatus: registration.registration_status,
-          registrationDate: new Date().toISOString(),
-        };
+        return registration;
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("❌ Event registration failed:", error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("❌ Event registration failed:", error);
+        }
+        
+        // Handle profile incomplete errors specifically
+        if (error instanceof Error && (error as any).code === 'PROFILE_INCOMPLETE') {
+          throw new TRPCError({
+            code: "PRECONDITION_FAILED",
+            message: error.message,
+            cause: {
+              code: 'PROFILE_INCOMPLETE',
+              missingFields: (error as any).missingFields || []
+            }
+          });
+        }
+        
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error ? error.message : "Registration failed",
+        });
+      }
+    }),
+  
+  // Create a new event registration (individual, paired, or team)
+  createRegistration: authedProcedure
+    .input(
+      z.object({
+        eventId: z.string().uuid(),
+        participants: z.array(
+          z.object({
+            userId: z.string().uuid(),
+            role: z.enum(['lead', 'follow', 'coach', 'member']).default('member'),
+          })
+        ).min(1, 'At least one participant is required'),
+        teamName: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.userId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log("🎯 Creating event registration:", {
+          userId: ctx.userId,
+          eventId: input.eventId,
+          participants: input.participants,
+          teamName: input.teamName,
+        });
+      }
+
+      try {
+        const registration = await createEventRegistration(
+          ctx.userToken!,
+          ctx.userId,
+          {
+            eventId: input.eventId,
+            participants: input.participants,
+            teamName: input.teamName,
+          }
+        );
+
+        return registration;
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("❌ Event registration failed:", error);
+        }
         
         // Handle profile incomplete errors specifically
         if (error instanceof Error && (error as any).code === 'PROFILE_INCOMPLETE') {
@@ -70,6 +141,110 @@ export const eventRouter = router({
       }
     }),
 
+  // Get all registrations for an event (admin function)
+  getEventRegistrations: authedProcedure
+    .input(z.object({ eventId: z.string().uuid() }))
+    .query(async ({ input, ctx }) => {
+      if (!ctx.userId || !ctx.userToken) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      // TODO: Add admin check here if needed
+      try {
+        const registrations = await getEventRegistrations(
+          ctx.userToken,
+          input.eventId
+        );
+        return registrations;
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching event registrations:", error);
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to fetch event registrations",
+        });
+      }
+    }),
+
+  // Remove a participant from a registration
+  removeParticipant: authedProcedure
+    .input(
+      z.object({
+        registrationId: z.string().uuid(),
+        userIdToRemove: z.string().uuid(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.userId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      try {
+        await removeParticipantFromRegistration(
+          ctx.userToken!,
+          ctx.userId,
+          input.registrationId,
+          input.userIdToRemove
+        );
+        return { success: true };
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error removing participant:", error);
+        }
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error
+              ? error.message
+              : "Failed to remove participant",
+        });
+      }
+    }),
+
+  // Reactivate a withdrawn registration
+  reactivateRegistration: authedProcedure
+    .input(
+      z.object({
+        eventId: z.string().uuid(),
+        teamName: z.string().optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      if (!ctx.userId) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log("🔄 Reactivating registration:", {
+          userId: ctx.userId,
+          eventId: input.eventId,
+          teamName: input.teamName,
+        });
+      }
+
+      try {
+        const registration = await reactivateEventRegistration(
+          ctx.userToken!,
+          ctx.userId,
+          input.eventId,
+          input.teamName
+        );
+
+        return registration;
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') {
+          console.error("❌ Registration reactivation failed:", error);
+        }
+        
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error ? error.message : "Reactivation failed",
+        });
+      }
+    }),
+
   // Get user's event registrations for a competition
   getUserEventRegistrations: authedProcedure
     .input(z.object({ competitionId: z.string() }))
@@ -85,19 +260,11 @@ export const eventRouter = router({
           input.competitionId,
         );
 
-        type EventInfoLite = { name: string; start_date: string } | null | undefined;
-        type RegJoined = typeof registrations[number] & { event_info?: EventInfoLite };
-
-        return (registrations as RegJoined[]).map((reg) => ({
-          id: reg.id,
-          eventId: reg.event_info_id,
-          role: reg.role,
-          registrationStatus: reg.registration_status,
-          eventName: reg.event_info?.name,
-          eventStartDate: reg.event_info?.start_date,
-        }));
+        return registrations;
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Error fetching user event registrations:", error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error fetching user event registrations:", error);
+        }
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message: "Failed to fetch registrations",
@@ -117,7 +284,9 @@ export const eventRouter = router({
         await cancelEventRegistration(ctx.userToken!, ctx.userId, input.registrationId);
         return { success: true };
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Error cancelling registration:", error);
+        if (process.env.NODE_ENV === 'development') {
+          console.error("Error cancelling registration:", error);
+        }
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -127,6 +296,7 @@ export const eventRouter = router({
         });
       }
     }),
+
 
   // Create new event for a competition
   create: authedProcedure

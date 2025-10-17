@@ -338,8 +338,7 @@ async function createEventRegistrationInternal(
         email: p.user_info.email || ''
       } : undefined
     }))
-  };
-}
+};
 
 /**
  * Re-register for an event (reactivate a withdrawn registration)

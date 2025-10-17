@@ -26,8 +26,8 @@ interface EventsListProps {
   userRegistrations?: UserRegistration[];
   onRegister?: (eventId: string) => void; // Simplified - always competitor role
   onCancel?: (registrationId: string) => void;
-  isRegistering?: boolean;
-  isCancelling?: boolean;
+  isEventRegistering?: (eventId: string) => boolean; // Function to check if specific event is registering
+  isRegistrationCancelling?: (registrationId: string) => boolean; // Function to check if specific registration is cancelling
   showRegistration?: boolean;
   title?: string;
   description?: string;
@@ -38,8 +38,8 @@ export function EventsList({
   userRegistrations = [],
   onRegister,
   onCancel,
-  isRegistering = false,
-  isCancelling = false,
+  isEventRegistering = () => false,
+  isRegistrationCancelling = () => false,
   showRegistration = true,
   title = "Events",
   description,
@@ -179,8 +179,8 @@ export function EventsList({
                       userRegistration={registrationMap.get(event.id)}
                       onRegister={onRegister}
                       onCancel={onCancel}
-                      isRegistering={isRegistering}
-                      isCancelling={isCancelling}
+                      isRegistering={isEventRegistering(event.id)}
+                      isCancelling={isRegistrationCancelling(registrationMap.get(event.id)?.id || '')}
                       showRegistration={showRegistration}
                     />
                   ))}
@@ -203,8 +203,8 @@ export function EventsList({
                       userRegistration={registrationMap.get(event.id)}
                       onRegister={onRegister}
                       onCancel={onCancel}
-                      isRegistering={isRegistering}
-                      isCancelling={isCancelling}
+                      isRegistering={isEventRegistering(event.id)}
+                      isCancelling={isRegistrationCancelling(registrationMap.get(event.id)?.id || '')}
                       showRegistration={showRegistration}
                     />
                   ))}
@@ -227,8 +227,8 @@ export function EventsList({
                       userRegistration={registrationMap.get(event.id)}
                       onRegister={onRegister}
                       onCancel={onCancel}
-                      isRegistering={isRegistering}
-                      isCancelling={isCancelling}
+                      isRegistering={isEventRegistering(event.id)}
+                      isCancelling={isRegistrationCancelling(registrationMap.get(event.id)?.id || '')}
                       showRegistration={showRegistration}
                     />
                   ))}
@@ -251,8 +251,8 @@ export function EventsList({
                       userRegistration={registrationMap.get(event.id)}
                       onRegister={onRegister}
                       onCancel={onCancel}
-                      isRegistering={isRegistering}
-                      isCancelling={isCancelling}
+                      isRegistering={isEventRegistering(event.id)}
+                      isCancelling={isRegistrationCancelling(registrationMap.get(event.id)?.id || '')}
                       showRegistration={showRegistration}
                     />
                   ))}

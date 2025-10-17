@@ -4,7 +4,14 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar, Clock, Users, MapPin, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  Calendar,
+  Clock,
+  Users,
+  MapPin,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 
 interface EventCardProps {
   event: {
@@ -12,7 +19,7 @@ interface EventCardProps {
     name: string;
     startDate: string;
     endDate: string;
-    eventStatus: 'scheduled' | 'current' | 'completed' | 'cancelled';
+    eventStatus: "scheduled" | "current" | "completed" | "cancelled";
   };
   userRegistration?: {
     id: string;
@@ -28,14 +35,14 @@ interface EventCardProps {
 
 const statusColors = {
   scheduled: "bg-blue-100 text-blue-800 border-blue-200",
-  current: "bg-green-100 text-green-800 border-green-200", 
+  current: "bg-green-100 text-green-800 border-green-200",
   completed: "bg-gray-100 text-gray-800 border-gray-200",
   cancelled: "bg-red-100 text-red-800 border-red-200",
 } as const;
 
 const statusLabels = {
   scheduled: "Scheduled",
-  current: "In Progress", 
+  current: "In Progress",
   completed: "Completed",
   cancelled: "Cancelled",
 } as const;
@@ -49,27 +56,27 @@ export function EventCard({
   isCancelling = false,
   showRegistration = true,
 }: EventCardProps) {
-
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
     });
   };
 
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleTimeString('en-US', {
-      hour: 'numeric',
-      minute: '2-digit',
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
       hour12: true,
     });
   };
 
-  const canRegister = event.eventStatus === 'scheduled' && !userRegistration;
-  const canCancel = userRegistration && userRegistration.registrationStatus === 'active';
+  const canRegister = event.eventStatus === "scheduled" && !userRegistration;
+  const canCancel =
+    userRegistration && userRegistration.registrationStatus === "active";
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -83,7 +90,7 @@ export function EventCard({
               {statusLabels[event.eventStatus]}
             </Badge>
           </div>
-          
+
           {userRegistration && (
             <div className="flex items-center gap-2 text-green-600">
               <CheckCircle className="h-4 w-4" />
@@ -102,10 +109,11 @@ export function EventCard({
             <Calendar className="h-4 w-4" />
             <span>
               {formatDate(event.startDate)}
-              {event.startDate !== event.endDate && ` - ${formatDate(event.endDate)}`}
+              {event.startDate !== event.endDate &&
+                ` - ${formatDate(event.endDate)}`}
             </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span>
@@ -119,10 +127,6 @@ export function EventCard({
           <div className="border-t pt-4">
             {canRegister && (
               <div className="space-y-3">
-                <div className="text-sm text-gray-600 mb-3">
-                  <span className="font-medium">Registering as:</span> Competitor
-                </div>
-                
                 <Button
                   onClick={() => onRegister?.(event.id)}
                   disabled={isRegistering}
@@ -142,14 +146,14 @@ export function EventCard({
                 </Button>
               </div>
             )}
-            
+
             {canCancel && (
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <AlertCircle className="h-4 w-4" />
                   <span>You're registered for this event</span>
                 </div>
-                
+
                 <Button
                   variant="outline"
                   onClick={() => onCancel?.(userRegistration.id)}
@@ -167,15 +171,17 @@ export function EventCard({
                 </Button>
               </div>
             )}
-            
-            {!canRegister && !canCancel && event.eventStatus === 'scheduled' && (
-              <div className="text-center text-gray-500 text-sm">
-                <AlertCircle className="h-4 w-4 mx-auto mb-1" />
-                Registration not available
-              </div>
-            )}
-            
-            {event.eventStatus !== 'scheduled' && (
+
+            {!canRegister &&
+              !canCancel &&
+              event.eventStatus === "scheduled" && (
+                <div className="text-center text-gray-500 text-sm">
+                  <AlertCircle className="h-4 w-4 mx-auto mb-1" />
+                  Registration not available
+                </div>
+              )}
+
+            {event.eventStatus !== "scheduled" && (
               <div className="text-center text-gray-500 text-sm">
                 <AlertCircle className="h-4 w-4 mx-auto mb-1" />
                 Registration closed

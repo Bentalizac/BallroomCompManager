@@ -2,7 +2,7 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, authedProcedure } from "../base";
 import { getSupabaseAnon, getSupabaseUser } from "../../dal/supabase";
-import { CompetitionApi, EventApi } from "@ballroomcompmanager/shared";
+import { CompetitionApi, EventApi, generateCompetitionSlug } from "@ballroomcompmanager/shared";
 import { mapCompetitionRowToDTO, mapEventRowToDTO } from "../mappers";
 import { getCompetitionSchema } from "../schemas";
 
@@ -392,10 +392,14 @@ export const competitionRouter = router({
       }
 
       try {
+        // Generate slug for competition
+        const slug = generateCompetitionSlug(input.name, new Date(input.startDate));
+        
         // Create competition
         if (process.env.NODE_ENV === "development")
           console.log("🎯 Creating competition with data:", {
             name: input.name,
+            slug: slug,
             start_date: input.startDate,
             end_date: input.endDate,
             venue_id: input.venueId || null,
@@ -406,6 +410,7 @@ export const competitionRouter = router({
           .from("comp_info")
           .insert({
             name: input.name,
+            slug: slug,
             start_date: input.startDate,
             end_date: input.endDate,
             time_zone: input.timeZone,
