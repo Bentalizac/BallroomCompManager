@@ -297,6 +297,62 @@ export const eventRouter = router({
       }
     }),
 
+  // Get events for a competition
+  getEvents: authedProcedure
+    .input(z.object({ competitionId: z.string().uuid() }))
+    .query(async ({ input, ctx }) => {
+      if (!ctx.userId || !ctx.userToken) {
+        throw new TRPCError({ code: "UNAUTHORIZED" });
+      }
+
+      const supabase = getSupabaseUser(ctx.userToken);
+
+      try {
+        // Get competition time zone
+        const { data: comp, error: compError } = await supabase
+          .from("comp_info")
+          .select("time_zone")
+          .eq("id", input.competitionId)
+          .single();
+
+        if (compError || !comp) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Competition not found",
+          });
+        }
+
+        // Get events for the competition
+        const { data: events, error: eventsError } = await supabase
+          .from("event_info")
+          .select("*")
+          .eq("comp_id", input.competitionId)
+          .order("start_at", { ascending: true });
+
+        if (eventsError) {
+          if (process.env.NODE_ENV === 'development') console.error("Error fetching events:", eventsError);
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to fetch events",
+          });
+        }
+
+        // Map and validate events
+        const mappedEvents = (events || []).map(event => {
+          const mapped = mapEventRowToDTO(event, comp.time_zone);
+          return EventApi.parse(mapped);
+        });
+
+        return mappedEvents;
+      } catch (error) {
+        if (process.env.NODE_ENV === 'development') console.error("Events fetch failed:", error);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message:
+            error instanceof Error ? error.message : "Failed to fetch events",
+        });
+      }
+    }),
 
   // Create new event for a competition
   create: authedProcedure
