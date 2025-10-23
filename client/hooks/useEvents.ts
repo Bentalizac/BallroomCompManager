@@ -30,6 +30,7 @@ export function useEventCreate(competitionId?: string) {
       // Invalidate and refetch related queries
       if (competitionId) {
         utils.event.getEvents.invalidate({ competitionId });
+        utils.competition.getEvents.invalidate({ competitionId });
         utils.competition.getBySlug.invalidate();
       }
       setIsCreating(false);
@@ -97,6 +98,7 @@ export function useEventUpdate(competitionId?: string) {
       // Invalidate and refetch related queries
       if (competitionId) {
         utils.event.getEvents.invalidate({ competitionId });
+        utils.competition.getEvents.invalidate({ competitionId });
         utils.competition.getBySlug.invalidate();
       }
       removeUpdatingEventId(id);
@@ -182,6 +184,7 @@ export function useEventDelete(competitionId?: string) {
       // Invalidate and refetch related queries
       if (competitionId) {
         utils.event.getEvents.invalidate({ competitionId });
+        utils.competition.getEvents.invalidate({ competitionId });
         utils.competition.getBySlug.invalidate();
       }
       removeDeletingEventId(id);

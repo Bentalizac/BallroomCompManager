@@ -28,8 +28,8 @@ import Link from "next/link";
 interface EventData {
   id: string;
   name: string;
-  startDate: string;
-  endDate: string;
+  startAt: string; // ISO 8601 UTC timestamp
+  endAt: string;   // ISO 8601 UTC timestamp
   eventStatus: 'scheduled' | 'current' | 'completed' | 'cancelled';
 }
 
@@ -297,14 +297,14 @@ export default function EventsPage() {
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
                           <span>
-                            {formatDate(event.startDate)} - {formatDate(event.endDate)}
+                            {formatDate(event.startAt)} - {formatDate(event.endAt)}
                           </span>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4" />
                           <span>
-                            {formatTime(event.startDate)} - {formatTime(event.endDate)}
+                            {formatTime(event.startAt)} - {formatTime(event.endAt)}
                           </span>
                         </div>
                       </div>

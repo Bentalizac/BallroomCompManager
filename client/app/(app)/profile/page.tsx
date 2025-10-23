@@ -12,6 +12,7 @@ export default function Profile() {
       </div>
     );
   }
+
   return (
     <div className="text-gray-600">
       <ProfileCard className="max-w-md mx-auto mt-10" />

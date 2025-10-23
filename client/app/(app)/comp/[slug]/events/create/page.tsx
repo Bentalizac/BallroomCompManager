@@ -80,8 +80,16 @@ export default function CreateEventPage() {
   const { data: categories, isLoading: categoriesLoading } = trpc.data.getEventCategories.useQuery();
   const { data: rulesets, isLoading: rulesetsLoading } = trpc.data.getRulesets.useQuery();
   
+  const utils = trpc.useContext();
+  
   const createEventMutation = trpc.event.create.useMutation({
     onSuccess: () => {
+      // Invalidate both event queries to ensure the events page refreshes
+      if (competition?.id) {
+        utils.event.getEvents.invalidate({ competitionId: competition.id });
+        utils.competition.getEvents.invalidate({ competitionId: competition.id });
+        utils.competition.getBySlug.invalidate({ slug: competition.slug });
+      }
       router.push(`/comp/${competition?.slug}/events`);
     },
     onError: (error) => {
