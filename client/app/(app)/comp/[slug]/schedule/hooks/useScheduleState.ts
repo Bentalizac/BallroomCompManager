@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Event, ScheduledEvent } from '../types';
+import { Event, ScheduledEvent, ScheduledBlock } from '../types';
 import { mockEvents } from '../data/mockData';
 import { scheduledEventToBasicEvent, clampTimeToSchedule, isTimeInSchedule } from '../utils';
 import { Venue } from '../types';
@@ -9,6 +9,7 @@ export interface ScheduleState {
   selectedEvent: ScheduledEvent | null;
   availableEvents: Event[];
   scheduledEvents: ScheduledEvent[];
+  scheduledBlocks: ScheduledBlock[];
   days: Date[];
   locations: Venue[];
 }
@@ -17,6 +18,7 @@ export interface ScheduleActions {
   setSelectedEvent: (event: ScheduledEvent | null) => void;
   setAvailableEvents: React.Dispatch<React.SetStateAction<Event[]>>;
   setScheduledEvents: React.Dispatch<React.SetStateAction<ScheduledEvent[]>>;
+  setScheduledBlocks: React.Dispatch<React.SetStateAction<ScheduledBlock[]>>;
   setDays: React.Dispatch<React.SetStateAction<Date[]>>;
   setLocations: React.Dispatch<React.SetStateAction<Venue[]>>;
   handleEventDrop: (event: Event) => void;
@@ -29,6 +31,7 @@ export function useScheduleState(): ScheduleState & ScheduleActions {
   const [selectedEvent, setSelectedEvent] = useState<ScheduledEvent | null>(null);
   const [availableEvents, setAvailableEvents] = useState<Event[]>(mockEvents);
   const [scheduledEvents, setScheduledEvents] = useState<ScheduledEvent[]>([]);
+  const [scheduledBlocks, setScheduledBlocks] = useState<ScheduledBlock[]>([]);
   const [days, setDays] = useState<Date[]>([new Date('2025-10-09'), new Date('2025-10-10')]);
   const [locations, setLocations] = useState<Venue[]>([{ name: 'Wilk' }, { name: 'RB' }]);
 
@@ -101,10 +104,12 @@ export function useScheduleState(): ScheduleState & ScheduleActions {
     selectedEvent,
     availableEvents,
     scheduledEvents,
+    scheduledBlocks,
     // Actions
     setSelectedEvent,
     setAvailableEvents,
     setScheduledEvents,
+    setScheduledBlocks,
     handleEventDrop,
     handleEventReturnToList,
     handleEventUpdate,

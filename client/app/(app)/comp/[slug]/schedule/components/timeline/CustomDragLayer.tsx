@@ -37,7 +37,7 @@ export function CustomDragLayer() {
       >
         <div className="p-1 h-full overflow-hidden relative">
           <div className="text-xs font-medium text-gray-800 truncate">
-            {item.event.name}
+            {item.id}
           </div>
           <div className="absolute top-1 right-1 text-xs text-blue-600 font-medium">
             MOVE

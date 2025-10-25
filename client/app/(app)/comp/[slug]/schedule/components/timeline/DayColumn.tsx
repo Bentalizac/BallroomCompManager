@@ -7,6 +7,7 @@ export function DayColumn({
   onEventDrop,
   onEventMove,
   scheduledEvents,
+  scheduledBlocks,
   onEventSelect,
   selectedEvent,
   onEventUpdate,
@@ -40,6 +41,7 @@ export function DayColumn({
                   onEventDrop={onEventDrop}
                   onEventMove={onEventMove}
                   scheduledEvents={scheduledEvents}
+                  scheduledBlocks={scheduledBlocks}
                   onEventSelect={onEventSelect}
                   selectedEvent={selectedEvent}
                   onEventUpdate={onEventUpdate}

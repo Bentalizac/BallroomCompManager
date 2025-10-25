@@ -17,13 +17,9 @@ export function ScheduledEventComponent({
 
   // Make the event draggable
   const [{ isDragState }, drag, preview] = useDrag({
-    type: 'scheduled-event',
+    type: 'event',
     item: () => {
-      setIsDragging(true);
       return { ...event };
-    },
-    end: () => {
-      setIsDragging(false);
     },
     collect: (monitor) => ({
       isDragState: monitor.isDragging(),

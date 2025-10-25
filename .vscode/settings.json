@@ -20,5 +20,11 @@
   ],
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
-  }
+  },
+  "folder-color.pathColors": [
+    {
+      "folderPath": "BallroomCompManager\\client\\app\\(app)\\comp\\[slug]\\schedule\\",
+      "color": "foldercolorizer.color_00cccc"
+    }
+  ]
 }

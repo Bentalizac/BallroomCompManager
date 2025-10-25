@@ -1,23 +1,21 @@
 'use client';
   
-import { createRoot } from "react-dom/client";
-import { useEffect } from 'react';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import { EventsList } from './components/events/EventsList';
+import { EventPanel } from './components/panels/EventPanel';
 import { Timeline } from './components/timeline/Timeline';
-import { SidePanel } from './components/panels/SidePanel';
 import { ScheduledEvent } from './types';
 import { useScheduleState, useKeyboardShortcuts } from './hooks';
-import { Venue } from './types/index';
 
 export default function Page() {
   const {
     selectedEvent,
     availableEvents,
     scheduledEvents,
+    scheduledBlocks,
     setSelectedEvent,
     setScheduledEvents,
+    setScheduledBlocks,
     setAvailableEvents,
     handleEventDrop,
     handleEventReturnToList,
@@ -44,28 +42,23 @@ export default function Page() {
     }
   };
 
-
-
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="flex h-[calc(100vh-4rem)] overflow-hidden">
-        <EventsList 
+        <EventPanel 
           events={availableEvents}
-          onEventDrop={handleEventDrop}
         />
         <Timeline 
           onEventSelect={setSelectedEvent} 
           selectedEvent={selectedEvent}
           scheduledEvents={scheduledEvents}
+          scheduledBlocks={scheduledBlocks}
           setScheduledEvents={setScheduledEvents}
+          setScheduledBlocks={setScheduledBlocks}
           setAvailableEvents={setAvailableEvents}
           onEventMove={handleEventMove}
           days={days}
           locations={locations}
-        />
-        <SidePanel 
-          selectedEvent={selectedEvent} 
-          onEventUpdate={handleEventUpdate}
         />
       </div>
     </DndProvider>
