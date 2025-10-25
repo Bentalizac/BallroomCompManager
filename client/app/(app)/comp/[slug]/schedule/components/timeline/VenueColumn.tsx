@@ -1,11 +1,10 @@
-import { useRef } from 'react';
-import { useDrop } from 'react-dnd';
 import { Event, ScheduledEvent, VenueColumnProps, Block, ScheduledBlock} from '../../types';
 import { useEventPositioning } from '../../hooks';
-import { calculateTimeSlotFromPosition, calculateEventRenderPosition } from '../../utils';
+import { calculateEventRenderPosition } from '../../utils';
 import { TimeGrid } from './TimeGrid';
 import { ScheduledEventComponent } from './ScheduledEventComponent';
 import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
+import { ScheduleDropZone } from '../dnd/drop/ScheduleDropZone';
 
 export function VenueColumn({ 
   day, 
@@ -18,64 +17,6 @@ export function VenueColumn({
   selectedEvent,
   onEventUpdate 
 }: VenueColumnProps) {
-  const dropRef = useRef<HTMLDivElement>(null);
-
-  const [{ isOver }, drop] = useDrop({
-    accept: ['event', 'block'],
-    drop: (item:any, monitor) => {
-      const clientOffset = monitor.getClientOffset();
-      const componentRect = dropRef.current?.getBoundingClientRect();
-      
-      if (clientOffset && componentRect) {
-        const timeSlot = calculateTimeSlotFromPosition(clientOffset.y, componentRect.top);
-        
-        if (item.dragType === 'event') {
-          if (item.state === 'available') {
-            // New event from available list
-            console.log('Dropping new event:', item);
-            onEventDrop(item, day, venue, timeSlot);
-          }
-          else if (item.state === 'scheduled') {
-            // Existing scheduled event being moved
-            console.log('Moving scheduled event:', item);
-            onEventMove(item.event.id, day, venue, timeSlot);
-          }
-        }
-        else if (item.dragType === 'block') {
-          if (item.state === 'available') {
-            // New block from available list
-          }
-          else if (item.state === 'scheduled') {
-            // Existing scheduled block being moved
-          }
-        }
-
-        if ('event' in item && 'startTime' in item) {
-          // This is a scheduled event being moved
-          
-          //// onEventMove(item.event.id, day, venue, timeSlot);
-        } else if ('id' in item && 'startTime' in item) {
-          // This is a scheduled block being moved (already has position)
-          // For now, blocks don't support repositioning via onEventMove
-          // Could add onBlockMove handler if needed
-        } else {
-          // This is a new event or block from the events list
-          
-          //// onEventDrop(item, day, venue, timeSlot);
-        }
-      }
-    },
-    collect: (monitor) => ({
-      isOver: monitor.isOver(),
-    }),
-  });
-
-  // Combine refs
-  const combinedRef = (node: HTMLDivElement) => {
-    drop(node);
-    dropRef.current = node;
-  };
-
   // Filter events for this day/venue and calculate positions
   const venueEvents = scheduledEvents.filter(event => 
     event.day.toDateString() === day.toDateString() && 
@@ -90,9 +31,11 @@ export function VenueColumn({
   );
 
   return (
-    <div
-      ref={combinedRef}
-      className={`relative ${isOver ? 'bg-blue-50' : ''}`}
+    <ScheduleDropZone
+      day={day}
+      venue={venue}
+      onEventDrop={onEventDrop}
+      onEventMove={onEventMove}
       style={{ minHeight: `${TIME_CONSTANTS.TOTAL_LINES * LAYOUT_CONSTANTS.GRID_SLOT_HEIGHT}px` }}
     >
       {/* Time grid lines */}
@@ -158,6 +101,6 @@ export function VenueColumn({
             </div>
           );
         })}
-    </div>
+    </ScheduleDropZone>
   );
 }
