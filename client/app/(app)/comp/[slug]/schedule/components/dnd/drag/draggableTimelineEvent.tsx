@@ -12,9 +12,10 @@ function getDuration(startDate: Date | null, endDate: Date | null): number {
 
 export interface DraggableTimelineEventProps {
   event: Event;
+  day?: Date;
 }
 
-export const DraggableTimelineEvent = ({ event }: DraggableTimelineEventProps) => {
+export const DraggableTimelineEvent = ({ event, day }: DraggableTimelineEventProps) => {
   const schedule = useScheduleState();
   const [isResizing, setIsResizing] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -55,7 +56,7 @@ export const DraggableTimelineEvent = ({ event }: DraggableTimelineEventProps) =
   const content = (
     <div
       className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
-        schedule.selectedItemID === event.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
+        schedule.selectedItemID === event.id ? 'border-blue-500 ring-2 ring-blue-300' : 'border-transparent'
       }`}
       style={{ backgroundColor: LIGHT_PURPLE }}
       onClick={(e) => {
@@ -77,7 +78,7 @@ export const DraggableTimelineEvent = ({ event }: DraggableTimelineEventProps) =
           onMouseDown={handleResizeStart}
           style={{ zIndex: 10 }}
         >
-          <div className="w-4 h-1 bg-gray-400 rounded-full opacity-50 hover:opacity-100" />
+          <div className="w-4 h-1 bg-gray-400 rounded-full opacity-60 hover:opacity-100" />
         </div>
       </div>
     </div>
@@ -87,7 +88,7 @@ export const DraggableTimelineEvent = ({ event }: DraggableTimelineEventProps) =
     <DraggableItem
       dragType={DRAG_TYPES.EVENT}
       state={event.state}
-      data={{ ...event }}
+      data={{ ...event, day }}
       className="w-full h-full"
       display={content}
     />

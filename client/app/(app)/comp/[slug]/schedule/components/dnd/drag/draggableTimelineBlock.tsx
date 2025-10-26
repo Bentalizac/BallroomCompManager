@@ -17,9 +17,10 @@ function getDuration(startDate: Date | null, endDate: Date | null): number {
 
 export interface DraggableTimelineBlockProps {
     block: Block;
+    day?: Date;
 }
 
-export const DraggableTimelineBlock = ({ block }: DraggableTimelineBlockProps) => {
+export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockProps) => {
 
     const schedule = useScheduleState();
     const [isResizing, setIsResizing] = useState(false);
@@ -62,7 +63,7 @@ export const DraggableTimelineBlock = ({ block }: DraggableTimelineBlockProps) =
         <BlockDropZone block={block}>
             <div
                 className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
-                schedule.selectedItemID === block.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
+                schedule.selectedItemID === block.id ? 'border-blue-500 ring-2 ring-blue-300' : 'border-transparent'
                 }`}
                 style={{ backgroundColor: LIGHT_PURPLE }}
                 onClick={(e) => {
@@ -95,7 +96,7 @@ export const DraggableTimelineBlock = ({ block }: DraggableTimelineBlockProps) =
         <DraggableItem
             dragType={DRAG_TYPES.BLOCK}
             state={block.state}
-            data={{ ...block }}
+            data={{ ...block, day }}
             className="w-full h-full"
             display={content}
         />

@@ -1,6 +1,6 @@
 // Export all custom hooks for easy importing
 export { useScheduleState } from '../context/ScheduleContext';
-export { useEventPositioning } from './useEventPositioning';
+export { useEventPositioning, useTimelineItemPositioning } from './useEventPositioning';
 export { useKeyboardShortcuts } from './useKeyboardShortcuts';
 
 // Re-export types for convenience

@@ -47,6 +47,7 @@ export function BlockDropZone({
       let relativeMinutes: number | undefined = undefined;
       if (clientOffset && rect) {
         const effectiveClientY = clientOffset.y - (typeof (item as any).grabOffsetY === 'number' ? (item as any).grabOffsetY : 0);
+        const effectiveClientX = clientOffset.x - (typeof (item as any).grabOffsetX === 'number' ? (item as any).grabOffsetX : 0);
         const yWithin = effectiveClientY - rect.top; // px from top within block based on preview top
         // If block has a known duration, map pixel position to minutes within block
         const blockDuration = getDurationMins(block.startDate ?? null, block.endDate ?? null);

@@ -25,7 +25,7 @@ export const DraggableItem = ({ dragType, state, data, display, className }: Dra
   });
 
   return (
-    <div ref={dragRef as any} className={`cursor-grab ${isDragging ? 'opacity-50' : ''} ${className ?? ''}`}>
+    <div ref={dragRef as any} className={`cursor-grab ${isDragging ? 'opacity-20' : ''} ${className ?? ''}`}>
       {display}
     </div>
   );

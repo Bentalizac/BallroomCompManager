@@ -1,5 +1,5 @@
 import { Event, Block, Venue} from '../../types';
-import { useEventPositioning, useScheduleState } from '../../hooks';
+import { useTimelineItemPositioning, useScheduleState } from '../../hooks';
 import { calculateEventRenderPosition } from '../../utils';
 import { TimeGrid } from './TimeGrid';
 import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
@@ -16,7 +16,7 @@ export interface VenueColumnProps {
 export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
   const schedule = useScheduleState();
 
-  // Filter events for this day/venue and calculate positions
+  // Filter events for this day/venue
   const venueEvents = schedule.getScheduledEvents().filter(event => {
     if (!event.startDate || !event.venue) return false;
     // Compare date strings (YYYY-MM-DD) to match the day
@@ -24,8 +24,6 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
     const dayDateStr = day.toISOString().split('T')[0];
     return eventDateStr === dayDateStr && event.venue.name === venue.name;
   });
-  
-  const eventPositions = useEventPositioning(venueEvents);
 
   // Filter blocks for this day/venue
   const venueBlocks = schedule.getScheduledBlocks().filter(block => {
@@ -34,6 +32,9 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
     const dayDateStr = day.toISOString().split('T')[0];
     return blockDateStr === dayDateStr && block.venue.name === venue.name;
   });
+  
+  // Calculate positions for both events and blocks together to handle overlaps
+  const itemPositions = useTimelineItemPositioning(venueEvents, venueBlocks);
 
   // Helper reserved for future use (was used for date conversions here)
   // const minutesToDate = (baseDay: Date, minutes: number) => {
@@ -56,7 +57,7 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
       
       {/* Render events */}
       {venueEvents.map((event) => {
-          const position = eventPositions.get(event.id) || { column: 0, totalColumns: 1 };
+          const position = itemPositions.get(event.id) || { column: 0, totalColumns: 1 };
           const startMinutes = event.startDate ? event.startDate.getHours() * 60 + event.startDate.getMinutes() : TIME_CONSTANTS.START_TIME;
           const { topPosition, leftPercentage, widthPercentage } = calculateEventRenderPosition(
             startMinutes,
@@ -83,18 +84,19 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
                 height: `${eventHeight}px`,
               }}
             >
-              <DraggableTimelineEvent event={event} />
+              <DraggableTimelineEvent event={event} day={day} />
             </div>
           );
         })}
 
       {/* Render blocks */}
       {venueBlocks.map((block) => {
+          const position = itemPositions.get(block.id) || { column: 0, totalColumns: 1 };
           const startMinutes = block.startDate ? block.startDate.getHours() * 60 + block.startDate.getMinutes() : TIME_CONSTANTS.START_TIME;
-          const { topPosition } = calculateEventRenderPosition(
+          const { topPosition, leftPercentage, widthPercentage } = calculateEventRenderPosition(
             startMinutes,
-            0,
-            1
+            position.column,
+            position.totalColumns
           );
           
           const rawBlockDuration = block.startDate && block.endDate
@@ -111,12 +113,12 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
               className="absolute"
               style={{
                 top: `${topPosition}px`,
-                left: '0%',
-                width: '100%',
+                left: `${leftPercentage}%`,
+                width: `${widthPercentage}%`,
                 height: `${blockHeight}px`,
               }}
             >
-              <DraggableTimelineBlock block={block} />
+              <DraggableTimelineBlock block={block} day={day} />
             </div>
           );
         })}

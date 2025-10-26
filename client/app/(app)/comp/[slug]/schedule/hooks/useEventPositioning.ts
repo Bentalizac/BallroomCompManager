@@ -1,11 +1,37 @@
 import { useMemo } from 'react';
-import { Event, EventPosition } from '../types';
+import { Event, EventPosition, Block } from '../types';
 
 /**
  * Custom hook for calculating event positions to handle overlapping events
  */
 export function useEventPositioning(events: Event[]): Map<string, EventPosition> {
-  return useMemo(() => calculateEventPositions(events), [events]);
+  return useMemo(() => calculateTimelineItemPositions(events), [events]);
+}
+
+/**
+ * Custom hook for calculating positions for both events and blocks together
+ * to handle overlaps between events, blocks, and mixed overlaps
+ */
+export function useTimelineItemPositioning(
+  events: Event[],
+  blocks: Block[]
+): Map<string, EventPosition> {
+  return useMemo(() => {
+    // Combine events and blocks into a unified list with a common interface
+    type TimelineItem = {
+      id: string;
+      startDate: Date | null;
+      endDate: Date | null;
+      type: 'event' | 'block';
+    };
+    
+    const items: TimelineItem[] = [
+      ...events.map(e => ({ id: e.id, startDate: e.startDate, endDate: e.endDate, type: 'event' as const })),
+      ...blocks.map(b => ({ id: b.id, startDate: b.startDate, endDate: b.endDate, type: 'block' as const }))
+    ];
+    
+    return calculateTimelineItemPositions(items);
+  }, [events, blocks]);
 }
 
 /**
@@ -25,15 +51,17 @@ function getDuration(startDate: Date | null, endDate: Date | null): number {
 }
 
 /**
- * Algorithm to calculate overlapping events and their positions
+ * Generic algorithm to calculate overlapping timeline items and their positions
  */
-function calculateEventPositions(events: Event[]): Map<string, EventPosition> {
-  const eventPositions = new Map<string, EventPosition>();
+function calculateTimelineItemPositions<T extends { id: string; startDate: Date | null; endDate: Date | null }>(
+  items: T[]
+): Map<string, EventPosition> {
+  const itemPositions = new Map<string, EventPosition>();
   
-  if (events.length === 0) return eventPositions;
+  if (items.length === 0) return itemPositions;
   
-  // Sort events by start time, then by duration (longer events first for same start time)
-  const sortedEvents = [...events].sort((a, b) => {
+  // Sort items by start time, then by duration (longer items first for same start time)
+  const sortedItems = [...items].sort((a, b) => {
     const aStart = dateToMinutes(a.startDate);
     const bStart = dateToMinutes(b.startDate);
     if (aStart !== bStart) {
@@ -45,27 +73,27 @@ function calculateEventPositions(events: Event[]): Map<string, EventPosition> {
   });
   
   // Build overlap groups using a sophisticated algorithm
-  const overlapGroups: Event[][] = [];
+  const overlapGroups: T[][] = [];
   
-  for (const event of sortedEvents) {
-    const eventStartTime = dateToMinutes(event.startDate);
-    const eventDuration = getDuration(event.startDate, event.endDate);
-    const eventEndTime = eventStartTime + eventDuration;
+  for (const item of sortedItems) {
+    const itemStartTime = dateToMinutes(item.startDate);
+    const itemDuration = getDuration(item.startDate, item.endDate);
+    const itemEndTime = itemStartTime + itemDuration;
     let assignedToGroup = false;
     
-    // Try to find an existing group where this event overlaps with any member
+    // Try to find an existing group where this item overlaps with any member
     for (const group of overlapGroups) {
-      const overlapsWithGroup = group.some(groupEvent => {
-        const groupStartTime = dateToMinutes(groupEvent.startDate);
-        const groupDuration = getDuration(groupEvent.startDate, groupEvent.endDate);
-        const groupEventEndTime = groupStartTime + groupDuration;
+      const overlapsWithGroup = group.some(groupItem => {
+        const groupStartTime = dateToMinutes(groupItem.startDate);
+        const groupDuration = getDuration(groupItem.startDate, groupItem.endDate);
+        const groupItemEndTime = groupStartTime + groupDuration;
         return (
-          eventStartTime < groupEventEndTime && eventEndTime > groupStartTime
+          itemStartTime < groupItemEndTime && itemEndTime > groupStartTime
         );
       });
       
       if (overlapsWithGroup) {
-        group.push(event);
+        group.push(item);
         assignedToGroup = true;
         break;
       }
@@ -73,19 +101,19 @@ function calculateEventPositions(events: Event[]): Map<string, EventPosition> {
     
     // If no overlapping group found, create a new one
     if (!assignedToGroup) {
-      overlapGroups.push([event]);
+      overlapGroups.push([item]);
     }
   }
   
   // For each group, assign column positions using a sophisticated layout algorithm
   for (const group of overlapGroups) {
     if (group.length === 1) {
-      // Single event, takes full width
-      eventPositions.set(group[0].id, { column: 0, totalColumns: 1 });
+      // Single item, takes full width
+      itemPositions.set(group[0].id, { column: 0, totalColumns: 1 });
       continue;
     }
     
-    // For multiple events, find the optimal column assignment
+    // For multiple items, find the optimal column assignment
     // Sort group by start time for column assignment
     const sortedGroup = [...group].sort((a, b) => {
       const aStart = dateToMinutes(a.startDate);
@@ -94,17 +122,17 @@ function calculateEventPositions(events: Event[]): Map<string, EventPosition> {
     });
     
     // Track which columns are occupied at each time point
-    const columns: { event: Event | null, endTime: number }[] = [];
+    const columns: { item: T | null, endTime: number }[] = [];
     
-    for (const event of sortedGroup) {
-      const eventStartTime = dateToMinutes(event.startDate);
-      const eventDuration = getDuration(event.startDate, event.endDate);
-      const eventEndTime = eventStartTime + eventDuration;
+    for (const item of sortedGroup) {
+      const itemStartTime = dateToMinutes(item.startDate);
+      const itemDuration = getDuration(item.startDate, item.endDate);
+      const itemEndTime = itemStartTime + itemDuration;
       
       // Find the first available column
       let assignedColumn = -1;
       for (let i = 0; i < columns.length; i++) {
-        if (columns[i].endTime <= eventStartTime) {
+        if (columns[i].endTime <= itemStartTime) {
           // This column is free
           assignedColumn = i;
           break;
@@ -114,28 +142,28 @@ function calculateEventPositions(events: Event[]): Map<string, EventPosition> {
       // If no column is available, create a new one
       if (assignedColumn === -1) {
         assignedColumn = columns.length;
-        columns.push({ event: null, endTime: 0 });
+        columns.push({ item: null, endTime: 0 });
       }
       
-      // Assign the event to this column
-      columns[assignedColumn] = { event, endTime: eventEndTime };
+      // Assign the item to this column
+      columns[assignedColumn] = { item, endTime: itemEndTime };
       
-      eventPositions.set(event.id, {
+      itemPositions.set(item.id, {
         column: assignedColumn,
         totalColumns: Math.max(columns.length, group.length)
       });
     }
     
-    // Update all events in this group to have the same totalColumns
+    // Update all items in this group to have the same totalColumns
     const maxColumns = columns.length;
-    for (const event of group) {
-      const position = eventPositions.get(event.id)!;
-      eventPositions.set(event.id, {
+    for (const item of group) {
+      const position = itemPositions.get(item.id)!;
+      itemPositions.set(item.id, {
         ...position,
         totalColumns: maxColumns
       });
     }
   }
   
-  return eventPositions;
+  return itemPositions;
 }

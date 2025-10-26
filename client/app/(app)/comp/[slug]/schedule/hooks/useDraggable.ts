@@ -1,4 +1,6 @@
 import { useDrag } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
+import { useEffect } from 'react';
 
 export enum DRAG_TYPES {
   EVENT = 'event',
@@ -14,7 +16,7 @@ export interface UseDraggableOptions<TItem> {
 }
 
 export function useDraggable<TItem>({ type, buildItem }: UseDraggableOptions<TItem>) {
-  const [{ isDragging }, dragRef] = useDrag(() => ({
+  const [{ isDragging }, dragRef, preview] = useDrag(() => ({
     type: type,
     item: (monitor) => {
       const item = buildItem(monitor);
@@ -31,6 +33,11 @@ export function useDraggable<TItem>({ type, buildItem }: UseDraggableOptions<TIt
     },
     collect: (monitor) => ({ isDragging: monitor.isDragging() }),
   }), [type, buildItem]);
+
+  // Hide the default browser drag preview so only our CustomDragLayer shows
+  useEffect(() => {
+    preview(getEmptyImage(), { captureDraggingState: true });
+  }, [preview]);
 
   return {
     dragRef,
