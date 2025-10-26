@@ -15,16 +15,17 @@ export interface DraggableItemProps {
   state?: State;
   data: any;
   display: React.ReactNode;
+  className?: string;
 }
 
-export const DraggableItem = ({ dragType, state, data, display }: DraggableItemProps) => {
+export const DraggableItem = ({ dragType, state, data, display, className }: DraggableItemProps) => {
   const { isDragging, dragRef } = useDraggable({
     type: dragType,
     buildItem: () => ({ state, dragType, ...data }),
   });
 
   return (
-    <div ref={dragRef as any} className={`cursor-grab ${isDragging ? 'opacity-50' : ''}`}>
+    <div ref={dragRef as any} className={`cursor-grab ${isDragging ? 'opacity-50' : ''} ${className ?? ''}`}>
       {display}
     </div>
   );

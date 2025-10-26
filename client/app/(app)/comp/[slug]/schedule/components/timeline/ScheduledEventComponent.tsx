@@ -4,13 +4,6 @@ import { ScheduledEventProps } from '../../types';
 import { getDragItemHeight } from '../../utils';
 import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
 
-/**
- * Helper to extract minutes from midnight from a Date
- */
-function dateToMinutes(date: Date | null): number {
-  if (!date) return 0;
-  return date.getHours() * 60 + date.getMinutes();
-}
 
 /**
  * Helper to compute duration in minutes from start/end dates
@@ -38,7 +31,6 @@ export function ScheduledEventComponent({
   const [{ isDragState }, drag, preview] = useDrag({
     type: 'event',
     item: () => {
-      console.log('Dragging scheduled event:', event.id, event.name);
       return { 
         ...event,
         dragType: 'event' as const,

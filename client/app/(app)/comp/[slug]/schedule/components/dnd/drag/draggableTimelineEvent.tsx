@@ -86,6 +86,7 @@ export const DraggableTimelineEvent = ({ event }: DraggableTimelineEventProps) =
       dragType={DRAG_TYPES.EVENT}
       state={event.state}
       data={{ ...event }}
+      className="w-full h-full"
       display={content}
     />
   );

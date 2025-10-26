@@ -6,6 +6,7 @@ import { TIME_CONSTANTS } from '../../../constants';
 import { getDragItemHeight } from '../../../utils';
 import { useScheduleState } from '../../../hooks';
 import { DRAG_TYPES, DragType } from '../../../hooks/useDraggable';
+import { BlockDropZone } from '../drop/BlockDropZone';
 
 
 function getDuration(startDate: Date | null, endDate: Date | null): number {
@@ -40,11 +41,10 @@ export const DraggableTimelineBlock = ({ block }: DraggableTimelineBlockProps) =
           const newDuration = Math.max(TIME_CONSTANTS.LINE_INTERVAL, startDurationRef.current + deltaMinutes);
           
           // Update endDate based on new duration
-          if (block.startDate) {
-            const newEndDate = new Date(block.startDate.getTime() + newDuration * 60 * 1000);
-            console.log('Resizing block:', block.id, 'New duration (mins):', newDuration);
-            schedule.handleBlockUpdate(block.id, { endDate: newEndDate });
-          }
+                    if (block.startDate) {
+                        const newEndDate = new Date(block.startDate.getTime() + newDuration * 60 * 1000);
+                        schedule.handleBlockUpdate(block.id, { endDate: newEndDate });
+                    }
         };
     
         const handleMouseUp = () => {
@@ -58,33 +58,35 @@ export const DraggableTimelineBlock = ({ block }: DraggableTimelineBlockProps) =
     };
 
     const content = (
-        <div
-            className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
-            schedule.selectedItemID === block.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
-            }`}
-            onClick={(e) => {
-                e.stopPropagation();
-            }}
-            >
-            <div className="p-1 h-full overflow-hidden relative">
-                <div className="text-xs font-medium text-gray-800 truncate">
-                {block.name}
-                </div>
-                {schedule.selectedItemID === block.id && (
-                <div className="absolute top-1 right-1 text-xs text-blue-600 font-medium">
-                    DEL
-                </div>
-                )}
-                {/* Resize handle */}
-                <div
-                className="absolute bottom-0 left-0 w-full h-3 cursor-ns-resize hover:bg-black/20 flex items-end justify-center"
-                onMouseDown={handleResizeStart}
-                style={{ zIndex: 10 }}
+        <BlockDropZone block={block}>
+            <div
+                className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
+                schedule.selectedItemID === block.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
+                }`}
+                onClick={(e) => {
+                    e.stopPropagation();
+                }}
                 >
-                <div className="w-4 h-1 bg-gray-400 rounded-full opacity-50 hover:opacity-100" />
+                <div className="p-1 h-full overflow-hidden relative">
+                    <div className="text-xs font-medium text-gray-800 truncate">
+                    {block.name}
+                    </div>
+                    {schedule.selectedItemID === block.id && (
+                    <div className="absolute top-1 right-1 text-xs text-blue-600 font-medium">
+                        DEL
+                    </div>
+                    )}
+                    {/* Resize handle */}
+                    <div
+                    className="absolute bottom-0 left-0 w-full h-3 cursor-ns-resize hover:bg-black/20 flex items-end justify-center"
+                    onMouseDown={handleResizeStart}
+                    style={{ zIndex: 10 }}
+                    >
+                    <div className="w-4 h-1 bg-gray-400 rounded-full opacity-50 hover:opacity-100" />
+                    </div>
                 </div>
             </div>
-        </div>
+        </BlockDropZone>
     );
 
     return (
@@ -92,6 +94,7 @@ export const DraggableTimelineBlock = ({ block }: DraggableTimelineBlockProps) =
             dragType={DRAG_TYPES.BLOCK}
             state={block.state}
             data={{ ...block }}
+            className="w-full h-full"
             display={content}
         />
     );

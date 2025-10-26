@@ -14,7 +14,7 @@ export interface Block {
   startDate: Date | null;
   endDate: Date | null;
   venue: Venue | null;
-  events?: Event[];
+  eventIds?: string[];
   state: STATE_TYPES;
 }
 

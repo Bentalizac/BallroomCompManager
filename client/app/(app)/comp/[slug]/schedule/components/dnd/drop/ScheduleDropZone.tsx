@@ -149,16 +149,6 @@ export function ScheduleDropZone({
       if (clientOffset && componentRect) {
         const timeSlot = calculateTimeSlotFromPosition(clientOffset.y, componentRect.top);
         
-        console.log('Dropped item:', {
-          dragType: item.dragType,
-          state: item.state,
-          id: item.id,
-          timeSlot,
-          day,
-          venue,
-          fullItem: item
-        });
-
         if (item.dragType === 'event') {
           if (item.state === 'available' || item.state === 'infinite') {
             // New event from available list

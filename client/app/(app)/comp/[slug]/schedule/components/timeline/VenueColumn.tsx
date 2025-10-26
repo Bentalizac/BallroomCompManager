@@ -5,7 +5,6 @@ import { TimeGrid } from './TimeGrid';
 import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
 import { ScheduleDropZone } from '../dnd/drop/ScheduleDropZone';
 import { STATE_TYPES } from '../dnd/drag/draggableItem';
-import { useEffect } from 'react';
 import { DraggableTimelineBlock } from '../dnd/drag/draggableTimelineBlock';
 import { DraggableTimelineEvent } from '../dnd/drag/draggableTimelineEvent';
 
@@ -36,15 +35,15 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
     return blockDateStr === dayDateStr && block.venue.name === venue.name;
   });
 
-  // Helper to build a Date from day + minutes-from-midnight
-  const minutesToDate = (baseDay: Date, minutes: number) => {
-    const result = new Date(baseDay);
-    result.setHours(0, 0, 0, 0);
-    const hours = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    result.setHours(hours, mins, 0, 0);
-    return result;
-  };
+  // Helper reserved for future use (was used for date conversions here)
+  // const minutesToDate = (baseDay: Date, minutes: number) => {
+  //   const result = new Date(baseDay);
+  //   result.setHours(0, 0, 0, 0);
+  //   const hours = Math.floor(minutes / 60);
+  //   const mins = minutes % 60;
+  //   result.setHours(hours, mins, 0, 0);
+  //   return result;
+  // };
 
   return (
     <ScheduleDropZone
@@ -65,7 +64,12 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
             position.totalColumns
           );
           
-          const duration = event.startDate && event.endDate ? Math.max(15, Math.round((event.endDate.getTime() - event.startDate.getTime()) / 60000)) : LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
+          const rawEventDuration = event.startDate && event.endDate
+            ? Math.round((event.endDate.getTime() - event.startDate.getTime()) / 60000)
+            : LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
+          const duration = rawEventDuration <= 0
+            ? LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION
+            : Math.max(LAYOUT_CONSTANTS.MIN_EVENT_DURATION, rawEventDuration);
           const eventHeight = (duration / TIME_CONSTANTS.LINE_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
           
           return (
@@ -93,7 +97,12 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
             1
           );
           
-          const duration = block.startDate && block.endDate ? Math.max(15, Math.round((block.endDate.getTime() - block.startDate.getTime()) / 60000)) : LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
+          const rawBlockDuration = block.startDate && block.endDate
+            ? Math.round((block.endDate.getTime() - block.startDate.getTime()) / 60000)
+            : LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
+          const duration = rawBlockDuration <= 0
+            ? LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION
+            : Math.max(LAYOUT_CONSTANTS.MIN_EVENT_DURATION, rawBlockDuration);
           const blockHeight = (duration / TIME_CONSTANTS.LINE_INTERVAL) * TIME_CONSTANTS.PIXELS_PER_SLOT;
           
           return (
