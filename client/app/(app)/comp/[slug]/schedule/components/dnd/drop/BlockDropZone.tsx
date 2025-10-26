@@ -46,7 +46,8 @@ export function BlockDropZone({
 
       let relativeMinutes: number | undefined = undefined;
       if (clientOffset && rect) {
-        const yWithin = clientOffset.y - rect.top; // px from top within block
+        const effectiveClientY = clientOffset.y - (typeof (item as any).grabOffsetY === 'number' ? (item as any).grabOffsetY : 0);
+        const yWithin = effectiveClientY - rect.top; // px from top within block based on preview top
         // If block has a known duration, map pixel position to minutes within block
         const blockDuration = getDurationMins(block.startDate ?? null, block.endDate ?? null);
         if (blockDuration && rect.height > 0) {
@@ -121,13 +122,13 @@ export function BlockDropZone({
       {children}
       {/* Basic inline display of events inside this block */}
       {Array.isArray(block.eventIds) && block.eventIds.length > 0 && (
-        <div className="absolute left-1 bottom-1 right-1 bg-white/80 p-1 rounded space-y-1 overflow-auto max-h-full" style={{ zIndex: 5 }}>
+        <div className="absolute left-1 bottom-1 right-1 p-1 rounded space-y-1 overflow-auto max-h-full text-white" style={{ zIndex: 5 }}>
           {block.eventIds.map((id) => {
             const ev = schedule.events.find(e => e.id === id);
             if (!ev) return null;
             return (
               <div key={id} className="shrink-0">
-                <DraggableEvent event={ev} />
+                <DraggableEvent event={ev} colorOverride="#4f165d" />
               </div>
             );
           })}

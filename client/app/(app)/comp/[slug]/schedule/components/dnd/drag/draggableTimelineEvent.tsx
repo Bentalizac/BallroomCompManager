@@ -51,11 +51,13 @@ export const DraggableTimelineEvent = ({ event }: DraggableTimelineEventProps) =
     document.addEventListener('mouseup', handleMouseUp);
   };
 
+  const LIGHT_PURPLE = '#673d72ff'; // static light purple for timeline items
   const content = (
     <div
       className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
         schedule.selectedItemID === event.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
       }`}
+      style={{ backgroundColor: LIGHT_PURPLE }}
       onClick={(e) => {
         e.stopPropagation();
       }}

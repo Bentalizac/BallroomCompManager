@@ -10,13 +10,25 @@ export type DragType = typeof DRAG_TYPES[keyof typeof DRAG_TYPES];
 
 export interface UseDraggableOptions<TItem> {
   type: DragType;
-  buildItem: () => TItem; // Build the item payload at drag time (keeps it fresh)
+  buildItem: (monitor?: any) => TItem; // Build the item payload at drag time (keeps it fresh)
 }
 
 export function useDraggable<TItem>({ type, buildItem }: UseDraggableOptions<TItem>) {
   const [{ isDragging }, dragRef] = useDrag(() => ({
     type: type,
-    item: () => (buildItem()), // react-dnd allows item as a function to lazily read latest data
+    item: (monitor) => {
+      const item = buildItem(monitor);
+      // Augment with grab offset for proper preview positioning
+      try {
+        const startPointer = monitor.getInitialClientOffset?.();
+        const startSource = monitor.getInitialSourceClientOffset?.();
+        if (startPointer && startSource && item && typeof item === 'object') {
+          (item as any).grabOffsetY = startPointer.y - startSource.y;
+          (item as any).grabOffsetX = startPointer.x - startSource.x;
+        }
+      } catch {}
+      return item;
+    },
     collect: (monitor) => ({ isDragging: monitor.isDragging() }),
   }), [type, buildItem]);
 

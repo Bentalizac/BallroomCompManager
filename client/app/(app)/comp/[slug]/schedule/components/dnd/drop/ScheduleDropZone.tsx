@@ -147,7 +147,8 @@ export function ScheduleDropZone({
       const componentRect = dropZoneRef.current?.getBoundingClientRect();
       
       if (clientOffset && componentRect) {
-        const timeSlot = calculateTimeSlotFromPosition(clientOffset.y, componentRect.top);
+        const effectiveClientY = clientOffset.y - (typeof item.grabOffsetY === 'number' ? item.grabOffsetY : 0);
+        const timeSlot = calculateTimeSlotFromPosition(effectiveClientY, componentRect.top);
         
         if (item.dragType === 'event') {
           // If the event was previously inside a block, remove it from any block first
