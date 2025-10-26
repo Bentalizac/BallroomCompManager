@@ -25,6 +25,14 @@
     {
       "folderPath": "BallroomCompManager\\client\\app\\(app)\\comp\\[slug]\\schedule\\",
       "color": "foldercolorizer.color_00cccc"
+    },
+    {
+      "folderPath": "BallroomCompManager\\shared\\",
+      "color": "foldercolorizer.color_ffcc99"
+    },
+    {
+      "folderPath": "BallroomCompManager\\shared\\data\\types\\event.ts\\",
+      "color": "foldercolorizer.color_cc6600"
     }
   ]
 }

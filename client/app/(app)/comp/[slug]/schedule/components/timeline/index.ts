@@ -9,4 +9,4 @@ export { VenueColumn } from './VenueColumn';
 export { DayColumn } from './DayColumn';
 
 // Re-export types
-export type { ScheduledEvent } from '../../types';
+export type { Event } from '../../types';

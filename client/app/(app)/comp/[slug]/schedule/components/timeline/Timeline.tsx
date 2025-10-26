@@ -1,16 +1,11 @@
-import { TimelineProps } from '../../types';
-import { useTimelineOperations } from '../../hooks';
 import { CustomDragLayer } from './CustomDragLayer';
 import { DayColumn } from './DayColumn';
+import { Event, Block, Venue } from '../../types';
+import { useScheduleState } from '../../hooks';
 
-export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, scheduledBlocks, setScheduledEvents, setScheduledBlocks, setAvailableEvents, onEventMove, days, locations }: TimelineProps) {
-    const { handleEventDrop, handleEventMove, handleEventUpdate } = useTimelineOperations({
-        setScheduledEvents,
-        setScheduledBlocks,
-        setAvailableEvents,
-        onEventUpdate: onEventMove, // Use onEventMove for updates too
-        onEventMove
-    });
+
+export const Timeline = () => {
+    const { days, locations } = useScheduleState();
 
     return (
         <div className="flex-1 bg-white flex flex-col h-full">
@@ -24,14 +19,7 @@ export function Timeline({ onEventSelect, selectedEvent, scheduledEvents, schedu
                 <DayColumn
                     key={day.toISOString()}
                     day={day}
-                    onEventDrop={handleEventDrop}
-                    onEventMove={handleEventMove}
-                    scheduledEvents={scheduledEvents}
-                    scheduledBlocks={scheduledBlocks}
                     locations={locations}
-                    onEventSelect={onEventSelect}
-                    selectedEvent={selectedEvent}
-                    onEventUpdate={handleEventUpdate}
                 />
             ))}
             </div>

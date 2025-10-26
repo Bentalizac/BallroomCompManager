@@ -1,18 +1,14 @@
-import { Event, ScheduledEvent } from '../../types';
 import { VenueColumn } from './VenueColumn';
-import { DayColumnProps } from '../../types';
+import { Venue } from '../../types';
 
-export function DayColumn({
-  day,
-  onEventDrop,
-  onEventMove,
-  scheduledEvents,
-  scheduledBlocks,
-  onEventSelect,
-  selectedEvent,
-  onEventUpdate,
-  locations = []
-}: DayColumnProps) {
+interface DayColumnProps {
+  day: Date;
+  locations: Venue[];
+}
+
+export const DayColumn = ({ day, locations }: DayColumnProps) => {
+  console.log('DayColumn rendering for day:', day.toISOString());
+  
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
@@ -38,13 +34,6 @@ export function DayColumn({
                 <VenueColumn
                   day={day}
                   venue={location}
-                  onEventDrop={onEventDrop}
-                  onEventMove={onEventMove}
-                  scheduledEvents={scheduledEvents}
-                  scheduledBlocks={scheduledBlocks}
-                  onEventSelect={onEventSelect}
-                  selectedEvent={selectedEvent}
-                  onEventUpdate={onEventUpdate}
                 />
               </div>
             </div>

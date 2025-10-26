@@ -10,9 +10,9 @@ export interface DraggableEventProps {
 
 export const DraggableEvent = ({ event, state = STATE_TYPES.SCHEDULED }: DraggableEventProps) => {
   const content = (
-    <div className="flex items-center gap-2 px-3 py-2 rounded" style={{ backgroundColor: event.color }}>
+    <div className="flex items-center gap-2 px-3 py-2 rounded" style={{ backgroundColor: event.color? event.color : '#3b82f6' }}>
       <GripVertical className="w-4 h-4 text-gray-400" />
-      <span className="text-sm">{event.event.name}</span>
+      <span className="text-sm">{event.name}</span>
     </div>
   );
 
@@ -20,7 +20,7 @@ export const DraggableEvent = ({ event, state = STATE_TYPES.SCHEDULED }: Draggab
     <DraggableItem
       dragType={DRAG_TYPES.EVENT}
       state={state}
-      data={{ event }}
+      data={{ ...event }}
       display={content}
     />
   );

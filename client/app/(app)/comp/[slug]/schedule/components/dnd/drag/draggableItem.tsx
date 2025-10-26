@@ -5,6 +5,7 @@ export enum STATE_TYPES {
     AVAILABLE = 'available',
     SCHEDULED = 'scheduled',
     INFINITE = 'infinite',
+    IN_BLOCK = 'in_block',
 }
 
 export type State = typeof STATE_TYPES[keyof typeof STATE_TYPES];

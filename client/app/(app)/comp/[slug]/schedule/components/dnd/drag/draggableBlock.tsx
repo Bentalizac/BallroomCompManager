@@ -1,12 +1,7 @@
 import { GripVertical } from 'lucide-react';
 import { DRAG_TYPES } from '../../../hooks/useDraggable';
-import type { Event } from '../../../types';
+import type { Block } from '../../../types';
 import { State, STATE_TYPES, DraggableItem  } from './draggableItem';
-
-export interface Block {
-    id?: string;
-    events?: Event[]
-}
 
 export interface DraggableBlockProps {
     block: Block;
@@ -17,7 +12,7 @@ export const DraggableBlock = ({ block, state = STATE_TYPES.SCHEDULED }: Draggab
     const content = (
         <div className="flex items-center gap-2 px-3 py-2 rounded bg-gray-200">
             <GripVertical className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">{block.id ? `Block ${block.id}` : 'New Block'}</span>
+            <span className="text-sm font-medium text-gray-700">{block.name ? block.name : 'Untitled Block'}</span>
         </div>
     );
 
@@ -25,7 +20,7 @@ export const DraggableBlock = ({ block, state = STATE_TYPES.SCHEDULED }: Draggab
         <DraggableItem
             dragType={DRAG_TYPES.BLOCK}
             state={state}
-            data={{ block }}
+            data={{ ...block }}
             display={content}
         />
     );

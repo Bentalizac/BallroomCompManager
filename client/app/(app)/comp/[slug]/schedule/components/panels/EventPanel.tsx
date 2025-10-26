@@ -3,10 +3,11 @@ import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { mockEvents } from '../../data/mockData';
 import { EventType } from '@/../shared/data/enums/eventTypes';
-import { Event } from '../../types';
+import { Event, Block } from '../../types';
 import { STATE_TYPES } from '../dnd/drag/draggableItem';
 import { DraggableEvent } from '../dnd/drag/draggableEvent';
 import { DraggableBlock } from '../dnd/drag/draggableBlock';
+import { useScheduleState } from '../../hooks';
 
 interface EventListProps {
   events?: Event[];
@@ -17,7 +18,7 @@ const EventList = ({ events }: EventListProps) => {
     <div>
       {events?.map((event) => (
         <DraggableEvent
-          key={event.event.id}
+          key={event.id}
           state={STATE_TYPES.AVAILABLE}
           event={event}
         />
@@ -43,29 +44,22 @@ const EventsCategory = ({ title, events }: EventsCategoryProps) => {
   );
 }
 
+export const EventPanel = () => {
+  const events = useScheduleState().getAvailableEvents();
+  const blocks = useScheduleState().getAvailableBlocks();
 
-export interface EventPanelProps {
-  events?: Event[];
-}
-
-export const EventPanel = ({ events = mockEvents }: EventPanelProps) => {
-  const [localEvents, setLocalEvents] = useState<Event[]>(events);
-
-  useEffect(() => {
-    setLocalEvents(events);
-  }, [events]);
-
-  const latinEvents = localEvents.filter(e => e.event.category === EventType.Latin);
-  const ballroomEvents = localEvents.filter(e => e.event.category === EventType.Ballroom);
-  const otherEvents = localEvents.filter(e => e.event.category === EventType.Other);
+  const latinEvents = events.filter(e => e.category === EventType.Latin);
+  const ballroomEvents = events.filter(e => e.category === EventType.Ballroom);
+  const otherEvents = events.filter(e => e.category === EventType.Other);
 
   return (
     <div className="w-64 bg-secondary flex flex-col h-full rounded-lg m-2">
       <div className="p-4">
-        <DraggableBlock
-            block={{ id: "1", events: [] }}
-            state={STATE_TYPES.INFINITE}
-        />
+        {blocks.map((block) => (
+            <div key={block.id} className="mb-2">
+                <DraggableBlock state={STATE_TYPES.INFINITE} block={block} />
+            </div>
+        ))}
       </div>
       <div className="flex items-center justify-between p-4 flex-shrink-0">
         <h2 className="font-medium text-gray-700">Events</h2>
