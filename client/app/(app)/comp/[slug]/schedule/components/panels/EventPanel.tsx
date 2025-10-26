@@ -19,7 +19,6 @@ const EventList = ({ events }: EventListProps) => {
       {events?.map((event) => (
         <DraggableEvent
           key={event.id}
-          state={STATE_TYPES.AVAILABLE}
           event={event}
         />
       ))}
@@ -57,7 +56,7 @@ export const EventPanel = () => {
       <div className="p-4">
         {blocks.map((block) => (
             <div key={block.id} className="mb-2">
-                <DraggableBlock state={STATE_TYPES.INFINITE} block={block} />
+                <DraggableBlock block={block} />
             </div>
         ))}
       </div>

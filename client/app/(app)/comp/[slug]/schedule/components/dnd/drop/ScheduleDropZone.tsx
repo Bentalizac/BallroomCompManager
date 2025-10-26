@@ -47,6 +47,12 @@ export function ScheduleDropZone({
 
 
 
+  // Helper to compute duration in minutes given start and end
+  const getDurationMins = (start: Date | null | undefined, end: Date | null | undefined): number | null => {
+    if (!start || !end) return null;
+    return Math.max(0, Math.round((new Date(end).getTime() - new Date(start).getTime()) / 60000));
+  };
+
   // When an available item (event or block) is dropped into this venue/day
   const onEventDrop = (eventID: string, dropDay: Date, dropVenue: Venue, timeSlot: number) => {
     const startDate = minutesToDate(dropDay, timeSlot);
@@ -62,10 +68,27 @@ export function ScheduleDropZone({
       endDate,
     });
     
-  };  // When a scheduled event is moved within the timeline
-  const onEventMove = (eventId: string, newDay: Date, newVenue: Venue, newTimeSlot: number) => {
+  };
+  
+  // When a scheduled event is moved within the timeline
+  const onEventMove = (
+    eventId: string,
+    newDay: Date,
+    newVenue: Venue,
+    newTimeSlot: number,
+    durationOverride?: number
+  ) => {
     const startDate = minutesToDate(newDay, newTimeSlot);
-    const durationMinutes = LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
+    // Prefer passed duration, else compute from current event in state, else default
+    let durationMinutes = typeof durationOverride === 'number'
+      ? durationOverride
+      : (() => {
+          const ev = schedule.events.find(e => e.id === eventId);
+          const d = getDurationMins(ev?.startDate ?? null, ev?.endDate ?? null);
+          return d ?? LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
+        })();
+    // Guard against non-positive durations
+    if (durationMinutes <= 0) durationMinutes = LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
     const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
 
     schedule.handleEventUpdate(eventId, {
@@ -91,9 +114,23 @@ export function ScheduleDropZone({
     });
   };
 
-  const onBlockMove = (blockId: string, newDay: Date, newVenue: Venue, newTimeSlot: number) => {
+  const onBlockMove = (
+    blockId: string,
+    newDay: Date,
+    newVenue: Venue,
+    newTimeSlot: number,
+    durationOverride?: number
+  ) => {
     const startDate = minutesToDate(newDay, newTimeSlot);
-    const durationMinutes = LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
+    // Prefer passed duration, else compute from current block in state, else default
+    let durationMinutes = typeof durationOverride === 'number'
+      ? durationOverride
+      : (() => {
+          const blk = schedule.blocks.find(b => b.id === blockId);
+          const d = getDurationMins(blk?.startDate ?? null, blk?.endDate ?? null);
+          return d ?? LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
+        })();
+    if (durationMinutes <= 0) durationMinutes = LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION;
     const endDate = new Date(startDate.getTime() + durationMinutes * 60 * 1000);
     schedule.handleBlockUpdate(blockId, {
       state: STATE_TYPES.SCHEDULED,
@@ -125,22 +162,22 @@ export function ScheduleDropZone({
         if (item.dragType === 'event') {
           if (item.state === 'available' || item.state === 'infinite') {
             // New event from available list
-            console.log('Dropping new event with ID:', item.id);
             onEventDrop(item.id, day, venue, timeSlot);
           } else if (item.state === 'scheduled') {
             // Existing scheduled event being moved
-            console.log('Moving scheduled event:', item.id);
-            onEventMove(item.id, day, venue, timeSlot);
+            // Compute duration from dragged item if possible
+            const d = getDurationMins(item.startDate, item.endDate) ?? undefined;
+            onEventMove(item.id, day, venue, timeSlot, d);
           }
         } else if (item.dragType === 'block') {
           if (item.state === 'available' || item.state === 'infinite') {
             // New block from available list
-            console.log('Dropping new block with ID:', item.id);
             onBlockDrop(item.id, day, venue, timeSlot);
           } else if (item.state === 'scheduled') {
             // Existing scheduled block being moved
-            console.log('Moving scheduled block:', item.id);
-            onBlockMove(item.id, day, venue, timeSlot);
+            // Preserve resized duration if present on dragged item
+            const d = getDurationMins(item.startDate, item.endDate) ?? undefined;
+            onBlockMove(item.id, day, venue, timeSlot, d);
           }
         }
       }

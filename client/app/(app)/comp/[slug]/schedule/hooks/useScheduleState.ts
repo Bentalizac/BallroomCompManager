@@ -40,7 +40,6 @@ export function useScheduleState(): ScheduleState {
   // Initialize dates at midnight local time to avoid timezone issues
   const day1 = new Date(2025, 9, 9); // October 9, 2025 (month is 0-indexed)
   const day2 = new Date(2025, 9, 10); // October 10, 2025
-  console.log('Initializing schedule with days:', [day1.toISOString(), day2.toISOString()]);
   
   const [days, setDays] = useState<Date[]>([day1, day2]);
   const [locations, setLocations] = useState<Venue[]>([{ name: 'Wilk' }, { name: 'RB' }]);
@@ -52,9 +51,7 @@ export function useScheduleState(): ScheduleState {
 
 
   const getAvailableEvents = useCallback((): Event[] => {
-    const available = events.filter(event => event.state === STATE_TYPES.AVAILABLE || event.state === STATE_TYPES.INFINITE);
-    console.log('getAvailableEvents:', available.length, 'of', events.length, 'total');
-    return available;
+    return events.filter(event => event.state === STATE_TYPES.AVAILABLE || event.state === STATE_TYPES.INFINITE);
   }, [events]);
 
   const getAvailableBlocks = useCallback((): Block[] => {
@@ -62,9 +59,7 @@ export function useScheduleState(): ScheduleState {
   }, [blocks]);
 
   const getScheduledEvents = useCallback((): Event[] => {
-    const scheduled = events.filter(event => event.state === STATE_TYPES.SCHEDULED);
-    console.log('getScheduledEvents:', scheduled.length, 'scheduled events:', scheduled.map(e => ({ id: e.id, name: e.name, startDate: e.startDate, venue: e.venue })));
-    return scheduled;
+    return events.filter(event => event.state === STATE_TYPES.SCHEDULED);
   }, [events]);
 
   const getScheduledBlocks = useCallback((): Block[] => {
@@ -73,19 +68,14 @@ export function useScheduleState(): ScheduleState {
 
   
   const handleEventUpdate = (eventID: string, updates: Partial<Event>) => {
-    console.log('handleEventUpdate called with:', eventID, updates);
     setEvents(prev => {
-      console.log('setEvents callback - previous events:', prev.map(e => ({ id: e.id, state: e.state })));
       const updated = prev.map(event => {
         if (event.id === eventID) {
           const merged = { ...event, ...updates };
-          console.log('Merging event:', event.id, 'old:', event, 'updates:', updates, 'result:', merged);
           return merged;
         }
         return event;
       });
-      console.log('setEvents callback - new events:', updated.map(e => ({ id: e.id, state: e.state, startDate: e.startDate })));
-      console.log('Scheduled after update:', updated.filter(e => e.state === STATE_TYPES.SCHEDULED));
       return updated;
     });
   };
@@ -144,6 +134,7 @@ export function useScheduleState(): ScheduleState {
     getScheduledEvents,
     handleEventUpdate,
     handleEventDelete,
+    handleEventCopy,
 
     blocks,
     setBlocks,
@@ -154,97 +145,3 @@ export function useScheduleState(): ScheduleState {
     handleBlockCopy
   };
 }
-
-
-
-/*
-
-
-handleEventDrop = useCallback((
-    item: Event | Block, 
-    day: Date, 
-    venue: Venue, 
-    timeSlot: number
-  ) => {
-    // Check if it's a Block
-    if ('id' in item && !('event' in item)) {
-      // This is a Block
-      const newScheduledBlock: Block = {
-        id: item.id || `block-${Date.now()}`,
-        name: item.name || 'New Block',
-        startTime: timeSlot,
-        duration: item.duration || 60, // Default 60 minutes
-        day,
-        venue
-      };
-      
-  setScheduledBlocks(prev => [...prev, newScheduledBlock]);
-    } else {
-      // This is an Event
-      const event = item as Event;
-      const newScheduledEvent = createScheduledEvent(
-        event,
-        timeSlot,
-        LAYOUT_CONSTANTS.DEFAULT_EVENT_DURATION,
-        day,
-        venue
-      );
-      
-      // Ensure newly dropped events are marked as Scheduled
-      setScheduledEvents(prev => [...prev, { ...newScheduledEvent, state: "Scheduled" }]);
-      
-      // Remove from available events
-      if (setAvailableEvents) {
-        setAvailableEvents(prev => prev.filter(e => e.event.id !== event.event.id));
-      }
-    }
-  }, [setScheduledEvents, setScheduledBlocks, setAvailableEvents]);
-
-  const handleEventMove = useCallback((
-    eventId: string, 
-    newDay: Date, 
-    newVenue: Venue, 
-    newTimeSlot: number
-  ) => {
-    // Mark moved events as Scheduled as part of the update
-    const updates = { day: newDay, venue: newVenue, startTime: newTimeSlot, State: "Scheduled" };
-    
-    setScheduledEvents(prev => 
-      prev.map(event => 
-        event.event.id === eventId 
-          ? { ...event, ...updates }
-          : event
-      )
-    );
-    
-    // Notify parent about the move so it can update selectedEvent if needed
-    if (onEventMove) {
-      onEventMove(eventId, updates);
-    }
-  }, [setScheduledEvents, onEventMove]);
-
-  const handleEventUpdate = useCallback((eventId: string, updates: Partial<Event>) => {
-    // Always include state: "scheduled" in update operations
-    const mergedUpdates: Partial<Event> = { ...updates, state: "scheduled" };
-
-    setScheduledEvents(prev => 
-      prev.map(event => 
-        event.event.id === eventId ? { ...event, ...mergedUpdates } : event
-      )
-    );
-    
-    // Call the external update handler if provided
-    if (onEventUpdate) {
-      onEventUpdate(eventId, mergedUpdates);
-    }
-  }, [setScheduledEvents, onEventUpdate]);
-
-  return {
-    handleEventDrop,
-    handleEventMove,
-    handleEventUpdate,
-  };
-}
-
-
-*/

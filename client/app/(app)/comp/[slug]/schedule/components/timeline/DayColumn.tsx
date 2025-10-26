@@ -7,7 +7,6 @@ interface DayColumnProps {
 }
 
 export const DayColumn = ({ day, locations }: DayColumnProps) => {
-  console.log('DayColumn rendering for day:', day.toISOString());
   
   const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 

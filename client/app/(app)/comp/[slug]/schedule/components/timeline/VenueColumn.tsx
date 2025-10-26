@@ -7,6 +7,7 @@ import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
 import { ScheduleDropZone } from '../dnd/drop/ScheduleDropZone';
 import { STATE_TYPES } from '../dnd/drag/draggableItem';
 import { useEffect } from 'react';
+import { DraggableTimelineBlock } from '../dnd/drag/draggableTimelineBlock';
 
 export interface VenueColumnProps {
   day: Date;
@@ -24,14 +25,6 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
     const dayDateStr = day.toISOString().split('T')[0];
     return eventDateStr === dayDateStr && event.venue.name === venue.name;
   });
-  
-  useEffect(() => {
-    console.log(`VenueColumn RENDER for ${venue.name} on ${day.toISOString().split('T')[0]}:`, {
-      allScheduled: schedule.getScheduledEvents().length,
-      venueEvents: venueEvents.length,
-      venueEventsData: venueEvents
-    });
-  }, [venueEvents, venue.name, day, schedule]);
   
   const eventPositions = useEventPositioning(venueEvents);
 
@@ -120,9 +113,12 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
                 height: `${blockHeight}px`,
               }}
             >
+              <DraggableTimelineBlock block={block} />
+              { /*
               <div className="h-full w-full bg-gray-300 border-2 border-gray-400 rounded p-2 opacity-50 flex items-center justify-center">
                 <span className="text-sm font-medium text-gray-700">{block.name}</span>
               </div>
+              */ }
             </div>
           );
         })}

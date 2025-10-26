@@ -5,10 +5,9 @@ import { State, STATE_TYPES, DraggableItem  } from './draggableItem';
 
 export interface DraggableBlockProps {
     block: Block;
-    state?: State;
 }
 
-export const DraggableBlock = ({ block, state = STATE_TYPES.SCHEDULED }: DraggableBlockProps) => {
+export const DraggableBlock = ({ block }: DraggableBlockProps) => {
     const content = (
         <div className="flex items-center gap-2 px-3 py-2 rounded bg-gray-200">
             <GripVertical className="w-4 h-4 text-gray-400" />
@@ -19,7 +18,7 @@ export const DraggableBlock = ({ block, state = STATE_TYPES.SCHEDULED }: Draggab
     return (
         <DraggableItem
             dragType={DRAG_TYPES.BLOCK}
-            state={state}
+            state={block.state}
             data={{ ...block }}
             display={content}
         />
