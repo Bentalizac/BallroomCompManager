@@ -5,6 +5,7 @@ import type { Block } from '../../../types';
 import type { DropTargetMonitor } from 'react-dnd';
 import { useScheduleState } from '../../../hooks';
 import { STATE_TYPES } from '../../dnd/drag/draggableItem';
+import { DraggableEvent } from '../drag/draggableEvent';
 
 type DropItem = {
   dragType: 'event' | 'block';
@@ -58,7 +59,15 @@ export function BlockDropZone({
         // 1) Update the Event state to IN_BLOCK
         schedule.handleEventUpdate(item.id, { state: STATE_TYPES.IN_BLOCK });
 
-        // 2) Update the Block to include this event's ID (ensure uniqueness)
+        // 2) Remove this event from any other blocks it may belong to
+        schedule.blocks
+          .filter(b => b.id !== block.id && Array.isArray(b.eventIds) && b.eventIds.includes(item.id))
+          .forEach(b => {
+            const cleaned = (b.eventIds || []).filter(eid => eid !== item.id);
+            schedule.handleBlockUpdate(b.id, { eventIds: cleaned });
+          });
+
+        // 3) Update the target Block to include this event's ID (ensure uniqueness)
         const existingIds = Array.isArray(block.eventIds) ? block.eventIds : [];
         const nextIds = existingIds.includes(item.id)
           ? existingIds
@@ -112,18 +121,16 @@ export function BlockDropZone({
       {children}
       {/* Basic inline display of events inside this block */}
       {Array.isArray(block.eventIds) && block.eventIds.length > 0 && (
-        <div className="absolute left-1 bottom-1 right-1 bg-white/70 text-[10px] leading-snug p-1 rounded pointer-events-none">
-          <div className="font-semibold text-gray-700 mb-0.5">Events in block:</div>
-          <ul className="list-disc pl-3 m-0">
-            {block.eventIds.map((id) => {
-              const ev = schedule.events.find(e => e.id === id);
-              return (
-                <li key={id} className="truncate text-gray-800">
-                  {ev?.name ?? id}
-                </li>
-              );
-            })}
-          </ul>
+        <div className="absolute left-1 bottom-1 right-1 bg-white/80 p-1 rounded space-y-1 overflow-auto max-h-full" style={{ zIndex: 5 }}>
+          {block.eventIds.map((id) => {
+            const ev = schedule.events.find(e => e.id === id);
+            if (!ev) return null;
+            return (
+              <div key={id} className="shrink-0">
+                <DraggableEvent event={ev} />
+              </div>
+            );
+          })}
         </div>
       )}
     </div>

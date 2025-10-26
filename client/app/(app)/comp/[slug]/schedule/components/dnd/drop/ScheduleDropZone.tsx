@@ -150,9 +150,23 @@ export function ScheduleDropZone({
         const timeSlot = calculateTimeSlotFromPosition(clientOffset.y, componentRect.top);
         
         if (item.dragType === 'event') {
+          // If the event was previously inside a block, remove it from any block first
+          const removeFromAllBlocks = (eventId: string) => {
+            schedule.blocks
+              .filter(b => Array.isArray(b.eventIds) && b.eventIds.includes(eventId))
+              .forEach(b => {
+                const cleaned = (b.eventIds || []).filter(eid => eid !== eventId);
+                schedule.handleBlockUpdate(b.id, { eventIds: cleaned });
+              });
+          };
           if (item.state === 'available' || item.state === 'infinite') {
             // New event from available list
             onEventDrop(item.id, day, venue, timeSlot);
+          } else if (item.state === 'in_block') {
+            // Event leaving a block and moving into the schedule grid
+            removeFromAllBlocks(item.id);
+            const d = getDurationMins(item.startDate, item.endDate) ?? undefined;
+            onEventMove(item.id, day, venue, timeSlot, d);
           } else if (item.state === 'scheduled') {
             // Existing scheduled event being moved
             // Compute duration from dragged item if possible
