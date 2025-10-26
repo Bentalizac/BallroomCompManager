@@ -2,12 +2,12 @@ import { Event, Block, Venue} from '../../types';
 import { useEventPositioning, useScheduleState } from '../../hooks';
 import { calculateEventRenderPosition } from '../../utils';
 import { TimeGrid } from './TimeGrid';
-import { ScheduledEventComponent } from './ScheduledEventComponent';
 import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
 import { ScheduleDropZone } from '../dnd/drop/ScheduleDropZone';
 import { STATE_TYPES } from '../dnd/drag/draggableItem';
 import { useEffect } from 'react';
 import { DraggableTimelineBlock } from '../dnd/drag/draggableTimelineBlock';
+import { DraggableTimelineEvent } from '../dnd/drag/draggableTimelineEvent';
 
 export interface VenueColumnProps {
   day: Date;
@@ -79,13 +79,7 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
                 height: `${eventHeight}px`,
               }}
             >
-              <ScheduledEventComponent
-                event={event}
-                onEventSelect={() => {}}
-                selectedEvent={null}
-                onEventUpdate={() => {}}
-                onEventMove={() => {}}
-              />
+              <DraggableTimelineEvent event={event} />
             </div>
           );
         })}
@@ -114,11 +108,6 @@ export const VenueColumn = ({ day, venue }: VenueColumnProps) => {
               }}
             >
               <DraggableTimelineBlock block={block} />
-              { /*
-              <div className="h-full w-full bg-gray-300 border-2 border-gray-400 rounded p-2 opacity-50 flex items-center justify-center">
-                <span className="text-sm font-medium text-gray-700">{block.name}</span>
-              </div>
-              */ }
             </div>
           );
         })}
