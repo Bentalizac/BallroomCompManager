@@ -1,47 +1,99 @@
 import { useMemo } from 'react';
-import { ScheduledEvent, EventPosition } from '../types';
+import { Event, EventPosition, Block } from '../types';
 
 /**
  * Custom hook for calculating event positions to handle overlapping events
  */
-export function useEventPositioning(events: ScheduledEvent[]): Map<string, EventPosition> {
-  return useMemo(() => calculateEventPositions(events), [events]);
+export function useEventPositioning(events: Event[]): Map<string, EventPosition> {
+  return useMemo(() => calculateTimelineItemPositions(events), [events]);
 }
 
 /**
- * Algorithm to calculate overlapping events and their positions
+ * Custom hook for calculating positions for both events and blocks together
+ * to handle overlaps between events, blocks, and mixed overlaps
  */
-function calculateEventPositions(events: ScheduledEvent[]): Map<string, EventPosition> {
-  const eventPositions = new Map<string, EventPosition>();
+export function useTimelineItemPositioning(
+  events: Event[],
+  blocks: Block[]
+): Map<string, EventPosition> {
+  return useMemo(() => {
+    // Combine events and blocks into a unified list with a common interface
+    type TimelineItem = {
+      id: string;
+      startDate: Date | null;
+      endDate: Date | null;
+      type: 'event' | 'block';
+    };
+    
+    const items: TimelineItem[] = [
+      ...events.map(e => ({ id: e.id, startDate: e.startDate, endDate: e.endDate, type: 'event' as const })),
+      ...blocks.map(b => ({ id: b.id, startDate: b.startDate, endDate: b.endDate, type: 'block' as const }))
+    ];
+    
+    return calculateTimelineItemPositions(items);
+  }, [events, blocks]);
+}
+
+/**
+ * Helper to extract minutes from midnight from a Date
+ */
+function dateToMinutes(date: Date | null): number {
+  if (!date) return 0;
+  return date.getHours() * 60 + date.getMinutes();
+}
+
+/**
+ * Helper to compute duration in minutes from start/end dates
+ */
+function getDuration(startDate: Date | null, endDate: Date | null): number {
+  if (!startDate || !endDate) return 60; // default
+  return Math.max(15, Math.round((endDate.getTime() - startDate.getTime()) / 60000));
+}
+
+/**
+ * Generic algorithm to calculate overlapping timeline items and their positions
+ */
+function calculateTimelineItemPositions<T extends { id: string; startDate: Date | null; endDate: Date | null }>(
+  items: T[]
+): Map<string, EventPosition> {
+  const itemPositions = new Map<string, EventPosition>();
   
-  if (events.length === 0) return eventPositions;
+  if (items.length === 0) return itemPositions;
   
-  // Sort events by start time, then by duration (longer events first for same start time)
-  const sortedEvents = [...events].sort((a, b) => {
-    if (a.startTime !== b.startTime) {
-      return a.startTime - b.startTime;
+  // Sort items by start time, then by duration (longer items first for same start time)
+  const sortedItems = [...items].sort((a, b) => {
+    const aStart = dateToMinutes(a.startDate);
+    const bStart = dateToMinutes(b.startDate);
+    if (aStart !== bStart) {
+      return aStart - bStart;
     }
-    return b.duration - a.duration;
+    const aDuration = getDuration(a.startDate, a.endDate);
+    const bDuration = getDuration(b.startDate, b.endDate);
+    return bDuration - aDuration;
   });
   
   // Build overlap groups using a sophisticated algorithm
-  const overlapGroups: ScheduledEvent[][] = [];
+  const overlapGroups: T[][] = [];
   
-  for (const event of sortedEvents) {
-    const eventEndTime = event.startTime + event.duration;
+  for (const item of sortedItems) {
+    const itemStartTime = dateToMinutes(item.startDate);
+    const itemDuration = getDuration(item.startDate, item.endDate);
+    const itemEndTime = itemStartTime + itemDuration;
     let assignedToGroup = false;
     
-    // Try to find an existing group where this event overlaps with any member
+    // Try to find an existing group where this item overlaps with any member
     for (const group of overlapGroups) {
-      const overlapsWithGroup = group.some(groupEvent => {
-        const groupEventEndTime = groupEvent.startTime + groupEvent.duration;
+      const overlapsWithGroup = group.some(groupItem => {
+        const groupStartTime = dateToMinutes(groupItem.startDate);
+        const groupDuration = getDuration(groupItem.startDate, groupItem.endDate);
+        const groupItemEndTime = groupStartTime + groupDuration;
         return (
-          event.startTime < groupEventEndTime && eventEndTime > groupEvent.startTime
+          itemStartTime < groupItemEndTime && itemEndTime > groupStartTime
         );
       });
       
       if (overlapsWithGroup) {
-        group.push(event);
+        group.push(item);
         assignedToGroup = true;
         break;
       }
@@ -49,32 +101,38 @@ function calculateEventPositions(events: ScheduledEvent[]): Map<string, EventPos
     
     // If no overlapping group found, create a new one
     if (!assignedToGroup) {
-      overlapGroups.push([event]);
+      overlapGroups.push([item]);
     }
   }
   
   // For each group, assign column positions using a sophisticated layout algorithm
   for (const group of overlapGroups) {
     if (group.length === 1) {
-      // Single event, takes full width
-      eventPositions.set(group[0].event.id, { column: 0, totalColumns: 1 });
+      // Single item, takes full width
+      itemPositions.set(group[0].id, { column: 0, totalColumns: 1 });
       continue;
     }
     
-    // For multiple events, find the optimal column assignment
+    // For multiple items, find the optimal column assignment
     // Sort group by start time for column assignment
-    const sortedGroup = [...group].sort((a, b) => a.startTime - b.startTime);
+    const sortedGroup = [...group].sort((a, b) => {
+      const aStart = dateToMinutes(a.startDate);
+      const bStart = dateToMinutes(b.startDate);
+      return aStart - bStart;
+    });
     
     // Track which columns are occupied at each time point
-    const columns: { event: ScheduledEvent | null, endTime: number }[] = [];
+    const columns: { item: T | null, endTime: number }[] = [];
     
-    for (const event of sortedGroup) {
-      const eventEndTime = event.startTime + event.duration;
+    for (const item of sortedGroup) {
+      const itemStartTime = dateToMinutes(item.startDate);
+      const itemDuration = getDuration(item.startDate, item.endDate);
+      const itemEndTime = itemStartTime + itemDuration;
       
       // Find the first available column
       let assignedColumn = -1;
       for (let i = 0; i < columns.length; i++) {
-        if (columns[i].endTime <= event.startTime) {
+        if (columns[i].endTime <= itemStartTime) {
           // This column is free
           assignedColumn = i;
           break;
@@ -84,28 +142,28 @@ function calculateEventPositions(events: ScheduledEvent[]): Map<string, EventPos
       // If no column is available, create a new one
       if (assignedColumn === -1) {
         assignedColumn = columns.length;
-        columns.push({ event: null, endTime: 0 });
+        columns.push({ item: null, endTime: 0 });
       }
       
-      // Assign the event to this column
-      columns[assignedColumn] = { event, endTime: eventEndTime };
+      // Assign the item to this column
+      columns[assignedColumn] = { item, endTime: itemEndTime };
       
-      eventPositions.set(event.event.id, {
+      itemPositions.set(item.id, {
         column: assignedColumn,
         totalColumns: Math.max(columns.length, group.length)
       });
     }
     
-    // Update all events in this group to have the same totalColumns
+    // Update all items in this group to have the same totalColumns
     const maxColumns = columns.length;
-    for (const event of group) {
-      const position = eventPositions.get(event.event.id)!;
-      eventPositions.set(event.event.id, {
+    for (const item of group) {
+      const position = itemPositions.get(item.id)!;
+      itemPositions.set(item.id, {
         ...position,
         totalColumns: maxColumns
       });
     }
   }
   
-  return eventPositions;
+  return itemPositions;
 }
