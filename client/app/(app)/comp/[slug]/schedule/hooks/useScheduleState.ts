@@ -122,6 +122,12 @@ export function useScheduleState(): ScheduleState {
   };
 
   const handleBlockDelete = (blockID: string) => {
+    const blockToDelete = blocks.find(b => b.id === blockID);
+    if (blockToDelete) {
+      blockToDelete.eventIds?.forEach(eventID => {
+        handleEventUpdate(eventID, { state: STATE_TYPES.AVAILABLE, venue: null, startDate: null, endDate: null });
+      });
+    }
     setBlocks(prev => prev.filter(b => b.id !== blockID));
   }
 

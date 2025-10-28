@@ -208,12 +208,7 @@ export function SidePanel() {
         venue: null
       });
     } else {
-      schedule.handleBlockUpdate(selectedItem.id, {
-        state: STATE_TYPES.AVAILABLE,
-        startDate: null,
-        endDate: null,
-        venue: null
-      });
+      schedule.handleBlockDelete(selectedItem.id)
     }
     
     schedule.setSelectedItemID(null);

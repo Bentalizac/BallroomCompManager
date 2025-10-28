@@ -1,11 +1,9 @@
-import { DraggableItem, State, STATE_TYPES } from '../../dnd/drag/draggableItem';
+import { DraggableItem } from '../../dnd/drag/draggableItem';
 import type { Block } from '../../../types';
-import { GripVertical } from 'lucide-react';
-import { use, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { TIME_CONSTANTS } from '../../../constants';
-import { getDragItemHeight } from '../../../utils';
 import { useScheduleState } from '../../../hooks';
-import { DRAG_TYPES, DragType } from '../../../hooks/useDraggable';
+import { DRAG_TYPES } from '../../../hooks/useDraggable';
 import { BlockDropZone } from '../drop/BlockDropZone';
 import { getContrastingTextColor } from '../../../utils';
 

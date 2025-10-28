@@ -27,12 +27,7 @@ function ScheduleContent() {
             venue: null
           });
         } else if (selectedBlock) {
-          schedule.handleBlockUpdate(schedule.selectedItemID, { 
-            state: STATE_TYPES.AVAILABLE,
-            startDate: null,
-            endDate: null,
-            venue: null
-          });
+          schedule.handleBlockDelete(schedule.selectedItemID);
         }
         
         schedule.setSelectedItemID(null);
