@@ -25,7 +25,7 @@ export interface EventRound {
   // eventID this round belongs to
   eventId: string;
   roundLevel: RoundLevel;
-
+  dances: string[];
   //Time needs to be accurate to the minute
   startTime: Date | null;
   endTime: Date | null;

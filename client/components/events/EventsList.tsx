@@ -9,9 +9,10 @@ import { Search, Filter, Calendar } from "lucide-react";
 interface Event {
   id: string;
   name: string;
+
   startDate: string;
   endDate: string;
-  eventStatus: 'scheduled' | 'current' | 'completed' | 'cancelled';
+  eventStatus: "scheduled" | "current" | "completed" | "cancelled";
 }
 
 interface UserRegistration {
@@ -50,7 +51,7 @@ export function EventsList({
   // Create lookup map for user registrations
   const registrationMap = useMemo(() => {
     const map = new Map<string, UserRegistration>();
-    userRegistrations.forEach(reg => {
+    userRegistrations.forEach((reg) => {
       map.set(reg.eventId, reg);
     });
     return map;
@@ -58,9 +59,12 @@ export function EventsList({
 
   // Filter events based on search and status
   const filteredEvents = useMemo(() => {
-    return events.filter(event => {
-      const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesStatus = statusFilter === "all" || event.eventStatus === statusFilter;
+    return events.filter((event) => {
+      const matchesSearch = event.name
+        .toLowerCase()
+        .includes(searchTerm.toLowerCase());
+      const matchesStatus =
+        statusFilter === "all" || event.eventStatus === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [events, searchTerm, statusFilter]);
@@ -74,14 +78,15 @@ export function EventsList({
       cancelled: [],
     };
 
-    filteredEvents.forEach(event => {
+    filteredEvents.forEach((event) => {
       groups[event.eventStatus].push(event);
     });
 
     // Sort events within each group by date
-    Object.keys(groups).forEach(status => {
-      groups[status].sort((a, b) => 
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    Object.keys(groups).forEach((status) => {
+      groups[status].sort(
+        (a, b) =>
+          new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
       );
     });
 
@@ -96,13 +101,15 @@ export function EventsList({
       {/* Header */}
       <div className="text-center">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">{title}</h2>
-        {description && (
-          <p className="text-gray-600 mb-4">{description}</p>
-        )}
+        {description && <p className="text-gray-600 mb-4">{description}</p>}
         <div className="flex justify-center gap-6 text-sm text-gray-500">
-          <span>{totalEvents} event{totalEvents !== 1 ? 's' : ''} available</span>
+          <span>
+            {totalEvents} event{totalEvents !== 1 ? "s" : ""} available
+          </span>
           {showRegistration && (
-            <span>{registeredCount} registration{registeredCount !== 1 ? 's' : ''}</span>
+            <span>
+              {registeredCount} registration{registeredCount !== 1 ? "s" : ""}
+            </span>
           )}
         </div>
       </div>
@@ -129,7 +136,7 @@ export function EventsList({
                 />
               </div>
             </div>
-            
+
             {/* Status Filter */}
             <div className="sm:w-48">
               <select
@@ -154,7 +161,9 @@ export function EventsList({
           <Card>
             <CardContent className="text-center py-12">
               <Calendar className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No events found</h3>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                No events found
+              </h3>
               <p className="text-gray-600">
                 {searchTerm || statusFilter !== "all"
                   ? "Try adjusting your search criteria"
@@ -172,7 +181,7 @@ export function EventsList({
                   Upcoming Events ({groupedEvents.scheduled.length})
                 </h3>
                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                  {groupedEvents.scheduled.map(event => (
+                  {groupedEvents.scheduled.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -180,7 +189,9 @@ export function EventsList({
                       onRegister={onRegister}
                       onCancel={onCancel}
                       isRegistering={isEventRegistering(event.id)}
-                      isCancelling={isRegistrationCancelling(registrationMap.get(event.id)?.id || '')}
+                      isCancelling={isRegistrationCancelling(
+                        registrationMap.get(event.id)?.id || "",
+                      )}
                       showRegistration={showRegistration}
                     />
                   ))}
@@ -196,7 +207,7 @@ export function EventsList({
                   In Progress ({groupedEvents.current.length})
                 </h3>
                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                  {groupedEvents.current.map(event => (
+                  {groupedEvents.current.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -204,7 +215,9 @@ export function EventsList({
                       onRegister={onRegister}
                       onCancel={onCancel}
                       isRegistering={isEventRegistering(event.id)}
-                      isCancelling={isRegistrationCancelling(registrationMap.get(event.id)?.id || '')}
+                      isCancelling={isRegistrationCancelling(
+                        registrationMap.get(event.id)?.id || "",
+                      )}
                       showRegistration={showRegistration}
                     />
                   ))}
@@ -220,7 +233,7 @@ export function EventsList({
                   Completed ({groupedEvents.completed.length})
                 </h3>
                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                  {groupedEvents.completed.map(event => (
+                  {groupedEvents.completed.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -228,7 +241,9 @@ export function EventsList({
                       onRegister={onRegister}
                       onCancel={onCancel}
                       isRegistering={isEventRegistering(event.id)}
-                      isCancelling={isRegistrationCancelling(registrationMap.get(event.id)?.id || '')}
+                      isCancelling={isRegistrationCancelling(
+                        registrationMap.get(event.id)?.id || "",
+                      )}
                       showRegistration={showRegistration}
                     />
                   ))}
@@ -244,7 +259,7 @@ export function EventsList({
                   Cancelled ({groupedEvents.cancelled.length})
                 </h3>
                 <div className="grid gap-6 md:grid-cols-1 lg:grid-cols-2">
-                  {groupedEvents.cancelled.map(event => (
+                  {groupedEvents.cancelled.map((event) => (
                     <EventCard
                       key={event.id}
                       event={event}
@@ -252,7 +267,9 @@ export function EventsList({
                       onRegister={onRegister}
                       onCancel={onCancel}
                       isRegistering={isEventRegistering(event.id)}
-                      isCancelling={isRegistrationCancelling(registrationMap.get(event.id)?.id || '')}
+                      isCancelling={isRegistrationCancelling(
+                        registrationMap.get(event.id)?.id || "",
+                      )}
                       showRegistration={showRegistration}
                     />
                   ))}

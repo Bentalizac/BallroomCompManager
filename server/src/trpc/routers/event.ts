@@ -15,25 +15,35 @@ import { mapEventRowToDTO } from "../mappers";
 
 export const eventRouter = router({
   // REGISTRATION SYSTEM - supports individual, paired, and team registrations
-  
+
   // Register current user for an event (individual registration)
   registerForEvent: authedProcedure
     .input(
       z.object({
         eventId: z.string().uuid(),
-        role: z.enum(['competitor', 'judge', 'scrutineer', 'lead', 'follow', 'coach', 'member']).optional(),
-      })
+        role: z
+          .enum([
+            "competitor",
+            "judge",
+            "scrutineer",
+            "lead",
+            "follow",
+            "coach",
+            "member",
+          ])
+          .optional(),
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       if (!ctx.userId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log("🎯 Registering user for event:", {
           userId: ctx.userId,
           eventId: input.eventId,
-          role: input.role || 'member',
+          role: input.role || "member",
         });
       }
 
@@ -43,31 +53,36 @@ export const eventRouter = router({
           ctx.userId,
           {
             eventId: input.eventId,
-            participants: [{
-              userId: ctx.userId,
-              role: input.role || 'member', // DAL will handle role mapping
-            }],
-          }
+            participants: [
+              {
+                userId: ctx.userId,
+                role: input.role || "member", // DAL will handle role mapping
+              },
+            ],
+          },
         );
 
         return registration;
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           console.error("❌ Event registration failed:", error);
         }
-        
+
         // Handle profile incomplete errors specifically
-        if (error instanceof Error && (error as any).code === 'PROFILE_INCOMPLETE') {
+        if (
+          error instanceof Error &&
+          (error as any).code === "PROFILE_INCOMPLETE"
+        ) {
           throw new TRPCError({
             code: "PRECONDITION_FAILED",
             message: error.message,
             cause: {
-              code: 'PROFILE_INCOMPLETE',
-              missingFields: (error as any).missingFields || []
-            }
+              code: "PROFILE_INCOMPLETE",
+              missingFields: (error as any).missingFields || [],
+            },
           });
         }
-        
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -75,27 +90,31 @@ export const eventRouter = router({
         });
       }
     }),
-  
+
   // Create a new event registration (individual, paired, or team)
   createRegistration: authedProcedure
     .input(
       z.object({
         eventId: z.string().uuid(),
-        participants: z.array(
-          z.object({
-            userId: z.string().uuid(),
-            role: z.enum(['lead', 'follow', 'coach', 'member']).default('member'),
-          })
-        ).min(1, 'At least one participant is required'),
+        participants: z
+          .array(
+            z.object({
+              userId: z.string().uuid(),
+              role: z
+                .enum(["lead", "follow", "coach", "member"])
+                .default("member"),
+            }),
+          )
+          .min(1, "At least one participant is required"),
         teamName: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       if (!ctx.userId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log("🎯 Creating event registration:", {
           userId: ctx.userId,
           eventId: input.eventId,
@@ -112,27 +131,30 @@ export const eventRouter = router({
             eventId: input.eventId,
             participants: input.participants,
             teamName: input.teamName,
-          }
+          },
         );
 
         return registration;
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           console.error("❌ Event registration failed:", error);
         }
-        
+
         // Handle profile incomplete errors specifically
-        if (error instanceof Error && (error as any).code === 'PROFILE_INCOMPLETE') {
+        if (
+          error instanceof Error &&
+          (error as any).code === "PROFILE_INCOMPLETE"
+        ) {
           throw new TRPCError({
             code: "PRECONDITION_FAILED",
             message: error.message,
             cause: {
-              code: 'PROFILE_INCOMPLETE',
-              missingFields: (error as any).missingFields || []
-            }
+              code: "PROFILE_INCOMPLETE",
+              missingFields: (error as any).missingFields || [],
+            },
           });
         }
-        
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -153,11 +175,11 @@ export const eventRouter = router({
       try {
         const registrations = await getEventRegistrations(
           ctx.userToken,
-          input.eventId
+          input.eventId,
         );
         return registrations;
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           console.error("Error fetching event registrations:", error);
         }
         throw new TRPCError({
@@ -173,7 +195,7 @@ export const eventRouter = router({
       z.object({
         registrationId: z.string().uuid(),
         userIdToRemove: z.string().uuid(),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       if (!ctx.userId) {
@@ -185,11 +207,11 @@ export const eventRouter = router({
           ctx.userToken!,
           ctx.userId,
           input.registrationId,
-          input.userIdToRemove
+          input.userIdToRemove,
         );
         return { success: true };
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           console.error("Error removing participant:", error);
         }
         throw new TRPCError({
@@ -208,14 +230,14 @@ export const eventRouter = router({
       z.object({
         eventId: z.string().uuid(),
         teamName: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ input, ctx }) => {
       if (!ctx.userId) {
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      if (process.env.NODE_ENV === 'development') {
+      if (process.env.NODE_ENV === "development") {
         console.log("🔄 Reactivating registration:", {
           userId: ctx.userId,
           eventId: input.eventId,
@@ -228,15 +250,15 @@ export const eventRouter = router({
           ctx.userToken!,
           ctx.userId,
           input.eventId,
-          input.teamName
+          input.teamName,
         );
 
         return registration;
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           console.error("❌ Registration reactivation failed:", error);
         }
-        
+
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -262,7 +284,7 @@ export const eventRouter = router({
 
         return registrations;
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           console.error("Error fetching user event registrations:", error);
         }
         throw new TRPCError({
@@ -281,10 +303,14 @@ export const eventRouter = router({
       }
 
       try {
-        await cancelEventRegistration(ctx.userToken!, ctx.userId, input.registrationId);
+        await cancelEventRegistration(
+          ctx.userToken!,
+          ctx.userId,
+          input.registrationId,
+        );
         return { success: true };
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
           console.error("Error cancelling registration:", error);
         }
         throw new TRPCError({
@@ -330,7 +356,8 @@ export const eventRouter = router({
           .order("start_at", { ascending: true });
 
         if (eventsError) {
-          if (process.env.NODE_ENV === 'development') console.error("Error fetching events:", eventsError);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error fetching events:", eventsError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to fetch events",
@@ -338,14 +365,15 @@ export const eventRouter = router({
         }
 
         // Map and validate events
-        const mappedEvents = (events || []).map(event => {
+        const mappedEvents = (events || []).map((event) => {
           const mapped = mapEventRowToDTO(event, comp.time_zone);
           return EventApi.parse(mapped);
         });
 
         return mappedEvents;
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Events fetch failed:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Events fetch failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -360,8 +388,8 @@ export const eventRouter = router({
       z.object({
         competitionId: z.string().uuid(),
         name: z.string().min(1, "Event name is required"),
-        startAt: z.string().datetime(), // ISO 8601 UTC timestamp
-        endAt: z.string().datetime(),   // ISO 8601 UTC timestamp
+        startAt: z.string().datetime() || null, // ISO 8601 UTC timestamp
+        endAt: z.string().datetime() || null, // ISO 8601 UTC timestamp
         categoryId: z.string().uuid(),
         rulesetId: z.string().uuid(),
       }),
@@ -389,13 +417,19 @@ export const eventRouter = router({
       }
 
       // Validate timestamps
-      const startAt = new Date(input.startAt);
-      const endAt = new Date(input.endAt);
-      if (startAt >= endAt) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "End time must be after start time",
-        });
+      // Start and end times not required, but if both provided they must be valid
+      if (input.startAt || input.endAt) {
+        const startAt = new Date(input.startAt);
+        const endAt = new Date(input.endAt);
+        if (startAt >= endAt) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "End time must be after start time",
+          });
+        }
+      } else {
+        const startAt = null;
+        const endAt = null;
       }
 
       try {
@@ -419,7 +453,8 @@ export const eventRouter = router({
             .single();
 
           if (newCRError || !newCR) {
-            if (process.env.NODE_ENV === 'development') console.error("Error creating category-ruleset:", newCRError);
+            if (process.env.NODE_ENV === "development")
+              console.error("Error creating category-ruleset:", newCRError);
             throw new TRPCError({
               code: "INTERNAL_SERVER_ERROR",
               message: "Failed to create category-ruleset combination",
@@ -428,7 +463,8 @@ export const eventRouter = router({
 
           categoryRuleset = newCR;
         } else if (crError) {
-          if (process.env.NODE_ENV === 'development') console.error("Error checking category-ruleset:", crError);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error checking category-ruleset:", crError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to validate category-ruleset combination",
@@ -441,9 +477,10 @@ export const eventRouter = router({
           .select("time_zone")
           .eq("id", input.competitionId)
           .single();
-          
+
         if (compError || !comp) {
-          if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", compError);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error fetching competition:", compError);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Competition not found",
@@ -451,9 +488,9 @@ export const eventRouter = router({
         }
 
         // Create the event (need both timestamps and date fields for compatibility)
-        const startDate = startAt.toISOString().split('T')[0]; // Extract date part (YYYY-MM-DD)
-        const endDate = endAt.toISOString().split('T')[0];     // Extract date part (YYYY-MM-DD)
-        
+        const startDate = startAt.toISOString().split("T")[0]; // Extract date part (YYYY-MM-DD)
+        const endDate = endAt.toISOString().split("T")[0]; // Extract date part (YYYY-MM-DD)
+
         const { data: event, error: eventError } = await supabase
           .from("event_info")
           .insert({
@@ -470,7 +507,8 @@ export const eventRouter = router({
           .single();
 
         if (eventError || !event) {
-          if (process.env.NODE_ENV === 'development') console.error("Error creating event:", eventError);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error creating event:", eventError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to create event",
@@ -481,7 +519,8 @@ export const eventRouter = router({
         const mapped = mapEventRowToDTO(event, comp.time_zone);
         return EventApi.parse(mapped);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Event creation failed:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Event creation failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -497,7 +536,7 @@ export const eventRouter = router({
         id: z.string().uuid(),
         name: z.string().min(1).optional(),
         startAt: z.string().datetime().optional(), // ISO 8601 UTC timestamp
-        endAt: z.string().datetime().optional(),   // ISO 8601 UTC timestamp
+        endAt: z.string().datetime().optional(), // ISO 8601 UTC timestamp
         eventStatus: z
           .enum(["scheduled", "current", "completed", "cancelled"])
           .optional(),
@@ -558,24 +597,29 @@ export const eventRouter = router({
           .select("time_zone")
           .eq("id", event.comp_id)
           .single();
-          
+
         if (compError || !comp) {
-          if (process.env.NODE_ENV === 'development') console.error("Error fetching competition:", compError);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error fetching competition:", compError);
           throw new TRPCError({
             code: "NOT_FOUND",
             message: "Competition not found",
           });
         }
-        
+
         const updateData: any = {};
         if (input.name) updateData.name = input.name;
         if (input.startAt) {
           updateData.start_at = input.startAt;
-          updateData.start_date = new Date(input.startAt).toISOString().split('T')[0];
+          updateData.start_date = new Date(input.startAt)
+            .toISOString()
+            .split("T")[0];
         }
         if (input.endAt) {
           updateData.end_at = input.endAt;
-          updateData.end_date = new Date(input.endAt).toISOString().split('T')[0];
+          updateData.end_date = new Date(input.endAt)
+            .toISOString()
+            .split("T")[0];
         }
         if (input.eventStatus) updateData.event_status = input.eventStatus;
 
@@ -587,7 +631,8 @@ export const eventRouter = router({
           .single();
 
         if (error || !updatedEvent) {
-          if (process.env.NODE_ENV === 'development') console.error("Error updating event:", error);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error updating event:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to update event",
@@ -598,7 +643,8 @@ export const eventRouter = router({
         const mapped = mapEventRowToDTO(updatedEvent, comp.time_zone);
         return EventApi.parse(mapped);
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Event update failed:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Event update failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:
@@ -653,7 +699,8 @@ export const eventRouter = router({
           .eq("id", input.id);
 
         if (error) {
-          if (process.env.NODE_ENV === 'development') console.error("Error deleting event:", error);
+          if (process.env.NODE_ENV === "development")
+            console.error("Error deleting event:", error);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
             message: "Failed to delete event",
@@ -662,7 +709,8 @@ export const eventRouter = router({
 
         return { success: true };
       } catch (error) {
-        if (process.env.NODE_ENV === 'development') console.error("Event deletion failed:", error);
+        if (process.env.NODE_ENV === "development")
+          console.error("Event deletion failed:", error);
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
           message:

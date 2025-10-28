@@ -17,6 +17,7 @@ interface EventCardProps {
   event: {
     id: string;
     name: string;
+
     startDate: string;
     endDate: string;
     eventStatus: "scheduled" | "current" | "completed" | "cancelled";
