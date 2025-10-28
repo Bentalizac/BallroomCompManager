@@ -1,5 +1,12 @@
 import { useMemo } from 'react';
-import { Event, EventPosition, Block } from '../types';
+import { Event, Block } from '../types';
+
+
+export interface EventPosition {
+  column: number;
+  totalColumns: number;
+}
+
 
 /**
  * Custom hook for calculating event positions to handle overlapping events

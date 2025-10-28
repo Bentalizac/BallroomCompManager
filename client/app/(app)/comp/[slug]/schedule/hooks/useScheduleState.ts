@@ -1,9 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Event, Block } from '../types';
 import { mockBlocks, mockEvents } from '../data/mockData';
-import { scheduledEventToBasicEvent, clampTimeToSchedule, isTimeInSchedule } from '../utils';
 import { Venue } from '../types';
-import { TIME_CONSTANTS } from '../constants';
 import { STATE_TYPES } from '../components/dnd/drag/draggableItem';
 
 
@@ -44,11 +42,20 @@ export function useScheduleState(): ScheduleState {
   const [days, setDays] = useState<Date[]>([day1, day2]);
   const [locations, setLocations] = useState<Venue[]>([{ name: 'Wilk' }, { name: 'RB' }]);
   
-  const [selectedItemID, setSelectedItemID] = useState<string | null>(null);
+  const [selectedItemID, setSelectedItemIDState] = useState<string | null>(null);
   
   const [events, setEvents] = useState<Event[]>(mockEvents);
   const [blocks, setBlocks] = useState<Block[]>(mockBlocks);
 
+  // Wrapper for setSelectedItemID with logging
+  const setSelectedItemID = useCallback((id: string | null) => {
+    console.log('setSelectedItemID called with:', id);
+    setSelectedItemIDState(id);
+  }, []);
+
+  useEffect(() => {
+    console.log('selectedItemID changed to:', selectedItemID);
+  }, [selectedItemID]);
 
   const getAvailableEvents = useCallback((): Event[] => {
     return events.filter(event => event.state === STATE_TYPES.AVAILABLE || event.state === STATE_TYPES.INFINITE);

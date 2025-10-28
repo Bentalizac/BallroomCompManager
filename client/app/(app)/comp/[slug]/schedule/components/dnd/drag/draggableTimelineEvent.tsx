@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { TIME_CONSTANTS } from '../../../constants';
 import { useScheduleState } from '../../../hooks';
 import { DRAG_TYPES } from '../../../hooks/useDraggable';
+import { getContrastingTextColor } from '../../../utils';
 
 function getDuration(startDate: Date | null, endDate: Date | null): number {
   if (!startDate || !endDate) return 0;
@@ -53,6 +54,8 @@ export const DraggableTimelineEvent = ({ event, day }: DraggableTimelineEventPro
   };
 
   const LIGHT_PURPLE = '#673d72ff'; // static light purple for timeline items
+  const textColor = getContrastingTextColor(LIGHT_PURPLE);
+  
   const content = (
     <div
       className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
@@ -61,10 +64,11 @@ export const DraggableTimelineEvent = ({ event, day }: DraggableTimelineEventPro
       style={{ backgroundColor: LIGHT_PURPLE }}
       onClick={(e) => {
         e.stopPropagation();
+        schedule.setSelectedItemID(event.id);
       }}
     >
       <div className="p-1 h-full overflow-hidden relative">
-        <div className="text-xs font-medium text-gray-800 truncate">
+        <div className="text-xs font-medium truncate" style={{ color: textColor }}>
           {event.name}
         </div>
         {schedule.selectedItemID === event.id && (

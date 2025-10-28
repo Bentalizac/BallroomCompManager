@@ -129,7 +129,7 @@ export function BlockDropZone({
             if (!ev) return null;
             return (
               <div key={id} className="shrink-0">
-                <DraggableEvent event={ev} colorOverride="#4f165d" />
+                <DraggableEvent event={ev} />
               </div>
             );
           })}

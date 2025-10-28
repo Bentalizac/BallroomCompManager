@@ -52,10 +52,10 @@ export const EventPanel = () => {
   const otherEvents = events.filter(e => e.category === EventType.Other);
 
   return (
-    <div className="w-64 bg-secondary flex flex-col h-full rounded-lg m-2">
+    <>
       <div className="p-4">
         {blocks.map((block) => (
-            <div key={block.id} className="mb-2">
+          <div key={block.id} className="mb-2">
                 <DraggableBlock block={block} />
             </div>
         ))}
@@ -72,6 +72,6 @@ export const EventPanel = () => {
         <EventsCategory title="Ballroom" events={ballroomEvents} />
         <EventsCategory title="Other" events={otherEvents} />
       </div>
-    </div>
+    </>
   );
 }

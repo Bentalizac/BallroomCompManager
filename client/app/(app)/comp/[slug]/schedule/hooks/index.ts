@@ -5,4 +5,3 @@ export { useKeyboardShortcuts } from './useKeyboardShortcuts';
 
 // Re-export types for convenience
 export type { ScheduleState } from './useScheduleState';
-export type { UseKeyboardShortcutsProps } from './useKeyboardShortcuts';

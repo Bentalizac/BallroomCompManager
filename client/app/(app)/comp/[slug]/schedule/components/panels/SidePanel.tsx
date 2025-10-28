@@ -1,18 +1,28 @@
-import { ScheduledEvent, SidePanelProps } from '../../types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Clock, Users } from 'lucide-react';
+import { AlertTriangle, Clock, Users, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
-import { 
-  formatTime, 
-  formatDuration, 
-  parseTime, 
-  parseDuration,
-  validateTimeString,
-  validateDurationString 
-} from '../../utils';
+import { useScheduleState } from '../../hooks';
+import { STATE_TYPES } from '../../components/dnd/drag/draggableItem';
 
-export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
+export function SidePanel() {
+  const schedule = useScheduleState();
+  
+  console.log('SidePanel render - selectedItemID:', schedule.selectedItemID);
+  console.log('SidePanel - events:', schedule.events.map(e => e.id));
+  console.log('SidePanel - blocks:', schedule.blocks.map(b => b.id));
+  
+  // Find the selected item (event or block)
+  const selectedEvent = schedule.events.find(e => e.id === schedule.selectedItemID);
+  const selectedBlock = schedule.blocks.find(b => b.id === schedule.selectedItemID);
+  const selectedItem = selectedEvent || selectedBlock;
+  const isEvent = !!selectedEvent;
+
+  console.log('SidePanel - selectedEvent:', selectedEvent);
+  console.log('SidePanel - selectedBlock:', selectedBlock);
+  console.log('SidePanel - selectedItem:', selectedItem);
+
   const [editedValues, setEditedValues] = useState<{
     startTime: string;
     duration: string;
@@ -25,13 +35,60 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
     endTime: boolean;
   }>({ startTime: false, duration: false, endTime: false });
 
-  // Update edited values when selected event changes
+  // Helper functions for time formatting
+  const formatTime = (date: Date | null): string => {
+    if (!date) return '--:--';
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const displayHours = hours === 0 ? 12 : hours > 12 ? hours - 12 : hours;
+    const ampm = hours < 12 ? 'am' : 'pm';
+    return `${displayHours}:${minutes.toString().padStart(2, '0')}${ampm}`;
+  };
+
+  const formatDuration = (startDate: Date | null, endDate: Date | null): string => {
+    if (!startDate || !endDate) return '--';
+    const durationMs = endDate.getTime() - startDate.getTime();
+    const minutes = Math.round(durationMs / 60000);
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    if (hours === 0) return `${mins}min`;
+    if (mins === 0) return `${hours}h`;
+    return `${hours}h ${mins}min`;
+  };
+
+  const parseTime = (timeStr: string): Date | null => {
+    const match = timeStr.match(/^(\d{1,2}):(\d{2})(am|pm)$/i);
+    if (!match || !selectedItem?.startDate) return null;
+    
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const ampm = match[3].toLowerCase();
+    
+    if (ampm === 'pm' && hours !== 12) hours += 12;
+    if (ampm === 'am' && hours === 12) hours = 0;
+    
+    const newDate = new Date(selectedItem.startDate);
+    newDate.setHours(hours, minutes, 0, 0);
+    return newDate;
+  };
+
+  const parseDuration = (durationStr: string): number | null => {
+    const match = durationStr.match(/^(?:(\d+)h\s*)?(?:(\d+)min?)?$/i);
+    if (!match) return null;
+    
+    const hours = parseInt(match[1] || '0');
+    const minutes = parseInt(match[2] || '0');
+    
+    return hours * 60 + minutes;
+  };
+
+  // Update edited values when selected item changes
   useEffect(() => {
-    if (selectedEvent) {
+    if (selectedItem && selectedItem.startDate && selectedItem.endDate) {
       const newValues = {
-        startTime: formatTime(selectedEvent.startTime),
-        duration: formatDuration(selectedEvent.duration),
-        endTime: formatTime(selectedEvent.startTime + selectedEvent.duration),
+        startTime: formatTime(selectedItem.startDate),
+        duration: formatDuration(selectedItem.startDate, selectedItem.endDate),
+        endTime: formatTime(selectedItem.endDate),
       };
       
       // Only update values that aren't currently being edited
@@ -41,24 +98,31 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
         endTime: isEditing.endTime ? prev.endTime : newValues.endTime,
       }));
     }
-  }, [selectedEvent, isEditing]);
+  }, [selectedItem, isEditing]);
 
   const handleStartTimeBlur = () => {
     setIsEditing(prev => ({ ...prev, startTime: false }));
     
-    const newStartTime = parseTime(editedValues.startTime);
-    if (newStartTime !== null && selectedEvent && onEventUpdate) {
-      onEventUpdate(selectedEvent.event.id, { startTime: newStartTime });
-      // Update end time display
+    const newStartDate = parseTime(editedValues.startTime);
+    if (newStartDate && selectedItem && selectedItem.endDate) {
+      const duration = selectedItem.endDate.getTime() - selectedItem.startDate!.getTime();
+      const newEndDate = new Date(newStartDate.getTime() + duration);
+      
+      if (isEvent) {
+        schedule.handleEventUpdate(selectedItem.id, { startDate: newStartDate, endDate: newEndDate });
+      } else {
+        schedule.handleBlockUpdate(selectedItem.id, { startDate: newStartDate, endDate: newEndDate });
+      }
+      
       setEditedValues(prev => ({
         ...prev,
-        endTime: formatTime(newStartTime + selectedEvent.duration)
+        endTime: formatTime(newEndDate)
       }));
-    } else if (selectedEvent) {
+    } else if (selectedItem?.startDate) {
       // Reset to original value if invalid
       setEditedValues(prev => ({
         ...prev,
-        startTime: formatTime(selectedEvent.startTime)
+        startTime: formatTime(selectedItem.startDate)
       }));
     }
   };
@@ -66,19 +130,25 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
   const handleDurationBlur = () => {
     setIsEditing(prev => ({ ...prev, duration: false }));
     
-    const newDuration = parseDuration(editedValues.duration);
-    if (newDuration !== null && newDuration > 0 && selectedEvent && onEventUpdate) {
-      onEventUpdate(selectedEvent.event.id, { duration: newDuration });
-      // Update end time display
+    const newDurationMinutes = parseDuration(editedValues.duration);
+    if (newDurationMinutes && newDurationMinutes > 0 && selectedItem?.startDate) {
+      const newEndDate = new Date(selectedItem.startDate.getTime() + newDurationMinutes * 60000);
+      
+      if (isEvent) {
+        schedule.handleEventUpdate(selectedItem.id, { endDate: newEndDate });
+      } else {
+        schedule.handleBlockUpdate(selectedItem.id, { endDate: newEndDate });
+      }
+      
       setEditedValues(prev => ({
         ...prev,
-        endTime: formatTime(selectedEvent.startTime + newDuration)
+        endTime: formatTime(newEndDate)
       }));
-    } else if (selectedEvent) {
+    } else if (selectedItem?.startDate && selectedItem?.endDate) {
       // Reset to original value if invalid
       setEditedValues(prev => ({
         ...prev,
-        duration: formatDuration(selectedEvent.duration)
+        duration: formatDuration(selectedItem.startDate, selectedItem.endDate)
       }));
     }
   };
@@ -86,28 +156,31 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
   const handleEndTimeBlur = () => {
     setIsEditing(prev => ({ ...prev, endTime: false }));
     
-    const newEndTime = parseTime(editedValues.endTime);
-    if (newEndTime !== null && selectedEvent && onEventUpdate) {
-      const newDuration = newEndTime - selectedEvent.startTime;
-      if (newDuration > 0) {
-        onEventUpdate(selectedEvent.event.id, { duration: newDuration });
-        // Update duration display
+    const newEndDate = parseTime(editedValues.endTime);
+    if (newEndDate && selectedItem?.startDate) {
+      if (newEndDate.getTime() > selectedItem.startDate.getTime()) {
+        if (isEvent) {
+          schedule.handleEventUpdate(selectedItem.id, { endDate: newEndDate });
+        } else {
+          schedule.handleBlockUpdate(selectedItem.id, { endDate: newEndDate });
+        }
+        
         setEditedValues(prev => ({
           ...prev,
-          duration: formatDuration(newDuration)
+          duration: formatDuration(selectedItem.startDate, newEndDate)
         }));
       } else {
         // Reset to original value if invalid duration
         setEditedValues(prev => ({
           ...prev,
-          endTime: formatTime(selectedEvent.startTime + selectedEvent.duration)
+          endTime: formatTime(selectedItem.endDate)
         }));
       }
-    } else if (selectedEvent) {
+    } else if (selectedItem?.endDate) {
       // Reset to original value if invalid
       setEditedValues(prev => ({
         ...prev,
-        endTime: formatTime(selectedEvent.startTime + selectedEvent.duration)
+        endTime: formatTime(selectedItem.endDate)
       }));
     }
   };
@@ -119,60 +192,85 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
     }
   };
 
-  return (
-    <div className="w-80 bg-secondary flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
-        {/* Conflicts Section */}
-        <div>
-          <h3 className="font-medium mb-3 text-gray-700">Conflicts</h3>
-          <div className="space-y-2">
-            <Alert className="bg-red-50 border-red-200">
-              <AlertTriangle className="h-4 w-4 text-red-600" />
-              <AlertDescription className="text-sm text-red-700">
-                Over Schedule at 10:15
-              </AlertDescription>
-            </Alert>
-            
-            <Alert className="bg-yellow-50 border-yellow-200">
-              <Clock className="h-4 w-4 text-yellow-600" />
-              <AlertDescription className="text-sm text-yellow-700">
-                Small Gap between 385, 384
-              </AlertDescription>
-            </Alert>
-            
-            <Alert className="bg-blue-50 border-blue-200">
-              <Users className="h-4 w-4 text-blue-600" />
-              <AlertDescription className="text-sm text-blue-700">
-                Suggestion
-              </AlertDescription>
-            </Alert>
-          </div>
-        </div>
+  const handleClose = () => {
+    schedule.setSelectedItemID(null);
+  };
 
-        {/* Selected Event Section */}
-        <div>
-          <h3 className="font-medium mb-3 text-gray-700">Selected Event</h3>
-          
-          {selectedEvent ? (
-            <div className="bg-white rounded-lg p-4 space-y-3">
-              <div>
-                <div className="font-medium text-gray-900">{selectedEvent.event.name}</div>
-                <div className="text-sm text-gray-600">{selectedEvent.event.category}</div>
+  const handleDelete = () => {
+    if (!selectedItem) return;
+    
+    // Move item back to event panel by resetting its state
+    if (isEvent) {
+      schedule.handleEventUpdate(selectedItem.id, {
+        state: STATE_TYPES.AVAILABLE,
+        startDate: null,
+        endDate: null,
+        venue: null
+      });
+    } else {
+      schedule.handleBlockUpdate(selectedItem.id, {
+        state: STATE_TYPES.AVAILABLE,
+        startDate: null,
+        endDate: null,
+        venue: null
+      });
+    }
+    
+    schedule.setSelectedItemID(null);
+  };
+
+  if (!selectedItem) {
+    return null;
+  }
+
+  return (
+    <>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
+        <h2 className="font-medium text-gray-700">
+          {isEvent ? 'Event Details' : 'Block Details'}
+        </h2>
+        <Button 
+          size="sm" 
+          variant="ghost" 
+          className="p-1 h-auto"
+          onClick={handleClose}
+        >
+          <X className="w-4 h-4" />
+        </Button>
+      </div>
+
+      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Conflicts Section - placeholder for future implementation */}
+        {selectedItem.state === 'scheduled' && (
+          <div>
+            <h3 className="font-medium mb-3 text-gray-700">Conflicts</h3>
+            <div className="space-y-2">
+              {/* TODO: Implement conflict detection */}
+              <div className="bg-white/50 rounded-lg p-3 text-center text-gray-500 text-xs">
+                No conflicts detected
               </div>
-              
+            </div>
+          </div>
+        )}
+
+        {/* Selected Item Details */}
+        <div>
+          <h3 className="font-medium mb-3 text-gray-700">Details</h3>
+          
+          <div className="bg-white rounded-lg p-4 space-y-3">
+            <div>
+              <div className="font-medium text-gray-900">{selectedItem.name || 'Untitled'}</div>
+              {isEvent && selectedEvent.category && (
+                <div className="text-sm text-gray-600">{selectedEvent.category}</div>
+              )}
+            </div>
+            
+            {selectedItem.state === 'scheduled' && selectedItem.venue && (
               <div className="space-y-3 text-sm">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-600">Day:</span>
-                  <span className="font-medium">{selectedEvent.day.toLocaleDateString('en-US', { 
-                    weekday: 'long', 
-                    month: 'short', 
-                    day: 'numeric' 
-                  })}</span>
-                </div>
-                
-                <div className="flex justify-between items-center">
                   <span className="text-gray-600">Venue:</span>
-                  <span className="font-medium">{selectedEvent.venue.name}</span>
+                  <span className="font-medium">{selectedItem.venue.name}</span>
                 </div>
                 
                 <div className="space-y-1">
@@ -226,14 +324,47 @@ export function SidePanel({ selectedEvent, onEventUpdate }: SidePanelProps) {
                   <div className="text-xs text-gray-400 text-right">Format: 12:00pm</div>
                 </div>
               </div>
-            </div>
-          ) : (
-            <div className="bg-white/50 rounded-lg p-4 text-center text-gray-500 text-sm">
-              Click on an event in the timeline to view details
-            </div>
-          )}
+            )}
+
+            {selectedItem.state !== 'scheduled' && (
+              <div className="text-sm text-gray-500 text-center py-2">
+                Drag this {isEvent ? 'event' : 'block'} to the timeline to schedule it
+              </div>
+            )}
+
+            {/* Block Events List */}
+            {!isEvent && selectedBlock && selectedBlock.eventIds && selectedBlock.eventIds.length > 0 && (
+              <div className="pt-3 border-t">
+                <div className="text-sm font-medium text-gray-700 mb-2">
+                  Events in Block ({selectedBlock.eventIds.length})
+                </div>
+                <div className="space-y-1 text-xs">
+                  {selectedBlock.eventIds.map(eventId => {
+                    const event = schedule.events.find(e => e.id === eventId);
+                    return event ? (
+                      <div key={eventId} className="p-2 bg-gray-50 rounded">
+                        {event.name}
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Actions */}
+        <div>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            className="w-full"
+            onClick={handleDelete}
+          >
+            Delete {isEvent ? 'Event' : 'Block'}
+          </Button>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,31 +1,25 @@
 import { useEffect } from 'react';
 import { Event } from '../types';
+import { useScheduleState } from './useScheduleState';
 
-export interface UseKeyboardShortcutsProps {
-  selectedEvent: Event | null;
-  onEventDelete: (event: Event) => void;
-  setSelectedEvent: (event: Event | null) => void;
-}
+export const useKeyboardShortcuts = () => {
 
-export function useKeyboardShortcuts({
-  selectedEvent,
-  onEventDelete,
-  setSelectedEvent
-}: UseKeyboardShortcutsProps) {
+  const schedule = useScheduleState();
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Delete key - delete selected event
-      if (e.key === 'Delete' && selectedEvent) {
-        onEventDelete(selectedEvent);
+      if (e.key === 'Delete' && schedule.selectedItemID) {
+        schedule.handleEventDelete(schedule.selectedItemID);
       }
       
       // Escape key - clear selection
       if (e.key === 'Escape') {
-        setSelectedEvent(null);
+        schedule.setSelectedItemID(null);
       }
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [selectedEvent, onEventDelete, setSelectedEvent]);
+  }, [schedule]);
 }

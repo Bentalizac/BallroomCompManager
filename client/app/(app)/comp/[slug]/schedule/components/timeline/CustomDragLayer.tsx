@@ -4,6 +4,7 @@ import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
 import { DRAG_TYPES } from '../../hooks/useDraggable';
 import { useVenueLayout } from '../../context/VenueLayoutContext';
 import { useDragPreview } from '../../context/DragPreviewContext';
+import { getContrastingTextColor } from '../../utils';
 
 export function CustomDragLayer() {
   const { item, itemType, isDragging, currentOffset } = useDragLayer((monitor) => ({
@@ -73,6 +74,7 @@ export function CustomDragLayer() {
   const EVENT_COLOR = '#673d72ff';
   const BLOCK_COLOR = '#9970a3ff';
   const backgroundColor = itemType === DRAG_TYPES.EVENT ? EVENT_COLOR : BLOCK_COLOR;
+  const textColor = getContrastingTextColor(backgroundColor);
   const displayName = item.name || item.id;
 
   return (
@@ -96,7 +98,7 @@ export function CustomDragLayer() {
         }}
       >
         <div className="p-1 h-full overflow-hidden relative">
-          <div className="text-xs font-medium text-gray-800 truncate">
+          <div className="text-xs font-medium truncate" style={{ color: textColor }}>
             {displayName}
           </div>
         </div>

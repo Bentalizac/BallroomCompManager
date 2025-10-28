@@ -18,25 +18,6 @@ export interface Block {
   state: STATE_TYPES;
 }
 
-export interface EventPosition {
-  column: number;
-  totalColumns: number;
-}
-
 export interface Venue {
   name: string;
-}
-
-
-export interface ScheduledEventProps {
-  event: Event;
-  onEventSelect: (event: Event | null) => void;
-  selectedEvent: Event | null;
-  onEventUpdate: (eventId: string, updates: Partial<Event>) => void;
-  onEventMove: (eventId: string, newDay: Date, newVenue: Venue, newTimeSlot: number) => void;
-}
-
-export interface SidePanelProps {
-  selectedEvent: Event | null;
-  onEventUpdate?: (eventId: string, updates: Partial<Event>) => void;
 }

@@ -7,6 +7,7 @@ import { getDragItemHeight } from '../../../utils';
 import { useScheduleState } from '../../../hooks';
 import { DRAG_TYPES, DragType } from '../../../hooks/useDraggable';
 import { BlockDropZone } from '../drop/BlockDropZone';
+import { getContrastingTextColor } from '../../../utils';
 
 
 function getDuration(startDate: Date | null, endDate: Date | null): number {
@@ -59,6 +60,8 @@ export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockPro
     };
 
     const LIGHT_PURPLE = '#9970a3ff'; // static light purple for timeline items
+    const textColor = getContrastingTextColor(LIGHT_PURPLE);
+    
     const content = (
         <BlockDropZone block={block}>
             <div
@@ -68,10 +71,11 @@ export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockPro
                 style={{ backgroundColor: LIGHT_PURPLE }}
                 onClick={(e) => {
                     e.stopPropagation();
+                    schedule.setSelectedItemID(block.id);
                 }}
                 >
                 <div className="p-1 h-full overflow-hidden relative">
-                    <div className="text-xs font-medium text-gray-800 truncate">
+                    <div className="text-xs font-medium truncate" style={{ color: textColor }}>
                     {block.name}
                     </div>
                     {schedule.selectedItemID === block.id && (
