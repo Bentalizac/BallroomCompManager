@@ -15,7 +15,7 @@ interface EventListProps {
 
 const EventList = ({ events }: EventListProps) => {
   return (
-    <div>
+    <div className="space-y-0.5">
       {events?.map((event) => (
         <DraggableEvent
           key={event.id}

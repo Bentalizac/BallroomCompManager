@@ -16,6 +16,7 @@ export interface Block {
   venue: Venue | null;
   eventIds?: string[];
   state: STATE_TYPES;
+  color: string | null;
 }
 
 export interface Venue {

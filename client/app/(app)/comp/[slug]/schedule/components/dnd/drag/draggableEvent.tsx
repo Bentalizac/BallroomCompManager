@@ -13,10 +13,13 @@ export const DraggableEvent = ({ event }: DraggableEventProps) => {
   const bgColor = event.color ?? '#4d4d4dff';
   const textColor = getContrastingTextColor(bgColor);
   const schedule = useScheduleState();
+  const isSelected = schedule.selectedItemID === event.id;
 
   const content = (
     <div 
-      className="flex items-center gap-2 px-3 py-2 rounded"
+      className={`flex items-center gap-2 px-3 py-2 rounded border-2 transition-shadow ${
+        isSelected ? 'border-blue-500 ring-2 ring-blue-300' : 'border-transparent'
+      }`}
       style={{ backgroundColor: bgColor, color: textColor }}
       onClick={(e) => {
         e.stopPropagation();
