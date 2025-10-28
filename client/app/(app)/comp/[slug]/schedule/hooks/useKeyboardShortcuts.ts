@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
-import { ScheduledEvent } from '../types';
+import { Event } from '../types';
 
 export interface UseKeyboardShortcutsProps {
-  selectedEvent: ScheduledEvent | null;
-  onEventDelete: (event: ScheduledEvent) => void;
-  setSelectedEvent: (event: ScheduledEvent | null) => void;
+  selectedEvent: Event | null;
+  onEventDelete: (event: Event) => void;
+  setSelectedEvent: (event: Event | null) => void;
 }
 
 export function useKeyboardShortcuts({
