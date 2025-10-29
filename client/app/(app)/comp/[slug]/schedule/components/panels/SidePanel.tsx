@@ -1,5 +1,5 @@
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Clock, Users, X } from 'lucide-react';
+import { AlertTriangle, Clock, Users, X, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
@@ -34,6 +34,9 @@ export function SidePanel() {
     duration: boolean;
     endTime: boolean;
   }>({ startTime: false, duration: false, endTime: false });
+
+  // Local state for editable block name
+  const [blockName, setBlockName] = useState<string>('');
 
   // Helper functions for time formatting
   const formatTime = (date: Date | null): string => {
@@ -84,6 +87,11 @@ export function SidePanel() {
 
   // Update edited values when selected item changes
   useEffect(() => {
+    // Initialize blockName when a block is selected
+    if (!isEvent && selectedBlock) {
+      setBlockName(selectedBlock.name || '');
+    }
+
     if (selectedItem && selectedItem.startDate && selectedItem.endDate) {
       const newValues = {
         startTime: formatTime(selectedItem.startDate),
@@ -102,54 +110,38 @@ export function SidePanel() {
 
   const handleStartTimeBlur = () => {
     setIsEditing(prev => ({ ...prev, startTime: false }));
-    
     const newStartDate = parseTime(editedValues.startTime);
-    if (newStartDate && selectedItem && selectedItem.endDate) {
-      const duration = selectedItem.endDate.getTime() - selectedItem.startDate!.getTime();
-      const newEndDate = new Date(newStartDate.getTime() + duration);
-      
+    if (newStartDate && selectedItem) {
+      const curStart = selectedItem.startDate ?? newStartDate;
+      const curEnd = selectedItem.endDate ?? new Date(newStartDate.getTime());
+      const durationMs = Math.max(0, curEnd.getTime() - curStart.getTime());
+      const newEndDate = new Date(newStartDate.getTime() + durationMs);
       if (isEvent) {
         schedule.handleEventUpdate(selectedItem.id, { startDate: newStartDate, endDate: newEndDate });
       } else {
         schedule.handleBlockUpdate(selectedItem.id, { startDate: newStartDate, endDate: newEndDate });
       }
-      
-      setEditedValues(prev => ({
-        ...prev,
-        endTime: formatTime(newEndDate)
-      }));
+      setEditedValues(prev => ({ ...prev, endTime: formatTime(newEndDate) }));
     } else if (selectedItem?.startDate) {
       // Reset to original value if invalid
-      setEditedValues(prev => ({
-        ...prev,
-        startTime: formatTime(selectedItem.startDate)
-      }));
+      setEditedValues(prev => ({ ...prev, startTime: formatTime(selectedItem.startDate!) }));
     }
   };
 
   const handleDurationBlur = () => {
     setIsEditing(prev => ({ ...prev, duration: false }));
-    
     const newDurationMinutes = parseDuration(editedValues.duration);
     if (newDurationMinutes && newDurationMinutes > 0 && selectedItem?.startDate) {
       const newEndDate = new Date(selectedItem.startDate.getTime() + newDurationMinutes * 60000);
-      
       if (isEvent) {
         schedule.handleEventUpdate(selectedItem.id, { endDate: newEndDate });
       } else {
         schedule.handleBlockUpdate(selectedItem.id, { endDate: newEndDate });
       }
-      
-      setEditedValues(prev => ({
-        ...prev,
-        endTime: formatTime(newEndDate)
-      }));
+      setEditedValues(prev => ({ ...prev, endTime: formatTime(newEndDate) }));
     } else if (selectedItem?.startDate && selectedItem?.endDate) {
       // Reset to original value if invalid
-      setEditedValues(prev => ({
-        ...prev,
-        duration: formatDuration(selectedItem.startDate, selectedItem.endDate)
-      }));
+      setEditedValues(prev => ({ ...prev, duration: formatDuration(selectedItem.startDate, selectedItem.endDate) }));
     }
   };
 
@@ -192,6 +184,15 @@ export function SidePanel() {
     }
   };
 
+  const handleBlockNameBlur = () => {
+    if (!selectedBlock) return;
+    const trimmed = (blockName || '').trim();
+    // Only update if changed (and allow empty -> will show placeholder)
+    if (trimmed !== selectedBlock.name) {
+      schedule.handleBlockUpdate(selectedBlock.id, { name: trimmed });
+    }
+  };
+
   const handleClose = () => {
     schedule.setSelectedItemID(null);
   };
@@ -221,7 +222,7 @@ export function SidePanel() {
   return (
     <>
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
+      <div className="flex items-center justify-between p-2.5 border-b flex-shrink-0">
         <h2 className="font-medium text-gray-700">
           {isEvent ? 'Event Details' : 'Block Details'}
         </h2>
@@ -235,14 +236,14 @@ export function SidePanel() {
         </Button>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-1">
         {/* Conflicts Section - placeholder for future implementation */}
         {selectedItem.state === 'scheduled' && (
           <div>
             <h3 className="font-medium mb-3 text-gray-700">Conflicts</h3>
             <div className="space-y-2">
               {/* TODO: Implement conflict detection */}
-              <div className="bg-white/50 rounded-lg p-3 text-center text-gray-500 text-xs">
+              <div className=" p-2.5 text-center text-gray-500 text-xs">
                 No conflicts detected
               </div>
             </div>
@@ -253,11 +254,28 @@ export function SidePanel() {
         <div>
           <h3 className="font-medium mb-3 text-gray-700">Details</h3>
           
-          <div className="bg-white rounded-lg p-4 space-y-3">
+          <div className="bg-white rounded-sm p-2.5 space-y-2">
             <div>
-              <div className="font-medium text-gray-900">{selectedItem.name || 'Untitled'}</div>
-              {isEvent && selectedEvent.category && (
-                <div className="text-sm text-gray-600">{selectedEvent.category}</div>
+              {isEvent ? (
+                <div className="font-medium text-gray-900">{selectedItem.name || 'Untitled'}</div>
+              ) : (
+                <div className="relative group">
+                  <Input
+                    type="text"
+                    value={blockName}
+                    onChange={(e) => setBlockName(e.target.value)}
+                    onBlur={handleBlockNameBlur}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        (e.target as HTMLInputElement).blur();
+                      }
+                    }}
+                    placeholder="Untitled Block"
+                    className="h-8 text-base font-medium px-0 bg-transparent border-0 rounded-none shadow-none focus-visible:ring-0 focus-visible:outline-none focus-visible:ring-offset-0 border-b border-gray-300 focus:border-blue-500"
+                  />
+                  <Pencil className="absolute right-0 top-1.5 h-4 w-4 text-gray-400 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity pointer-events-none" />
+                </div>
               )}
             </div>
             
@@ -337,7 +355,7 @@ export function SidePanel() {
                   {selectedBlock.eventIds.map(eventId => {
                     const event = schedule.events.find(e => e.id === eventId);
                     return event ? (
-                      <div key={eventId} className="p-2 bg-gray-50 rounded">
+                      <div key={eventId} className="p-2 bg-gray-100 rounded">
                         {event.name}
                       </div>
                     ) : null;

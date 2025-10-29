@@ -53,21 +53,21 @@ export const EventPanel = () => {
 
   return (
     <>
-      <div className="p-4">
+      <div className="p-2.5">
         {blocks.map((block) => (
           <div key={block.id} className="mb-2">
                 <DraggableBlock block={block} />
             </div>
         ))}
       </div>
-      <div className="flex items-center justify-between p-4 flex-shrink-0">
+      <div className="flex items-center justify-between p-2.5 flex-shrink-0">
         <h2 className="font-medium text-gray-700">Events</h2>
         <Button size="sm" variant="ghost" className="p-1 h-auto">
           <Plus className="w-4 h-4" />
         </Button>
       </div>
       
-      <div className="flex-1 overflow-y-auto p-4 pt-0">
+      <div className="flex-1 overflow-y-auto p-2.5 pt-0">
         <EventsCategory title="Latin" events={latinEvents} />
         <EventsCategory title="Ballroom" events={ballroomEvents} />
         <EventsCategory title="Other" events={otherEvents} />

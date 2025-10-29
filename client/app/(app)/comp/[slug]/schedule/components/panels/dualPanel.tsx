@@ -9,7 +9,7 @@ export const DualPanel = () => {
     const isOpen = schedule.selectedItemID !== null && schedule.selectedItemID !== undefined;
 
     return (
-        <div className="relative w-64 bg-secondary h-full rounded-lg m-2 overflow-hidden">
+        <div className="relative w-64 bg-secondary h-full rounded-lg m-2 overflow-hidden ">
             {/* Base list (always rendered) */}
             <div className="flex flex-col h-full">
                 <EventPanel />

@@ -75,16 +75,20 @@ export function useScheduleState(): ScheduleState {
 
   
   const handleEventUpdate = (eventID: string, updates: Partial<Event>) => {
-    setEvents(prev => {
-      const updated = prev.map(event => {
-        if (event.id === eventID) {
-          const merged = { ...event, ...updates };
-          return merged;
+    // If state is being changed and the current event is inside a block, remove it from that block
+    const existing = events.find(e => e.id === eventID);
+    if (updates.state && existing?.state === STATE_TYPES.IN_BLOCK) {
+      // Remove event from its block's eventIds
+      blocks.forEach(block => {  
+        if (block.eventIds?.includes(eventID)) {
+          block.eventIds = block.eventIds.filter(id => id !== eventID);
         }
-        return event;
       });
-      return updated;
-    });
+    }
+
+    setEvents(prev => prev.map(event => (
+      event.id === eventID ? { ...event, ...updates } : event
+    )));
   };
 
   const handleEventCopy = (eventID: string) => {

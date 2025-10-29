@@ -27,7 +27,7 @@ export const Timeline = () => {
                 <CustomDragLayer />
 
                 <div className="flex-1 p-2 overflow-auto timeline-background">
-                    <div className="flex h-full">
+                    <div className="flex h-full gap-0.5">
                     {days.map((day, index) => (
                         <DayColumn
                             key={day.toISOString()}

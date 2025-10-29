@@ -22,6 +22,7 @@ export const DraggableTimelineEvent = ({ event, day }: DraggableTimelineEventPro
   const [isDragging, setIsDragging] = useState(false);
   const startYRef = useRef(0);
   const startDurationRef = useRef(0);
+  const RESIZE_STEP_MINUTES = TIME_CONSTANTS.RESIZE_STEP; // configurable resize snap
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -33,8 +34,10 @@ export const DraggableTimelineEvent = ({ event, day }: DraggableTimelineEventPro
     const handleMouseMove = (e: MouseEvent) => {
       const deltaY = e.clientY - startYRef.current;
       // Convert deltaY to minutes based on pixel scale
-      const deltaMinutes = Math.round((deltaY / TIME_CONSTANTS.PIXELS_PER_SLOT) * TIME_CONSTANTS.LINE_INTERVAL);
-      const newDuration = Math.max(TIME_CONSTANTS.LINE_INTERVAL, startDurationRef.current + deltaMinutes);
+  const rawDeltaMinutes = (deltaY / TIME_CONSTANTS.PIXELS_PER_SLOT) * TIME_CONSTANTS.LINE_INTERVAL;
+      // Snap to step increments
+  const snappedDelta = Math.round(rawDeltaMinutes / RESIZE_STEP_MINUTES) * RESIZE_STEP_MINUTES;
+      const newDuration = Math.max(TIME_CONSTANTS.LINE_INTERVAL, startDurationRef.current + snappedDelta);
 
       // Update endDate based on new duration
       if (event.startDate) {

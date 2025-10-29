@@ -26,6 +26,7 @@ export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockPro
     const [isDragging, setIsDragging] = useState(false);
     const startYRef = useRef(0);
     const startDurationRef = useRef(0);
+    const RESIZE_STEP_MINUTES = TIME_CONSTANTS.RESIZE_STEP; // configurable resize snap
 
     const handleResizeStart = (e: React.MouseEvent) => {
         e.preventDefault();
@@ -34,18 +35,20 @@ export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockPro
         startYRef.current = e.clientY;
         startDurationRef.current = getDuration(block.startDate, block.endDate);
     
-        const handleMouseMove = (e: MouseEvent) => {
-          const deltaY = e.clientY - startYRef.current;
-          // Convert deltaY to minutes based on pixel scale
-          const deltaMinutes = Math.round((deltaY / TIME_CONSTANTS.PIXELS_PER_SLOT) * TIME_CONSTANTS.LINE_INTERVAL);
-          const newDuration = Math.max(TIME_CONSTANTS.LINE_INTERVAL, startDurationRef.current + deltaMinutes);
+                const handleMouseMove = (e: MouseEvent) => {
+                    const deltaY = e.clientY - startYRef.current;
+                    // Convert deltaY to minutes based on pixel scale
+                      const rawDeltaMinutes = (deltaY / TIME_CONSTANTS.PIXELS_PER_SLOT) * TIME_CONSTANTS.LINE_INTERVAL;
+                    // Snap to step increments
+                      const snappedDelta = Math.round(rawDeltaMinutes / RESIZE_STEP_MINUTES) * RESIZE_STEP_MINUTES;
+                    const newDuration = Math.max(TIME_CONSTANTS.LINE_INTERVAL, startDurationRef.current + snappedDelta);
           
-          // Update endDate based on new duration
+                    // Update endDate based on new duration
                     if (block.startDate) {
                         const newEndDate = new Date(block.startDate.getTime() + newDuration * 60 * 1000);
                         schedule.handleBlockUpdate(block.id, { endDate: newEndDate });
                     }
-        };
+                };
     
         const handleMouseUp = () => {
           setIsResizing(false);
