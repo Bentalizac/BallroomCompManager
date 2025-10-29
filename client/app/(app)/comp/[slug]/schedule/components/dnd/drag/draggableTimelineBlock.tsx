@@ -59,40 +59,72 @@ export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockPro
 
     const LIGHT_PURPLE = '#9970a3ff'; // static light purple for timeline items
     const textColor = getContrastingTextColor(LIGHT_PURPLE);
-    
-    const content = (
-        <BlockDropZone block={block}>
-            <div
-                className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
-                schedule.selectedItemID === block.id ? 'border-blue-500 ring-2 ring-blue-300' : 'border-transparent'
-                }`}
-                style={{ backgroundColor: LIGHT_PURPLE }}
-                onClick={(e) => {
-                    e.stopPropagation();
-                    schedule.setSelectedItemID(block.id);
-                }}
-                >
-                <div className="p-1 h-full overflow-hidden relative">
-                    <div className="text-xs font-medium truncate" style={{ color: textColor }}>
-                    {block.name}
-                    </div>
-                    {schedule.selectedItemID === block.id && (
-                    <div className="absolute top-1 right-1 text-xs text-blue-600 font-medium">
-                        DEL
-                    </div>
-                    )}
-                    {/* Resize handle */}
+        const hasEvents = Array.isArray(block.eventIds) && block.eventIds.length > 0;
+        // Layout insets for inner body area
+        const HEADER_GAP = 28; // px, a bit more space between header and body
+        const BOTTOM_GAP = 4;  // px, equivalent to bottom-1
+
+        const content = (
+            <BlockDropZone block={block} eventsAreaTopPx={HEADER_GAP} eventsAreaBottomPx={BOTTOM_GAP}>
+                {({ isOver }) => (
                     <div
-                    className="absolute bottom-0 left-0 w-full h-3 cursor-ns-resize hover:bg-black/20 flex items-end justify-center"
-                    onMouseDown={handleResizeStart}
-                    style={{ zIndex: 10 }}
+                        className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
+                            schedule.selectedItemID === block.id ? 'border-blue-500 ring-2 ring-blue-300' : 'border-transparent'
+                        }`}
+                        style={{ backgroundColor: LIGHT_PURPLE }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            schedule.setSelectedItemID(block.id);
+                        }}
                     >
-                    <div className="w-4 h-1 bg-gray-400 rounded-full opacity-50 hover:opacity-100" />
+                        <div className="p-1 h-full overflow-hidden relative">
+                            {/* Header */}
+                            <div className="flex items-center justify-between" style={{ color: textColor }}>
+                                <div className="text-xs font-semibold truncate">{block.name}</div>
+                                {hasEvents && (
+                                    <span className="text-[10px] px-1.5 py-0.5 rounded bg-black/20" style={{ color: textColor }}>
+                                        {block.eventIds?.length}
+                                    </span>
+                                )}
+                            </div>
+
+                            {/* Visual drop area body */}
+                            <div
+                                className="absolute rounded-md border-2 border-dashed flex items-center justify-center transition-all"
+                                style={{
+                                    left: 4,
+                                    right: 4,
+                                    top: HEADER_GAP,
+                                    bottom: BOTTOM_GAP,
+                                    borderColor: isOver ? 'rgba(59,130,246,0.8)' : 'rgba(255,255,255,0.5)', // blue-500 when over
+                                    backgroundColor: isOver ? 'rgba(59,130,246,0.12)' : 'rgba(255,255,255,0.07)',
+                                    color: textColor,
+                                    opacity: isOver ? 1 : (hasEvents ? 0 : 1),
+                                    zIndex: 1,
+                                    pointerEvents: 'none'
+                                }}
+                            >
+                                <span className="text-[10px] opacity-80">Drop events into this block</span>
+                            </div>
+
+                            {schedule.selectedItemID === block.id && (
+                                <div className="absolute top-1 right-1 text-xs text-blue-600 font-medium">
+                                    DEL
+                                </div>
+                            )}
+                            {/* Resize handle */}
+                            <div
+                                className="absolute bottom-0 left-0 w-full h-3 cursor-ns-resize hover:bg-black/20 flex items-end justify-center"
+                                onMouseDown={handleResizeStart}
+                                style={{ zIndex: 10 }}
+                            >
+                                <div className="w-4 h-1 bg-gray-400 rounded-full opacity-50 hover:opacity-100" />
+                            </div>
+                        </div>
                     </div>
-                </div>
-            </div>
-        </BlockDropZone>
-    );
+                )}
+            </BlockDropZone>
+        );
 
     return (
         <DraggableItem
