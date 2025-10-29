@@ -18,7 +18,13 @@ function ScheduleContent() {
       if (e.key === 'Delete' && schedule.selectedItemID) {
         const selectedEvent = schedule.events.find(ev => ev.id === schedule.selectedItemID);
         const selectedBlock = schedule.blocks.find(b => b.id === schedule.selectedItemID);
-        
+        const selectedItem = selectedEvent || selectedBlock;
+
+        if (!selectedItem || selectedItem?.state === STATE_TYPES.INFINITE) {
+          // Do nothing for infinite items or null selection
+          return;
+        }
+
         if (selectedEvent) {
           schedule.handleEventUpdate(schedule.selectedItemID, { 
             state: STATE_TYPES.AVAILABLE,

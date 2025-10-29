@@ -349,16 +349,18 @@ export function SidePanel() {
         </div>
 
         {/* Actions */}
-        <div>
-          <Button 
-            variant="destructive" 
-            size="sm" 
-            className="w-full"
-            onClick={handleDelete}
-          >
-            Delete {isEvent ? 'Event' : 'Block'}
-          </Button>
-        </div>
+        { selectedItem.state !== STATE_TYPES.INFINITE && (
+          <div>
+            <Button 
+              variant="destructive" 
+              size="sm" 
+              className="w-full"
+              onClick={handleDelete}
+            >
+              Delete {isEvent ? 'Event' : 'Block'}
+            </Button>
+          </div>
+        )}
       </div>
     </>
   );
