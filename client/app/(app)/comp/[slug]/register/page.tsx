@@ -4,6 +4,7 @@ import { useComp } from "@/providers/compProvider/compProvider";
 import { useAuth } from "@/providers/auth/authProvider";
 import { useEventRegistrationManager } from "@/hooks/useEventRegistration";
 import { EventsList } from "@/components/events/EventsList";
+import { EventRegistrationCard } from "@/components/registration/EventRegistrationCard";
 import { Banner } from "@/components/custom/banner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, UserPlus } from "lucide-react";
@@ -75,6 +76,86 @@ export default function RegisterPage() {
     handleProfileComplete();
     // Note: With per-event loading states, the component should track
     // the current event ID if retry functionality is needed
+  };
+
+  const userRegistrationsList = () => {
+    if (!user) return null;
+    if (!userRegistrations || !events) return null;
+    
+    return (
+      <div className="space-y-3">
+        {userRegistrations.map((reg) => {
+          const event = events.find((e) => e.id === reg.eventId);
+          if (!event) return null;
+
+          return (
+            <EventRegistrationCard
+              key={reg.id}
+              entryType={event.entryType}
+              event={event}
+              participants={reg.participants || []}
+              registration={{
+                id: reg.id,
+                eventId: reg.eventId,
+                teamName: reg.teamName,
+                status: reg.status || "active",
+                createdAt: reg.createdAt?.toString() || new Date().toISOString(),
+                participants: reg.participants?.map(p => ({
+                  userId: p.userId,
+                  role: p.role,
+                  userInfo: undefined, // Add user info if available
+                })) || [],
+              }}
+              onWithdraw={() => handleCancel(reg.id)}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
+  const noRegistrationsFiller = () => {
+    if (!user) return null;
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-400 mb-2">
+          <UserPlus className="h-8 w-8 mx-auto mb-2 opacity-50" />
+        </div>
+        <p className="text-blue-700 text-sm">
+          Your registrations will be listed here
+        </p>
+        <p className="text-blue-600 text-xs mt-1">
+          Register for events to see them appear in this panel
+        </p>
+      </div>
+    );
+  };
+
+  const registrationSummary = () => {
+    if (!user) return null;
+
+    return (
+      <div className="w-full lg:w-96 lg:flex-shrink-0">
+        <div className="bg-blue-50 rounded-lg p-6 sticky top-6">
+          <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            Your Registrations
+          </h3>
+
+          {userRegistrations && userRegistrations.length > 0 ? (
+            <>
+              <p className="text-blue-800 mb-4">
+                You are registered for {userRegistrations.length} event
+                {userRegistrations.length !== 1 ? "s" : ""}:
+              </p>
+              <div>{userRegistrationsList()}</div>
+            </>
+          ) : (
+            <>{noRegistrationsFiller()}</>
+          )}
+        </div>
+      </div>
+    );
   };
 
   if (isLoadingEvents) {
@@ -151,76 +232,7 @@ export default function RegisterPage() {
             </div>
 
             {/* Registration Summary - Always shown when user is logged in */}
-            {user && (
-              <div className="w-full lg:w-96 lg:flex-shrink-0">
-                <div className="bg-blue-50 rounded-lg p-6 sticky top-6">
-                  <h3 className="text-lg font-semibold text-blue-900 mb-3 flex items-center gap-2">
-                    <UserPlus className="h-5 w-5" />
-                    Your Registrations
-                  </h3>
-
-                  {userRegistrations && userRegistrations.length > 0 ? (
-                    <>
-                      <p className="text-blue-800 mb-4">
-                        You are registered for {userRegistrations.length} event
-                        {userRegistrations.length !== 1 ? "s" : ""}:
-                      </p>
-                      <div className="space-y-2">
-                        {userRegistrations.map((reg) => {
-                          const eventName =
-                            events?.find((e) => e.id === reg.eventId)?.name ||
-                            "Unknown Event";
-                          const userRole =
-                            reg.participants?.find((p) => p.userId === user?.id)
-                              ?.role || "member";
-
-                          return (
-                            <div
-                              key={reg.id}
-                              className="flex justify-between items-center bg-white rounded px-4 py-2"
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-medium text-sm">
-                                  {eventName}
-                                </span>
-                                {reg.teamName && (
-                                  <span className="text-xs text-gray-500">
-                                    Team: {reg.teamName}
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-right">
-                                <span className="text-xs text-gray-600 capitalize">
-                                  {userRole}
-                                </span>
-                                <div className="text-xs text-gray-500">
-                                  {reg.participants?.length || 1} participant
-                                  {(reg.participants?.length || 1) !== 1
-                                    ? "s"
-                                    : ""}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </>
-                  ) : (
-                    <div className="text-center py-8">
-                      <div className="text-gray-400 mb-2">
-                        <UserPlus className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      </div>
-                      <p className="text-blue-700 text-sm">
-                        Your registrations will be listed here
-                      </p>
-                      <p className="text-blue-600 text-xs mt-1">
-                        Register for events to see them appear in this panel
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            {registrationSummary()}
           </div>
         )}
 

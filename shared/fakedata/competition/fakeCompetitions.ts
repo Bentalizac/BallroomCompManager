@@ -2,7 +2,7 @@ import { Competition } from "../../data/types/competition";
 import { CompEvent } from "../../data/types/event";
 import { Registration } from "../../data/types/registration";
 import { ScoringMethods } from "../../data/enums/scoringMethods";
-import { EventType } from "../../data/enums/eventTypes";
+import { EntryType, EventType } from "../../data/enums/eventTypes";
 import { mockParticipants, mockUsers } from "../user/fakeUsers";
 import { BallroomCompetitor } from "../../data/types/userExtensions";
 
@@ -22,6 +22,7 @@ export const mockEvents: CompEvent[] = [
       (p) => p.eventId === "event-1" && p.role === "judge",
     ),
     scoring: ScoringMethods.Ballroom,
+    entryType: EntryType.Partner,
   },
   {
     id: "event-2",
@@ -37,6 +38,7 @@ export const mockEvents: CompEvent[] = [
       (p) => p.eventId === "event-2" && p.role === "judge",
     ),
     scoring: ScoringMethods.Ballroom,
+    entryType: EntryType.Partner,
   },
   {
     id: "event-3",
@@ -52,6 +54,7 @@ export const mockEvents: CompEvent[] = [
       (p) => p.eventId === "event-3" && p.role === "judge",
     ),
     scoring: ScoringMethods.Ballroom,
+    entryType: EntryType.Partner,
   },
 ];
 

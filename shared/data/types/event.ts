@@ -1,6 +1,6 @@
-import { EventType, RoundLevel } from "../enums/eventTypes";
-import { ScoringMethods } from "../enums/scoringMethods";
+import { EntryType, EventType, RoundLevel } from "../enums/eventTypes";
 import { Participant } from "./user";
+import { ScoringMethods } from "../enums/scoringMethods";
 
 export interface CompEvent {
   id: string;
@@ -15,6 +15,8 @@ export interface CompEvent {
   judges: Participant[];
   /**Scoring type */
   scoring: ScoringMethods;
+
+  entryType: EntryType;
 
   startDate: Date | null;
   endDate: Date | null;
