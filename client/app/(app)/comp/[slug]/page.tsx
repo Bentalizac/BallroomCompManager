@@ -97,8 +97,13 @@ export default function CompetitionHomePage() {
                     <div key={event.id} className="bg-secondary-foreground/10 p-4 rounded-lg">
                       <h3 className="font-semibold mb-2">{event.name}</h3>
                       <div className="text-sm opacity-75">
-                        <p>Status: {event.eventStatus}</p>
-                        {/* Add more event details as needed */}
+                        {event.startDate && event.endDate ? (
+                          <p>
+                            {new Date(event.startDate).toLocaleDateString()} - {new Date(event.endDate).toLocaleDateString()}
+                          </p>
+                        ) : (
+                          <p>Schedule TBD</p>
+                        )}
                       </div>
                     </div>
                   ))}

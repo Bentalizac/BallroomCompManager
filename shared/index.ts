@@ -15,6 +15,7 @@ export type {
 export { CompetitionRole } from "./data/enums/roles";
 export { ScoringMethods } from "./data/enums/scoringMethods";
 export { CompRoles, EventRoles } from "./data/enums/eventRoles";
+export { EntryType, EventType, RoundLevel } from "./data/enums/eventTypes";
 
 // Fake data exports
 export {
@@ -41,20 +42,6 @@ export {
   type CompetitionApi as CompetitionApiType,
   type EventStatus as EventStatusType,
 } from "./api/schemas";
-
-// Domain types exports
-export type {
-  Venue as DomainVenue,
-  Event as DomainEvent,
-  Competition as DomainCompetition,
-} from "./domain/types";
-
-// Domain mappers exports
-export {
-  venueApiToDomain,
-  eventApiToDomain,
-  competitionApiToDomain,
-} from "./domain/mappers";
 
 // Utility exports
 export {

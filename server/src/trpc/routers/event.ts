@@ -10,8 +10,9 @@ import {
   reactivateEventRegistration,
 } from "../../dal/eventRegistration";
 import { getSupabaseUser } from "../../dal/supabase";
-import { EventApi } from "@ballroomcompmanager/shared";
-import { mapEventRowToDTO } from "../mappers";
+import { mapEventRowEnrichedToCompEvent } from "../../mappers";
+import * as EventDAL from "../../dal/event";
+import * as CompetitionDAL from "../../dal/competition";
 
 export const eventRouter = router({
   // REGISTRATION SYSTEM - supports individual, paired, and team registrations
@@ -334,26 +335,12 @@ export const eventRouter = router({
       const supabase = getSupabaseUser(ctx.userToken);
 
       try {
-        // Get competition time zone
-        const { data: comp, error: compError } = await supabase
-          .from("comp_info")
-          .select("time_zone")
-          .eq("id", input.competitionId)
-          .single();
-
-        if (compError || !comp) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Competition not found",
-          });
-        }
-
-        // Get events for the competition
-        const { data: events, error: eventsError } = await supabase
-          .from("event_info")
-          .select("*")
-          .eq("comp_id", input.competitionId)
-          .order("start_at", { ascending: true });
+        // Use enriched query to get full domain data
+        const { data: events, error: eventsError } =
+          await EventDAL.getCompetitionEventsEnriched(
+            supabase,
+            input.competitionId,
+          );
 
         if (eventsError) {
           if (process.env.NODE_ENV === "development")
@@ -364,13 +351,8 @@ export const eventRouter = router({
           });
         }
 
-        // Map and validate events
-        const mappedEvents = (events || []).map((event) => {
-          const mapped = mapEventRowToDTO(event, comp.time_zone);
-          return EventApi.parse(mapped);
-        });
-
-        return mappedEvents;
+        // Map enriched DB rows to CompEvent domain types
+        return (events || []).map(mapEventRowEnrichedToCompEvent);
       } catch (error) {
         if (process.env.NODE_ENV === "development")
           console.error("Events fetch failed:", error);
@@ -388,8 +370,8 @@ export const eventRouter = router({
       z.object({
         competitionId: z.string().uuid(),
         name: z.string().min(1, "Event name is required"),
-        startAt: z.string().datetime() || null, // ISO 8601 UTC timestamp
-        endAt: z.string().datetime() || null, // ISO 8601 UTC timestamp
+        startDate: z.date().nullable(),
+        endDate: z.date().nullable(),
         categoryId: z.string().uuid(),
         rulesetId: z.string().uuid(),
       }),
@@ -402,12 +384,12 @@ export const eventRouter = router({
       const supabase = getSupabaseUser(ctx.userToken);
 
       // Check if user is admin of this competition
-      const { data: adminCheck, error: adminError } = await supabase
-        .from("competition_admins")
-        .select("id")
-        .eq("comp_id", input.competitionId)
-        .eq("user_id", ctx.userId)
-        .single();
+      const { data: adminCheck, error: adminError } =
+        await CompetitionDAL.isCompetitionAdmin(
+          supabase,
+          input.competitionId,
+          ctx.userId,
+        );
 
       if (adminError || !adminCheck) {
         throw new TRPCError({
@@ -416,95 +398,54 @@ export const eventRouter = router({
         });
       }
 
-      // Validate timestamps
-      // Start and end times not required, but if both provided they must be valid
-      if (input.startAt || input.endAt) {
-        const startAt = new Date(input.startAt);
-        const endAt = new Date(input.endAt);
-        if (startAt >= endAt) {
+      // Validate timestamps if both provided
+      if (input.startDate && input.endDate) {
+        if (input.startDate >= input.endDate) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "End time must be after start time",
           });
         }
-      } else {
-        const startAt = null;
-        const endAt = null;
       }
 
       try {
         // Get or create category_ruleset combination
-        let { data: categoryRuleset, error: crError } = await supabase
-          .from("category_ruleset")
-          .select("id")
-          .eq("category_id", input.categoryId)
-          .eq("ruleset_id", input.rulesetId)
-          .single();
+        const { data: categoryRuleset, error: crError } =
+          await EventDAL.getOrCreateCategoryRuleset(
+            supabase,
+            input.categoryId,
+            input.rulesetId,
+          );
 
-        if (crError && crError.code === "PGRST116") {
-          // Category-ruleset combination doesn't exist, create it
-          const { data: newCR, error: newCRError } = await supabase
-            .from("category_ruleset")
-            .insert({
-              category_id: input.categoryId,
-              ruleset_id: input.rulesetId,
-            })
-            .select("id")
-            .single();
-
-          if (newCRError || !newCR) {
-            if (process.env.NODE_ENV === "development")
-              console.error("Error creating category-ruleset:", newCRError);
-            throw new TRPCError({
-              code: "INTERNAL_SERVER_ERROR",
-              message: "Failed to create category-ruleset combination",
-            });
-          }
-
-          categoryRuleset = newCR;
-        } else if (crError) {
+        if (crError || !categoryRuleset) {
           if (process.env.NODE_ENV === "development")
-            console.error("Error checking category-ruleset:", crError);
+            console.error("Error with category-ruleset:", crError);
           throw new TRPCError({
             code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to validate category-ruleset combination",
+            message: "Failed to get/create category-ruleset combination",
           });
         }
 
-        // Get competition time zone for response
-        const { data: comp, error: compError } = await supabase
-          .from("comp_info")
-          .select("time_zone")
-          .eq("id", input.competitionId)
-          .single();
+        // Create the event
+        const eventData: any = {
+          name: input.name,
+          category_ruleset_id: categoryRuleset.id,
+          comp_id: input.competitionId,
+        };
 
-        if (compError || !comp) {
-          if (process.env.NODE_ENV === "development")
-            console.error("Error fetching competition:", compError);
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Competition not found",
-          });
+        if (input.startDate) {
+          eventData.start_at = input.startDate.toISOString();
+          eventData.start_date = input.startDate.toISOString().split("T")[0];
+        }
+        if (input.endDate) {
+          eventData.end_at = input.endDate.toISOString();
+          eventData.end_date = input.endDate.toISOString().split("T")[0];
         }
 
-        // Create the event (need both timestamps and date fields for compatibility)
-        const startDate = startAt.toISOString().split("T")[0]; // Extract date part (YYYY-MM-DD)
-        const endDate = endAt.toISOString().split("T")[0]; // Extract date part (YYYY-MM-DD)
-
-        const { data: event, error: eventError } = await supabase
-          .from("event_info")
-          .insert({
-            name: input.name,
-            start_at: input.startAt,
-            end_at: input.endAt,
-            start_date: startDate,
-            end_date: endDate,
-            category_ruleset_id: categoryRuleset!.id,
-            comp_id: input.competitionId,
-            event_status: "scheduled",
-          })
-          .select()
-          .single();
+        const { data: event, error: eventError } = await EventDAL.createEvent(
+          supabase,
+          eventData,
+        );
 
         if (eventError || !event) {
           if (process.env.NODE_ENV === "development")
@@ -515,9 +456,8 @@ export const eventRouter = router({
           });
         }
 
-        // Use mapper and validate with zod
-        const mapped = mapEventRowToDTO(event, comp.time_zone);
-        return EventApi.parse(mapped);
+        // Map enriched DB row to CompEvent domain type
+        return mapEventRowEnrichedToCompEvent(event);
       } catch (error) {
         if (process.env.NODE_ENV === "development")
           console.error("Event creation failed:", error);
@@ -535,11 +475,8 @@ export const eventRouter = router({
       z.object({
         id: z.string().uuid(),
         name: z.string().min(1).optional(),
-        startAt: z.string().datetime().optional(), // ISO 8601 UTC timestamp
-        endAt: z.string().datetime().optional(), // ISO 8601 UTC timestamp
-        eventStatus: z
-          .enum(["scheduled", "current", "completed", "cancelled"])
-          .optional(),
+        startDate: z.date().nullable().optional(),
+        endDate: z.date().nullable().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -550,11 +487,8 @@ export const eventRouter = router({
       const supabase = getSupabaseUser(ctx.userToken);
 
       // Get event to find competition ID
-      const { data: event, error: eventError } = await supabase
-        .from("event_info")
-        .select("comp_id")
-        .eq("id", input.id)
-        .single();
+      const { data: event, error: eventError } =
+        await EventDAL.getEventCompetitionId(supabase, input.id);
 
       if (eventError || !event) {
         throw new TRPCError({
@@ -564,12 +498,12 @@ export const eventRouter = router({
       }
 
       // Check if user is admin of this competition
-      const { data: adminCheck, error: adminError } = await supabase
-        .from("competition_admins")
-        .select("id")
-        .eq("comp_id", event.comp_id)
-        .eq("user_id", ctx.userId)
-        .single();
+      const { data: adminCheck, error: adminError } =
+        await CompetitionDAL.isCompetitionAdmin(
+          supabase,
+          event.comp_id,
+          ctx.userId,
+        );
 
       if (adminError || !adminCheck) {
         throw new TRPCError({
@@ -579,10 +513,8 @@ export const eventRouter = router({
       }
 
       // Validate timestamps if both provided
-      if (input.startAt && input.endAt) {
-        const startAt = new Date(input.startAt);
-        const endAt = new Date(input.endAt);
-        if (startAt >= endAt) {
+      if (input.startDate && input.endDate) {
+        if (input.startDate >= input.endDate) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: "End time must be after start time",
@@ -591,44 +523,32 @@ export const eventRouter = router({
       }
 
       try {
-        // Get competition time zone for response
-        const { data: comp, error: compError } = await supabase
-          .from("comp_info")
-          .select("time_zone")
-          .eq("id", event.comp_id)
-          .single();
-
-        if (compError || !comp) {
-          if (process.env.NODE_ENV === "development")
-            console.error("Error fetching competition:", compError);
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Competition not found",
-          });
-        }
-
         const updateData: any = {};
-        if (input.name) updateData.name = input.name;
-        if (input.startAt) {
-          updateData.start_at = input.startAt;
-          updateData.start_date = new Date(input.startAt)
-            .toISOString()
-            .split("T")[0];
+        if (input.name !== undefined) updateData.name = input.name;
+        if (input.startDate !== undefined) {
+          if (input.startDate) {
+            updateData.start_at = input.startDate.toISOString();
+            updateData.start_date = input.startDate.toISOString().split("T")[0];
+          } else {
+            updateData.start_at = null;
+            updateData.start_date = null;
+          }
         }
-        if (input.endAt) {
-          updateData.end_at = input.endAt;
-          updateData.end_date = new Date(input.endAt)
-            .toISOString()
-            .split("T")[0];
+        if (input.endDate !== undefined) {
+          if (input.endDate) {
+            updateData.end_at = input.endDate.toISOString();
+            updateData.end_date = input.endDate.toISOString().split("T")[0];
+          } else {
+            updateData.end_at = null;
+            updateData.end_date = null;
+          }
         }
-        if (input.eventStatus) updateData.event_status = input.eventStatus;
 
-        const { data: updatedEvent, error } = await supabase
-          .from("event_info")
-          .update(updateData)
-          .eq("id", input.id)
-          .select()
-          .single();
+        const { data: updatedEvent, error } = await EventDAL.updateEvent(
+          supabase,
+          input.id,
+          updateData,
+        );
 
         if (error || !updatedEvent) {
           if (process.env.NODE_ENV === "development")
@@ -639,9 +559,12 @@ export const eventRouter = router({
           });
         }
 
-        // Use mapper and validate with zod
-        const mapped = mapEventRowToDTO(updatedEvent, comp.time_zone);
-        return EventApi.parse(mapped);
+        // Map enriched DB row to CompEvent domain type
+        console.log(
+          "EVENT FETCHED",
+          mapEventRowEnrichedToCompEvent(updatedEvent),
+        );
+        return mapEventRowEnrichedToCompEvent(updatedEvent);
       } catch (error) {
         if (process.env.NODE_ENV === "development")
           console.error("Event update failed:", error);
@@ -664,11 +587,8 @@ export const eventRouter = router({
       const supabase = getSupabaseUser(ctx.userToken);
 
       // Get event to find competition ID
-      const { data: event, error: eventError } = await supabase
-        .from("event_info")
-        .select("comp_id")
-        .eq("id", input.id)
-        .single();
+      const { data: event, error: eventError } =
+        await EventDAL.getEventCompetitionId(supabase, input.id);
 
       if (eventError || !event) {
         throw new TRPCError({
@@ -678,12 +598,12 @@ export const eventRouter = router({
       }
 
       // Check if user is admin of this competition
-      const { data: adminCheck, error: adminError } = await supabase
-        .from("competition_admins")
-        .select("id")
-        .eq("comp_id", event.comp_id)
-        .eq("user_id", ctx.userId)
-        .single();
+      const { data: adminCheck, error: adminError } =
+        await CompetitionDAL.isCompetitionAdmin(
+          supabase,
+          event.comp_id,
+          ctx.userId,
+        );
 
       if (adminError || !adminCheck) {
         throw new TRPCError({
@@ -693,10 +613,7 @@ export const eventRouter = router({
       }
 
       try {
-        const { error } = await supabase
-          .from("event_info")
-          .delete()
-          .eq("id", input.id);
+        const { error } = await EventDAL.deleteEvent(supabase, input.id);
 
         if (error) {
           if (process.env.NODE_ENV === "development")

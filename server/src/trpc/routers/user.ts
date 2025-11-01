@@ -2,44 +2,20 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, authedProcedure } from "../base";
 import { getSupabaseUser } from "../../dal/supabase";
-import { registerForCompSchema } from "@ballroomcompmanager/shared"
+import { registerForCompSchema } from "@ballroomcompmanager/shared";
 import { getUserProfile, updateUserProfile, checkProfileStatus, type ProfileUpdateData } from "../../dal/userProfile";
+import * as UserDAL from "../../dal/user";
 export const userRouter = router({
   // Get current user's registrations (all competitions)
-  getMyRegistrations: authedProcedure.query(async ({ ctx }) => {
+  getMyRegistrations: authedProcedure.query(async ({ ctx }) =>  {
     if (!ctx.userId || !ctx.userToken) {
       throw new TRPCError({ code: "UNAUTHORIZED" });
     }
 
-    const supabase = getSupabaseUser(ctx.userToken);
-    const { data: registrations, error } = await supabase
-      .from("event_registration")
-      .select(
-        `
-          id,
-          role,
-          registration_status,
-          event_info (
-            id,
-            name,
-            start_date,
-            end_date,
-            event_status,
-            comp_id,
-            comp_info:comp_id (
-              id,
-              name,
-              start_date,
-              end_date
-            )
-          ),
-          comp_participant!inner (
-            user_id
-          )
-        `,
-      )
-      .eq("comp_participant.user_id", ctx.userId)
-      .order("event_info.start_date", { ascending: true });
+    const { data: registrations, error } = await UserDAL.getUserEventRegistrations(
+      getSupabaseUser(ctx.userToken),
+      ctx.userId
+    );
 
     if (error) {
       if (process.env.NODE_ENV === 'development') console.error("Error fetching user registrations:", error);
@@ -64,11 +40,11 @@ export const userRouter = router({
       
       // Check if user is already registered for this comp
 
-      const { data: existingRegs, error: fetchError } = await supabase
-        .from("comp_participant")
-        .select("id")
-        .eq("user_id", ctx.userId)
-        .eq("comp_id", input.competitionId);
+      const { data: existingRegs, error: fetchError } = await UserDAL.checkCompetitionRegistration(
+        supabase,
+        ctx.userId,
+        input.competitionId
+      );
 
       if (fetchError) {
         if (process.env.NODE_ENV === 'development') console.error("Error checking existing registrations:", fetchError);
@@ -86,17 +62,12 @@ export const userRouter = router({
       }
 
       // Create participant entries for each role
-      const participantInserts = input.roles.map(role => ({
-        user_id: ctx.userId,
-        comp_id: input.competitionId,
-        role: role as "spectator" | "competitor" | "organizer" | "judge",
-        participation_status: "active"
-      }));
-
-      const { data: newParticipants, error: participantError } = await supabase
-        .from("comp_participant")
-        .insert(participantInserts)
-        .select();
+      const { data: newParticipants, error: participantError} = await UserDAL.createCompetitionParticipants(
+        supabase,
+        ctx.userId,
+        input.competitionId,
+        input.roles as Array<'spectator' | 'competitor' | 'organizer' | 'judge'>
+      );
 
       if (participantError || !newParticipants) {
         if (process.env.NODE_ENV === 'development') console.error("Error creating participants:", participantError);
@@ -128,17 +99,15 @@ export const userRouter = router({
         throw new TRPCError({ code: "UNAUTHORIZED" });
       }
 
-      const supabase = getSupabaseUser(ctx.userToken);
-      const { data: updatedUser, error } = await supabase
-        .from("user_info")
-        .update({
+      const { data: updatedUser, error } = await UserDAL.updateUserInfo(
+        getSupabaseUser(ctx.userToken),
+        ctx.userId,
+        {
           firstname: input.firstName,
           lastname: input.lastName,
           email: input.email,
-        })
-        .eq("id", ctx.userId)
-        .select()
-        .single();
+        }
+      );
 
       if (error) {
         if (process.env.NODE_ENV === 'development') console.error("Error updating user profile:", error);
@@ -162,22 +131,20 @@ export const userRouter = router({
       const supabase = getSupabaseUser(ctx.userToken);
 
       // Primary source of truth: Check if user is a competition admin
-      const { data: adminCheck, error: adminError } = await supabase
-        .from("competition_admins")
-        .select("id")
-        .eq("comp_id", input.competitionId)
-        .eq("user_id", ctx.userId)
-        .single();
+      const { data: adminCheck, error: adminError } = await UserDAL.checkUserIsCompetitionAdmin(
+        supabase,
+        input.competitionId,
+        ctx.userId
+      );
 
       const isAdmin = !adminError && adminCheck;
 
       // Get user's participant roles in the competition
-      const { data: participantRoles, error: participantError } = await supabase
-        .from("comp_participant")
-        .select("id, role, participation_status")
-        .eq("comp_id", input.competitionId)
-        .eq("user_id", ctx.userId)
-        .eq("participation_status", "active");
+      const { data: participantRoles, error: participantError } = await UserDAL.getUserParticipantRoles(
+        supabase,
+        input.competitionId,
+        ctx.userId
+      );
 
       if (participantError && participantError.code !== 'PGRST116') {
         if (process.env.NODE_ENV === 'development') console.error("Error fetching participant roles:", participantError);
@@ -187,14 +154,11 @@ export const userRouter = router({
       if (isAdmin && (!participantRoles || participantRoles.length === 0 || 
           !participantRoles.some(p => p.role === 'organizer'))) {
         try {
-          const { error: insertError } = await supabase
-            .from("comp_participant")
-            .insert({
-              user_id: ctx.userId,
-              comp_id: input.competitionId,
-              role: 'organizer',
-              participation_status: 'active'
-            });
+          const { error: insertError } = await UserDAL.createOrganizerParticipant(
+            supabase,
+            input.competitionId,
+            ctx.userId
+          );
 
           if (insertError) {
             if (process.env.NODE_ENV === 'development') {

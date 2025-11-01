@@ -207,13 +207,7 @@ export default function RegisterPage() {
             {/* Events List - Takes up more space on larger screens */}
             <div className="flex-1">
               <EventsList
-                events={events.map((event) => ({
-                  id: event.id,
-                  name: event.name,
-                  startDate: event.startAt,
-                  endDate: event.endAt,
-                  eventStatus: event.eventStatus,
-                }))}
+                events={events}
                 userRegistrations={
                   userRegistrations?.map((reg) => ({
                     id: reg.id,

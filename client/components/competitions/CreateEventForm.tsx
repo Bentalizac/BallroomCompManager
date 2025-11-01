@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useCreateEvent } from '@/hooks/useCompetitions';
 import { useEventCategories, useRulesets } from '@/hooks/useData';
-import { localInputToUtcIso, utcIsoToLocalInput, getCurrentTimeInZone } from '@/lib/datetime';
+import { localInputToUtcIso, getCurrentTimeInZone } from '@/lib/datetime';
 
 interface CreateEventFormProps {
   competitionId: string;
@@ -26,8 +26,8 @@ export function CreateEventForm({
 }: CreateEventFormProps) {
   const [formData, setFormData] = useState({
     name: '',
-    startAt: '', // datetime-local format in competition timezone
-    endAt: '',   // datetime-local format in competition timezone
+    startDate: '', // datetime-local format in competition timezone
+    endDate: '',   // datetime-local format in competition timezone
     categoryId: '',
     rulesetId: '',
   });
@@ -44,22 +44,22 @@ export function CreateEventForm({
       const currentTime = getCurrentTimeInZone(competitionTimeZone);
       
       // If we have competition start date, use that as default, otherwise use current time
-      let defaultStartAt = currentTime;
+      let defaultStartDate = currentTime;
       if (competitionStartDate) {
         // Convert competition start date to datetime-local format at 9:00 AM in competition timezone
-        defaultStartAt = `${competitionStartDate}T09:00`;
+        defaultStartDate = `${competitionStartDate}T09:00`;
       }
       
       // Default end time is 3 hours after start time
-      let defaultEndAt = currentTime;
+      let defaultEndDate = currentTime;
       if (competitionStartDate) {
-        defaultEndAt = `${competitionStartDate}T17:00`;
+        defaultEndDate = `${competitionStartDate}T17:00`;
       }
       
       setFormData(prev => ({
         ...prev,
-        startAt: defaultStartAt,
-        endAt: defaultEndAt,
+        startDate: defaultStartDate,
+        endDate: defaultEndDate,
       }));
     } catch (error) {
       console.error('Failed to set default times:', error);
@@ -68,8 +68,8 @@ export function CreateEventForm({
       const isoString = now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
       setFormData(prev => ({
         ...prev,
-        startAt: isoString,
-        endAt: isoString,
+        startDate: isoString,
+        endDate: isoString,
       }));
     }
   }, [competitionStartDate, competitionTimeZone]);
@@ -81,20 +81,20 @@ export function CreateEventForm({
       newErrors.name = 'Event name is required';
     }
     
-    if (!formData.startAt) {
-      newErrors.startAt = 'Start time is required';
+    if (!formData.startDate) {
+      newErrors.startDate = 'Start time is required';
     }
     
-    if (!formData.endAt) {
-      newErrors.endAt = 'End time is required';
+    if (!formData.endDate) {
+      newErrors.endDate = 'End time is required';
     }
     
-    if (formData.startAt && formData.endAt) {
-      const startAt = new Date(formData.startAt);
-      const endAt = new Date(formData.endAt);
+    if (formData.startDate && formData.endDate) {
+      const startDate = new Date(formData.startDate);
+      const endDate = new Date(formData.endDate);
       
-      if (startAt >= endAt) {
-        newErrors.endAt = 'End time must be after start time';
+      if (startDate >= endDate) {
+        newErrors.endDate = 'End time must be after start time';
       }
       
       // Check if dates are within competition date range
@@ -103,12 +103,12 @@ export function CreateEventForm({
         const compStart = new Date(`${competitionStartDate}T00:00`);
         const compEnd = new Date(`${competitionEndDate}T23:59`);
         
-        if (startAt < compStart) {
-          newErrors.startAt = 'Event start time cannot be before competition start date';
+        if (startDate < compStart) {
+          newErrors.startDate = 'Event start time cannot be before competition start date';
         }
         
-        if (endAt > compEnd) {
-          newErrors.endAt = 'Event end time cannot be after competition end date';
+        if (endDate > compEnd) {
+          newErrors.endDate = 'Event end time cannot be after competition end date';
         }
       }
     }
@@ -133,15 +133,15 @@ export function CreateEventForm({
     }
 
     try {
-      // Convert local datetime-local inputs to UTC ISO strings
-      const startAtUtc = localInputToUtcIso(formData.startAt, competitionTimeZone);
-      const endAtUtc = localInputToUtcIso(formData.endAt, competitionTimeZone);
+      // Convert local datetime-local inputs to Date objects
+      const startDate = new Date(localInputToUtcIso(formData.startDate, competitionTimeZone));
+      const endDate = new Date(localInputToUtcIso(formData.endDate, competitionTimeZone));
       
       const result = await createEvent.mutateAsync({
         competitionId,
         name: formData.name.trim(),
-        startAt: startAtUtc,
-        endAt: endAtUtc,
+        startDate,
+        endDate,
         categoryId: formData.categoryId,
         rulesetId: formData.rulesetId,
       });
@@ -292,42 +292,42 @@ export function CreateEventForm({
               Competition Time Zone: {competitionTimeZone}
             </h4>
             <p className="text-sm text-blue-700">
-              All event times will be converted to UTC for storage and displayed in the competition's local time.
+              All event times will be converted to UTC for storage and displayed in the competition&apos;s local time.
             </p>
           </div>
 
           {/* DateTime Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="startAt" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
                 Event Start Time *
               </label>
               <input
                 type="datetime-local"
-                id="startAt"
-                value={formData.startAt}
-                onChange={(e) => setFormData(prev => ({ ...prev, startAt: e.target.value }))}
+                id="startDate"
+                value={formData.startDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.startAt ? 'border-red-300' : 'border-gray-300'
+                  errors.startDate ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.startAt && <p className="mt-1 text-sm text-red-600">{errors.startAt}</p>}
+              {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>}
             </div>
 
             <div>
-              <label htmlFor="endAt" className="block text-sm font-medium text-gray-700 mb-2">
+              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
                 Event End Time *
               </label>
               <input
                 type="datetime-local"
-                id="endAt"
-                value={formData.endAt}
-                onChange={(e) => setFormData(prev => ({ ...prev, endAt: e.target.value }))}
+                id="endDate"
+                value={formData.endDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.endAt ? 'border-red-300' : 'border-gray-300'
+                  errors.endDate ? 'border-red-300' : 'border-gray-300'
                 }`}
               />
-              {errors.endAt && <p className="mt-1 text-sm text-red-600">{errors.endAt}</p>}
+              {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
             </div>
           </div>
 

@@ -157,9 +157,9 @@ export default function CreateEventPage() {
     setIsSubmitting(true);
     
     try {
-      // Create ISO datetime strings - use competition dates/times if not using custom schedule
-      let startAt: string;
-      let endAt: string;
+      // Create Date objects - use competition dates/times if not using custom schedule
+      let startDate: Date | null;
+      let endDate: Date | null;
       
       if (formData.useCustomSchedule) {
         // Use the specific dates and times entered by the user
@@ -170,29 +170,19 @@ export default function CreateEventPage() {
           throw new Error("Invalid date or time values");
         }
         
-        startAt = startDateTime.toISOString();
-        endAt = endDateTime.toISOString();
+        startDate = startDateTime;
+        endDate = endDateTime;
       } else {
-        // Use competition dates with default times (will be overridden by scheduling system)
-        const compStartDate = formatDateForInput(competition?.startDate) || new Date().toISOString().split('T')[0];
-        const compEndDate = formatDateForInput(competition?.endDate) || new Date().toISOString().split('T')[0];
-        
-        const startDateTime = new Date(`${compStartDate}T${formData.startTime}`);
-        const endDateTime = new Date(`${compEndDate}T${formData.endTime}`);
-        
-        if (isNaN(startDateTime.getTime()) || isNaN(endDateTime.getTime())) {
-          throw new Error("Invalid competition dates");
-        }
-        
-        startAt = startDateTime.toISOString();
-        endAt = endDateTime.toISOString();
+        // If not using custom schedule, set to null (will be scheduled later)
+        startDate = null;
+        endDate = null;
       }
       
       await createEventMutation.mutateAsync({
         competitionId: competition.id,
         name: formData.name.trim(),
-        startAt,
-        endAt,
+        startDate,
+        endDate,
         categoryId: formData.categoryId,
         rulesetId: formData.rulesetId,
       });

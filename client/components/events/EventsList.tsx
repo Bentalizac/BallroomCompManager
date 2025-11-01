@@ -5,14 +5,26 @@ import { EventCard } from "./EventCard";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Filter, Calendar } from "lucide-react";
+import { CompEvent } from "@ballroom/shared/dist";
 
-interface Event {
-  id: string;
-  name: string;
+type EventStatus = "scheduled" | "current" | "completed" | "cancelled";
 
-  startDate: string;
-  endDate: string;
-  eventStatus: "scheduled" | "current" | "completed" | "cancelled";
+function getEventStatus(event: CompEvent): EventStatus {
+  if (!event.startDate || !event.endDate) {
+    return "scheduled";
+  }
+  
+  const now = Date.now();
+  const start = new Date(event.startDate).getTime();
+  const end = new Date(event.endDate).getTime();
+  
+  if (now < start) {
+    return "scheduled";
+  } else if (now >= start && now <= end) {
+    return "current";
+  } else {
+    return "completed";
+  }
 }
 
 interface UserRegistration {
@@ -23,7 +35,7 @@ interface UserRegistration {
 }
 
 interface EventsListProps {
-  events: Event[];
+  events: CompEvent[];
   userRegistrations?: UserRegistration[];
   onRegister?: (eventId: string) => void; // Simplified - always competitor role
   onCancel?: (registrationId: string) => void;
@@ -63,15 +75,16 @@ export function EventsList({
       const matchesSearch = event.name
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
+      const eventStatus = getEventStatus(event);
       const matchesStatus =
-        statusFilter === "all" || event.eventStatus === statusFilter;
+        statusFilter === "all" || eventStatus === statusFilter;
       return matchesSearch && matchesStatus;
     });
   }, [events, searchTerm, statusFilter]);
 
   // Group events by status for better organization
   const groupedEvents = useMemo(() => {
-    const groups: { [key: string]: Event[] } = {
+    const groups: { [key: string]: CompEvent[] } = {
       scheduled: [],
       current: [],
       completed: [],
@@ -79,15 +92,16 @@ export function EventsList({
     };
 
     filteredEvents.forEach((event) => {
-      groups[event.eventStatus].push(event);
+      const eventStatus = getEventStatus(event);
+      groups[eventStatus].push(event);
     });
 
     // Sort events within each group by date
     Object.keys(groups).forEach((status) => {
-      groups[status].sort(
-        (a, b) =>
-          new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-      );
+      groups[status].sort((a, b) => {
+        if (!a.startDate || !b.startDate) return 0;
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      });
     });
 
     return groups;

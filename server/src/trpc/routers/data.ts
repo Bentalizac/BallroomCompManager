@@ -2,26 +2,13 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, authedProcedure } from "../base";
 import { getSupabaseAnon, getSupabaseUser } from "../../dal/supabase";
+import * as DataDAL from "../../dal/data";
 
 // Data router for supporting entities
 export const dataRouter = router({
   // Get all venues
   getVenues: publicProcedure.query(async () => {
-    const supabase = getSupabaseAnon();
-    if (process.env.NODE_ENV === 'development') console.log("🏢 Fetching venues...");
-
-    const { data: venues, error } = await supabase
-      .from("venue")
-      .select("*")
-      .order("name", { ascending: true });
-
-    if (process.env.NODE_ENV === 'development') {
-      console.log("🏢 Venues query result:", {
-        venues,
-        error,
-        count: venues?.length,
-      });
-    }
+    const { data: venues, error } = await DataDAL.getAllVenues(getSupabaseAnon());
 
     if (error) {
       if (process.env.NODE_ENV === 'development') console.error("Error fetching venues:", error);
@@ -36,11 +23,7 @@ export const dataRouter = router({
 
   // Get all event categories
   getEventCategories: publicProcedure.query(async () => {
-    const supabase = getSupabaseAnon();
-    const { data: categories, error } = await supabase
-      .from("event_categories")
-      .select("*")
-      .order("name", { ascending: true });
+    const { data: categories, error } = await DataDAL.getAllEventCategories(getSupabaseAnon());
 
     if (error) {
       if (process.env.NODE_ENV === 'development') console.error("Error fetching event categories:", error);
@@ -55,20 +38,7 @@ export const dataRouter = router({
 
   // Get all rulesets with scoring methods
   getRulesets: publicProcedure.query(async () => {
-    const supabase = getSupabaseAnon();
-    const { data: rulesets, error } = await supabase
-      .from("rulesets")
-      .select(
-        `
-        *,
-        scoring_methods (
-          id,
-          name,
-          description
-        )
-      `,
-      )
-      .order("name", { ascending: true });
+    const { data: rulesets, error } = await DataDAL.getAllRulesets(getSupabaseAnon());
 
     if (error) {
       if (process.env.NODE_ENV === 'development') console.error("Error fetching rulesets:", error);
@@ -83,11 +53,7 @@ export const dataRouter = router({
 
   // Get all scoring methods
   getScoringMethods: publicProcedure.query(async () => {
-    const supabase = getSupabaseAnon();
-    const { data: scoringMethods, error } = await supabase
-      .from("scoring_methods")
-      .select("*")
-      .order("name", { ascending: true });
+    const { data: scoringMethods, error } = await DataDAL.getAllScoringMethods(getSupabaseAnon());
 
     if (error) {
       if (process.env.NODE_ENV === 'development') console.error("Error fetching scoring methods:", error);
@@ -122,19 +88,15 @@ export const dataRouter = router({
       const supabase = getSupabaseUser(ctx.userToken);
 
       try {
-        const { data: venue, error } = await supabase
-          .from("venue")
-          .insert({
-            name: input.name,
-            street: input.street || null,
-            city: input.city || null,
-            state: input.state || null,
-            postal_code: input.postalCode || null,
-            country: input.country || null,
-            google_maps_url: input.googleMapsUrl || null,
-          })
-          .select()
-          .single();
+        const { data: venue, error } = await DataDAL.createVenue(supabase, {
+          name: input.name,
+          street: input.street || null,
+          city: input.city || null,
+          state: input.state || null,
+          postal_code: input.postalCode || null,
+          country: input.country || null,
+          google_maps_url: input.googleMapsUrl || null,
+        });
 
         if (error || !venue) {
           if (process.env.NODE_ENV === 'development') console.error("Error creating venue:", error);

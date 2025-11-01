@@ -134,25 +134,45 @@ app.get("/export/event/:id/results.csv", async (req, res) => {
 
     // Query results with names
     const supabase = getSupabaseAdmin();
-    const { data, error } = await supabase
-      .from("event_results")
+    
+    // First get all registrations for this event
+    const { data: registrations, error: regError } = await supabase
+      .from("event_registrations")
       .select(
         `
-        *,
-        event_registration (
+        id,
+        event_registration_participants (
+          user_id,
           role,
-          comp_participant (
-            user_id,
-            user_info (
-              firstname,
-              lastname,
-              email
-            )
+          user_info (
+            firstname,
+            lastname,
+            email
           )
         )
       `,
       )
-      .eq("event_registration.event_info_id", eventId)
+      .eq("event_id", eventId);
+
+    if (regError) {
+      console.error("Error fetching registrations:", regError);
+      return res.status(500).json({ error: "Failed to fetch registrations" });
+    }
+
+    // Create a map of registration_id to participants
+    const regMap = new Map();
+    (registrations || []).forEach((reg: any) => {
+      regMap.set(reg.id, reg.event_registration_participants);
+    });
+
+    // Get results
+    const { data, error } = await supabase
+      .from("event_results")
+      .select("*")
+      .in(
+        "event_registration_id",
+        (registrations || []).map((r: any) => r.id),
+      )
       .order("rank", { ascending: true });
 
     if (error) {
@@ -161,17 +181,17 @@ app.get("/export/event/:id/results.csv", async (req, res) => {
     }
 
     // Transform data for CSV
-    const csvData = (data || []).map((result) => ({
-      rank: result.rank,
-      score: result.score,
-      firstName:
-        result.event_registration?.comp_participant?.user_info?.firstname || "",
-      lastName:
-        result.event_registration?.comp_participant?.user_info?.lastname || "",
-      email:
-        result.event_registration?.comp_participant?.user_info?.email || "",
-      role: result.event_registration?.role || "",
-    }));
+    const csvData = (data || []).flatMap((result: any) => {
+      const participants = regMap.get(result.event_registration_id) || [];
+      return participants.map((participant: any) => ({
+        rank: result.rank,
+        score: result.score,
+        firstName: participant.user_info?.firstname || "",
+        lastName: participant.user_info?.lastname || "",
+        email: participant.user_info?.email || "",
+        role: participant.role || "",
+      }));
+    });
 
     // Set CSV headers
     res.setHeader("Content-Type", "text/csv");
@@ -226,29 +246,23 @@ app.get("/export/event/:id/registrations.csv", async (req, res) => {
     // Query registrations with participant info
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase
-      .from("event_registration")
+      .from("event_registrations")
       .select(
         `
         *,
-        comp_participant (
+        event_registration_participants (
+          user_id,
+          role,
           user_info (
             firstname,
             lastname,
             email
           )
-        ),
-        partner:event_registration!partner_id (
-          comp_participant (
-            user_info (
-              firstname,
-              lastname
-            )
-          )
         )
       `,
       )
-      .eq("event_info_id", eventId)
-      .order("registration_status", { ascending: true });
+      .eq("event_id", eventId)
+      .order("status", { ascending: true });
 
     if (error) {
       console.error("Error fetching registrations:", error);
@@ -256,16 +270,19 @@ app.get("/export/event/:id/registrations.csv", async (req, res) => {
     }
 
     // Transform data for CSV
-    const csvData = (data || []).map((reg) => ({
-      firstName: reg.comp_participant?.user_info?.firstname || "",
-      lastName: reg.comp_participant?.user_info?.lastname || "",
-      email: reg.comp_participant?.user_info?.email || "",
-      role: reg.role,
-      status: reg.registration_status,
-      partnerFirstName:
-        reg.partner?.comp_participant?.user_info?.firstname || "",
-      partnerLastName: reg.partner?.comp_participant?.user_info?.lastname || "",
-    }));
+    const csvData = (data || []).flatMap((reg: any) => {
+      if (!reg.event_registration_participants) {
+        return [];
+      }
+      return reg.event_registration_participants.map((participant: any) => ({
+        firstName: participant.user_info?.firstname || "",
+        lastName: participant.user_info?.lastname || "",
+        email: participant.user_info?.email || "",
+        role: participant.role || "",
+        status: reg.status || "",
+        teamName: reg.team_name || "",
+      }));
+    });
 
     // Set CSV headers
     res.setHeader("Content-Type", "text/csv");

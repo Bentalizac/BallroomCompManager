@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
-import type { EventApiType } from "@ballroomcompmanager/shared";
 
 /**
  * Hook for fetching events for a competition
@@ -45,8 +44,8 @@ export function useEventCreate(competitionId?: string) {
   const createEvent = async (eventData: {
     competitionId: string;
     name: string;
-    startAt: string; // ISO 8601 UTC timestamp
-    endAt: string; // ISO 8601 UTC timestamp
+    startDate: Date | null;
+    endDate: Date | null;
     categoryId: string;
     rulesetId: string;
   }) => {
@@ -113,9 +112,8 @@ export function useEventUpdate(competitionId?: string) {
   const updateEvent = async (updateData: {
     id: string;
     name?: string;
-    startAt?: string; // ISO 8601 UTC timestamp
-    endAt?: string; // ISO 8601 UTC timestamp
-    eventStatus?: "scheduled" | "current" | "completed" | "cancelled";
+    startDate?: Date | null;
+    endDate?: Date | null;
   }) => {
     return updateMutation.mutateAsync(updateData);
   };
@@ -123,24 +121,15 @@ export function useEventUpdate(competitionId?: string) {
   // Convenience method for scheduling events
   const scheduleEvent = async (
     eventId: string,
-    startAt: string,
-    endAt: string,
+    startDate: Date,
+    endDate: Date,
   ) => {
-    return updateEvent({ id: eventId, startAt, endAt });
-  };
-
-  // Convenience method for updating event status
-  const updateEventStatus = async (
-    eventId: string,
-    eventStatus: "scheduled" | "current" | "completed" | "cancelled",
-  ) => {
-    return updateEvent({ id: eventId, eventStatus });
+    return updateEvent({ id: eventId, startDate, endDate });
   };
 
   return {
     updateEvent,
     scheduleEvent,
-    updateEventStatus,
     isEventUpdating,
     updateMutation,
   };
@@ -231,7 +220,6 @@ export function useEventManager(competitionId?: string) {
     // Update/Scheduling
     updateEvent: eventUpdate.updateEvent,
     scheduleEvent: eventUpdate.scheduleEvent,
-    updateEventStatus: eventUpdate.updateEventStatus,
     isEventUpdating: eventUpdate.isEventUpdating,
     updateMutation: eventUpdate.updateMutation,
 

@@ -2,35 +2,33 @@
 
 import React, { createContext, useContext } from "react";
 import { useEventManager } from "@/hooks/useEvents";
-import type { EventApiType } from "@ballroomcompmanager/shared";
+import type { CompEvent } from "@ballroomcompmanager/shared";
 
 type EventProviderContextType = {
   // Event data
-  events: EventApiType[] | undefined;
+  events: CompEvent[] | undefined;
   isLoadingEvents: boolean;
-  eventsError: any;
+  eventsError: Error | null;
   refetchEvents: () => void;
   
   // Event management actions
   createEvent: (eventData: {
     competitionId: string;
     name: string;
-    startAt: string;
-    endAt: string;
+    startDate: Date | null;
+    endDate: Date | null;
     categoryId: string;
     rulesetId: string;
-  }) => Promise<EventApiType>;
+  }) => Promise<CompEvent>;
   isCreating: boolean;
   
   updateEvent: (updateData: {
     id: string;
     name?: string;
-    startAt?: string;
-    endAt?: string;
-    eventStatus?: "scheduled" | "current" | "completed" | "cancelled";
-  }) => Promise<EventApiType>;
-  scheduleEvent: (eventId: string, startAt: string, endAt: string) => Promise<EventApiType>;
-  updateEventStatus: (eventId: string, eventStatus: "scheduled" | "current" | "completed" | "cancelled") => Promise<EventApiType>;
+    startDate?: Date | null;
+    endDate?: Date | null;
+  }) => Promise<CompEvent>;
+  scheduleEvent: (eventId: string, startDate: Date, endDate: Date) => Promise<CompEvent>;
   isEventUpdating: (eventId: string) => boolean;
   
   deleteEvent: (eventId: string) => Promise<{ success: boolean }>;
@@ -66,7 +64,6 @@ export const EventProvider: React.FC<EventProviderProps> = ({
     
     updateEvent: eventManager.updateEvent,
     scheduleEvent: eventManager.scheduleEvent,
-    updateEventStatus: eventManager.updateEventStatus,
     isEventUpdating: eventManager.isEventUpdating,
     
     deleteEvent: eventManager.deleteEvent,
@@ -116,12 +113,11 @@ export const useEventCreation = () => {
 
 // Hook for components that need event update functionality (including scheduling)
 export const useEventUpdates = () => {
-  const { updateEvent, scheduleEvent, updateEventStatus, isEventUpdating } = useEvent();
+  const { updateEvent, scheduleEvent, isEventUpdating } = useEvent();
 
   return {
     updateEvent,
     scheduleEvent,
-    updateEventStatus,
     isEventUpdating,
   };
 };
@@ -154,7 +150,6 @@ export const useEventManagement = () => {
     // Updates
     updateEvent: context.updateEvent,
     scheduleEvent: context.scheduleEvent,
-    updateEventStatus: context.updateEventStatus,
     isEventUpdating: context.isEventUpdating,
     
     // Deletion

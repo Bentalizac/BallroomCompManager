@@ -1,16 +1,18 @@
-import { getSupabaseUser } from './supabase';
-import type { Database } from './database.types';
-import type { EventRegistrationApi } from '@ballroomcompmanager/shared';
+import { getSupabaseUser } from "./supabase";
+import type { Database } from "./database.types";
+import type { EventRegistrationApi } from "@ballroomcompmanager/shared";
 
-type EventRegistrations = Database['public']['Tables']['event_registrations']['Row'];
-type EventRegistrationParticipants = Database['public']['Tables']['event_registration_participants']['Row'];
-type CompParticipant = Database['public']['Tables']['comp_participant']['Row'];
+type EventRegistrations =
+  Database["public"]["Tables"]["event_registrations"]["Row"];
+type EventRegistrationParticipants =
+  Database["public"]["Tables"]["event_registration_participants"]["Row"];
+type CompParticipant = Database["public"]["Tables"]["comp_participant"]["Row"];
 
 interface CreateRegistrationInput {
   eventId: string;
   participants: Array<{
     userId: string;
-    role: 'lead' | 'follow' | 'coach' | 'member';
+    role: "lead" | "follow" | "coach" | "member";
   }>;
   teamName?: string;
 }
@@ -20,26 +22,35 @@ interface CreateRegistrationInputWithLegacyRoles {
   eventId: string;
   participants: Array<{
     userId: string;
-    role: 'competitor' | 'judge' | 'scrutineer' | 'lead' | 'follow' | 'coach' | 'member';
+    role:
+      | "competitor"
+      | "judge"
+      | "scrutineer"
+      | "lead"
+      | "follow"
+      | "coach"
+      | "member";
   }>;
   teamName?: string;
 }
 
 // Helper function to map legacy roles to new role system
-const mapLegacyRole = (legacyRole: string): 'lead' | 'follow' | 'coach' | 'member' => {
+const mapLegacyRole = (
+  legacyRole: string,
+): "lead" | "follow" | "coach" | "member" => {
   switch (legacyRole) {
-    case 'competitor':
-      return 'member'; // Default competitor role
-    case 'judge':
-    case 'scrutineer':
-      return 'coach'; // Officials become coaches
-    case 'lead':
-    case 'follow':
-    case 'coach':
-    case 'member':
-      return legacyRole as 'lead' | 'follow' | 'coach' | 'member';
+    case "competitor":
+      return "member"; // Default competitor role
+    case "judge":
+    case "scrutineer":
+      return "coach"; // Officials become coaches
+    case "lead":
+    case "follow":
+    case "coach":
+    case "member":
+      return legacyRole as "lead" | "follow" | "coach" | "member";
     default:
-      return 'member'; // Default fallback
+      return "member"; // Default fallback
   }
 };
 
@@ -50,19 +61,23 @@ const mapLegacyRole = (legacyRole: string): 'lead' | 'follow' | 'coach' | 'membe
 export async function createEventRegistration(
   userToken: string,
   requestingUserId: string,
-  input: CreateRegistrationInputWithLegacyRoles
+  input: CreateRegistrationInputWithLegacyRoles,
 ): Promise<EventRegistrationApi> {
   // Map all participant roles from legacy to new format
   const mappedInput: CreateRegistrationInput = {
     eventId: input.eventId,
     teamName: input.teamName,
-    participants: input.participants.map(p => ({
+    participants: input.participants.map((p) => ({
       userId: p.userId,
-      role: mapLegacyRole(p.role)
-    }))
+      role: mapLegacyRole(p.role),
+    })),
   };
 
-  return createEventRegistrationInternal(userToken, requestingUserId, mappedInput);
+  return createEventRegistrationInternal(
+    userToken,
+    requestingUserId,
+    mappedInput,
+  );
 }
 
 /**
@@ -71,65 +86,79 @@ export async function createEventRegistration(
 async function createEventRegistrationInternal(
   userToken: string,
   requestingUserId: string,
-  input: CreateRegistrationInput
+  input: CreateRegistrationInput,
 ): Promise<EventRegistrationApi> {
   const supabase = getSupabaseUser(userToken);
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🎯 Creating event registration:', {
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("🎯 Creating event registration:", {
       requestingUserId,
       eventId: input.eventId,
       participants: input.participants,
-      teamName: input.teamName
+      teamName: input.teamName,
     });
   }
 
   // 1. Get the event info to find the competition ID
   const { data: eventInfo, error: eventError } = await supabase
-    .from('event_info')
-    .select('id, comp_id, name')
-    .eq('id', input.eventId)
+    .from("event_info")
+    .select("id, comp_id, name")
+    .eq("id", input.eventId)
     .single();
-    
+
   if (eventError || !eventInfo) {
-    console.error('❌ Event not found:', eventError);
+    console.error("❌ Event not found:", eventError);
     throw new Error(`Event not found: ${input.eventId}`);
   }
-  
-  console.log('✅ Found event:', eventInfo.name, 'in competition:', eventInfo.comp_id);
+
+  console.log(
+    "✅ Found event:",
+    eventInfo.name,
+    "in competition:",
+    eventInfo.comp_id,
+  );
 
   // 2. Validate that requesting user is one of the participants
-  const requestingUserInParticipants = input.participants.some(p => p.userId === requestingUserId);
+  const requestingUserInParticipants = input.participants.some(
+    (p) => p.userId === requestingUserId,
+  );
   if (!requestingUserInParticipants) {
-    throw new Error('Requesting user must be one of the participants');
+    throw new Error("Requesting user must be one of the participants");
   }
 
   // 3. Ensure all users exist in user_info and have complete profiles
   const userInfoList = [];
   for (const participant of input.participants) {
     let { data: userInfo, error: userInfoError } = await supabase
-      .from('user_info')
-      .select('id, email, firstname, lastname')
-      .eq('id', participant.userId)
+      .from("user_info")
+      .select("id, email, firstname, lastname")
+      .eq("id", participant.userId)
       .single();
-      
-    if (userInfoError && userInfoError.code !== 'PGRST116') {
-      console.error('❌ Error checking user_info:', userInfoError);
-      throw new Error('Error checking user information');
+
+    if (userInfoError && userInfoError.code !== "PGRST116") {
+      console.error("❌ Error checking user_info:", userInfoError);
+      throw new Error("Error checking user information");
     }
 
     if (!userInfo) {
-      throw new Error(`User ${participant.userId} must complete their profile before registering`);
+      throw new Error(
+        `User ${participant.userId} must complete their profile before registering`,
+      );
     }
 
     // Check if profile is complete
     const missingFields: string[] = [];
-    if (!userInfo.email || userInfo.email.trim() === '') missingFields.push('email');
-    if (!userInfo.firstname || userInfo.firstname.trim() === '') missingFields.push('firstname');
-    if (!userInfo.lastname || userInfo.lastname.trim() === '') missingFields.push('lastname');
-    
+    if (!userInfo.email || userInfo.email.trim() === "")
+      missingFields.push("email");
+    if (!userInfo.firstname || userInfo.firstname.trim() === "")
+      missingFields.push("firstname");
+    if (!userInfo.lastname || userInfo.lastname.trim() === "")
+      missingFields.push("lastname");
+
     if (missingFields.length > 0) {
-      throw new Error(`User ${participant.userId} profile is incomplete. Missing: ${missingFields.join(', ')}`);
+      throw new Error(
+        `User ${participant.userId} profile is incomplete. Missing: ${missingFields.join(", ")}`,
+      );
     }
 
     userInfoList.push(userInfo);
@@ -138,74 +167,99 @@ async function createEventRegistrationInternal(
   // 4. Ensure all users are participants in the competition
   for (const participant of input.participants) {
     let { data: compParticipant, error: participantError } = await supabase
-      .from('comp_participant')
-      .select('id, role, participation_status')
-      .eq('user_id', participant.userId)
-      .eq('comp_id', eventInfo.comp_id)
+      .from("comp_participant")
+      .select("id, role, participation_status")
+      .eq("user_id", participant.userId)
+      .eq("comp_id", eventInfo.comp_id)
       .single();
 
     // If participant doesn't exist, create them
-    if (participantError && participantError.code === 'PGRST116') {
-      console.log(`👥 Creating comp_participant entry for user ${participant.userId}...`);
-      
-      const { data: newParticipant, error: createParticipantError } = await supabase
-        .from('comp_participant')
-        .insert({
-          user_id: participant.userId,
-          comp_id: eventInfo.comp_id,
-          role: 'competitor', // Default to competitor for event registrations
-          participation_status: 'active'
-        })
-        .select()
-        .single();
-        
+    if (participantError && participantError.code === "PGRST116") {
+      console.log(
+        `👥 Creating comp_participant entry for user ${participant.userId}...`,
+      );
+
+      const { data: newParticipant, error: createParticipantError } =
+        await supabase
+          .from("comp_participant")
+          .insert({
+            user_id: participant.userId,
+            comp_id: eventInfo.comp_id,
+            role: "competitor", // Default to competitor for event registrations
+            participation_status: "active",
+          })
+          .select()
+          .single();
+
       if (createParticipantError || !newParticipant) {
-        console.error('❌ Error creating comp_participant:', createParticipantError);
-        throw new Error(`Failed to create participant record for user ${participant.userId}`);
+        console.error(
+          "❌ Error creating comp_participant:",
+          createParticipantError,
+        );
+        throw new Error(
+          `Failed to create participant record for user ${participant.userId}`,
+        );
       }
-      
-      console.log('✅ Created comp_participant:', newParticipant.id);
+
+      console.log("✅ Created comp_participant:", newParticipant.id);
     } else if (participantError) {
-      console.error('❌ Error checking comp_participant:', participantError);
-      throw new Error('Error checking participant status');
+      console.error("❌ Error checking comp_participant:", participantError);
+      throw new Error("Error checking participant status");
     }
   }
 
   // 5. Check if any participant has an ACTIVE registration for this event
   const existingActiveRegistrations = new Map<string, string>();
-  
+
   for (const participant of input.participants) {
-    const { data: existingRegistrations, error: registrationCheckError } = await supabase
-      .from('event_registrations')
-      .select(`
+    const { data: existingRegistrations, error: registrationCheckError } =
+      await supabase
+        .from("event_registrations")
+        .select(
+          `
         id,
         status,
         event_registration_participants!inner (
           user_id
         )
-      `)
-      .eq('event_id', input.eventId)
-      .eq('event_registration_participants.user_id', participant.userId);
-      
+      `,
+        )
+        .eq("event_id", input.eventId)
+        .eq("event_registration_participants.user_id", participant.userId);
+
     if (registrationCheckError) {
-      console.error('❌ Error checking existing registration:', registrationCheckError);
-      throw new Error('Error checking existing registration');
+      console.error(
+        "❌ Error checking existing registration:",
+        registrationCheckError,
+      );
+      throw new Error("Error checking existing registration");
     }
 
     // Check for active registrations only
-    const activeRegistrations = existingRegistrations?.filter(reg => reg.status === 'active') || [];
-    
+    const activeRegistrations =
+      existingRegistrations?.filter((reg) => reg.status === "active") || [];
+
     if (activeRegistrations.length > 0) {
-      console.log(`⚠️  User ${participant.userId} already has an active registration for this event`);
-      throw new Error(`User ${participant.userId} already has an active registration for this event`);
+      console.log(
+        `⚠️  User ${participant.userId} already has an active registration for this event`,
+      );
+      throw new Error(
+        `User ${participant.userId} already has an active registration for this event`,
+      );
     }
-    
+
     // Check for withdrawn registrations - we'll reactivate them instead of creating new ones
-    const withdrawnRegistrations = existingRegistrations?.filter(reg => reg.status === 'withdrawn') || [];
+    const withdrawnRegistrations =
+      existingRegistrations?.filter((reg) => reg.status === "withdrawn") || [];
     if (withdrawnRegistrations.length > 0) {
       // Store the most recent withdrawn registration to potentially reactivate
-      existingActiveRegistrations.set(participant.userId, withdrawnRegistrations[0].id);
-      console.log(`📝 Found withdrawn registration for user ${participant.userId}, will reactivate: ${withdrawnRegistrations[0].id}`);
+      existingActiveRegistrations.set(
+        participant.userId,
+        withdrawnRegistrations[0].id,
+      );
+      console.log(
+        `📝 Found withdrawn registration for user ${participant.userId}, will reactivate: ${withdrawnRegistrations[0].id}`,
+      );
     }
   }
 
@@ -213,29 +267,30 @@ async function createEventRegistrationInternal(
   const withdrawnRegIds = Array.from(existingActiveRegistrations.values());
   if (withdrawnRegIds.length === input.participants.length) {
     // Check if all participants were part of the same registration
-    const uniqueRegIds = [...new Set(withdrawnRegIds)];
+    const uniqueRegIds = Array.from(new Set(withdrawnRegIds));
     if (uniqueRegIds.length === 1) {
       const registrationId = uniqueRegIds[0];
       console.log(`🔄 Reactivating withdrawn registration: ${registrationId}`);
-      
+
       // Reactivate the registration
       const { error: reactivateError } = await supabase
-        .from('event_registrations')
-        .update({ 
-          status: 'active',
-          team_name: input.teamName // Update team name if provided
+        .from("event_registrations")
+        .update({
+          status: "active",
+          team_name: input.teamName, // Update team name if provided
         })
-        .eq('id', registrationId);
-        
+        .eq("id", registrationId);
+
       if (reactivateError) {
-        console.error('❌ Error reactivating registration:', reactivateError);
-        throw new Error('Failed to reactivate registration');
+        console.error("❌ Error reactivating registration:", reactivateError);
+        throw new Error("Failed to reactivate registration");
       }
-      
+
       // Get the reactivated registration with participants
       const { data: reactivatedReg, error: fetchError } = await supabase
-        .from('event_registrations')
-        .select(`
+        .from("event_registrations")
+        .select(
+          `
           *,
           event_registration_participants (
             user_id,
@@ -246,66 +301,73 @@ async function createEventRegistrationInternal(
               email
             )
           )
-        `)
-        .eq('id', registrationId)
+        `,
+        )
+        .eq("id", registrationId)
         .single();
-        
+
       if (fetchError || !reactivatedReg) {
-        console.error('❌ Error fetching reactivated registration:', fetchError);
-        throw new Error('Failed to fetch reactivated registration');
+        console.error(
+          "❌ Error fetching reactivated registration:",
+          fetchError,
+        );
+        throw new Error("Failed to fetch reactivated registration");
       }
-      
-      console.log('🎉 Registration reactivated successfully:', registrationId);
-      
+
+      console.log("🎉 Registration reactivated successfully:", registrationId);
+
       return {
         id: reactivatedReg.id,
         eventId: reactivatedReg.event_id,
         teamName: reactivatedReg.team_name || undefined,
-        status: reactivatedReg.status as 'active' | 'withdrawn' | 'pending',
+        status: reactivatedReg.status as "active" | "withdrawn" | "pending",
         createdAt: reactivatedReg.created_at || new Date().toISOString(),
-        participants: reactivatedReg.event_registration_participants.map(p => ({
-          userId: p.user_id,
-          role: p.role as 'lead' | 'follow' | 'coach' | 'member',
-          userInfo: p.user_info ? {
-            firstname: p.user_info.firstname || '',
-            lastname: p.user_info.lastname || '',
-            email: p.user_info.email || ''
-          } : undefined
-        }))
+        participants: reactivatedReg.event_registration_participants.map(
+          (p) => ({
+            userId: p.user_id,
+            role: p.role as "lead" | "follow" | "coach" | "member",
+            userInfo: p.user_info
+              ? {
+                  firstname: p.user_info.firstname || "",
+                  lastname: p.user_info.lastname || "",
+                  email: p.user_info.email || "",
+                }
+              : undefined,
+          }),
+        ),
       };
     }
   }
 
   // 6. Create the event registration
-  console.log('📝 Creating event registration...');
+  console.log("📝 Creating event registration...");
   const { data: registration, error: registrationError } = await supabase
-    .from('event_registrations')
+    .from("event_registrations")
     .insert({
       event_id: input.eventId,
       team_name: input.teamName,
-      status: 'active'
+      status: "active",
     })
     .select()
     .single();
-    
+
   if (registrationError || !registration) {
-    console.error('❌ Error creating event registration:', registrationError);
-    throw new Error('Failed to create event registration');
+    console.error("❌ Error creating event registration:", registrationError);
+    throw new Error("Failed to create event registration");
   }
 
-  console.log('✅ Event registration created:', registration.id);
+  console.log("✅ Event registration created:", registration.id);
 
   // 7. Add participants to the registration
-  const participantInserts = input.participants.map(participant => ({
+  const participantInserts = input.participants.map((participant) => ({
     registration_id: registration.id,
     user_id: participant.userId,
-    role: participant.role
+    role: participant.role,
   }));
 
   const { data: participants, error: participantsError } = await supabase
-    .from('event_registration_participants')
-    .insert(participantInserts)
-    .select(`
+    .from("event_registration_participants")
+    .insert(participantInserts).select(`
       user_id,
       role,
       user_info (
@@ -314,30 +376,32 @@ async function createEventRegistrationInternal(
         email
       )
     `);
-    
+
   if (participantsError || !participants) {
-    console.error('❌ Error adding participants:', participantsError);
-    throw new Error('Failed to add participants to registration');
+    console.error("❌ Error adding participants:", participantsError);
+    throw new Error("Failed to add participants to registration");
   }
 
-  console.log('🎉 Event registration created successfully:', registration.id);
+  console.log("🎉 Event registration created successfully:", registration.id);
 
   // 8. Return the complete registration with participants
   return {
     id: registration.id,
     eventId: registration.event_id,
     teamName: registration.team_name || undefined,
-    status: registration.status as 'active' | 'withdrawn' | 'pending',
+    status: registration.status as "active" | "withdrawn" | "pending",
     createdAt: registration.created_at || new Date().toISOString(),
-    participants: participants.map(p => ({
+    participants: participants.map((p) => ({
       userId: p.user_id,
-      role: p.role as 'lead' | 'follow' | 'coach' | 'member',
-      userInfo: p.user_info ? {
-        firstname: p.user_info.firstname || '',
-        lastname: p.user_info.lastname || '',
-        email: p.user_info.email || ''
-      } : undefined
-    }))
+      role: p.role as "lead" | "follow" | "coach" | "member",
+      userInfo: p.user_info
+        ? {
+            firstname: p.user_info.firstname || "",
+            lastname: p.user_info.lastname || "",
+            email: p.user_info.email || "",
+          }
+        : undefined,
+    })),
   };
 }
 
@@ -348,61 +412,64 @@ export async function reactivateEventRegistration(
   userToken: string,
   userId: string,
   eventId: string,
-  teamName?: string
+  teamName?: string,
 ): Promise<EventRegistrationApi> {
   const supabase = getSupabaseUser(userToken);
-  
-  if (process.env.NODE_ENV === 'development') {
-    console.log('🔄 Reactivating event registration:', {
+
+  if (process.env.NODE_ENV === "development") {
+    console.log("🔄 Reactivating event registration:", {
       userId,
       eventId,
-      teamName
+      teamName,
     });
   }
 
   // Find the user's withdrawn registration for this event
   const { data: withdrawnRegistrations, error: fetchError } = await supabase
-    .from('event_registrations')
-    .select(`
+    .from("event_registrations")
+    .select(
+      `
       id,
       status,
       event_registration_participants!inner (
         user_id
       )
-    `)
-    .eq('event_id', eventId)
-    .eq('status', 'withdrawn')
-    .eq('event_registration_participants.user_id', userId);
-    
+    `,
+    )
+    .eq("event_id", eventId)
+    .eq("status", "withdrawn")
+    .eq("event_registration_participants.user_id", userId);
+
   if (fetchError) {
-    console.error('❌ Error finding withdrawn registration:', fetchError);
-    throw new Error('Error finding withdrawn registration');
+    console.error("❌ Error finding withdrawn registration:", fetchError);
+    throw new Error("Error finding withdrawn registration");
   }
 
   if (!withdrawnRegistrations || withdrawnRegistrations.length === 0) {
-    throw new Error('No withdrawn registration found to reactivate');
+    throw new Error("No withdrawn registration found to reactivate");
   }
 
   const registrationId = withdrawnRegistrations[0].id;
-  
+
   // Reactivate the registration
   const { error: reactivateError } = await supabase
-    .from('event_registrations')
-    .update({ 
-      status: 'active',
-      ...(teamName && { team_name: teamName })
+    .from("event_registrations")
+    .update({
+      status: "active",
+      ...(teamName && { team_name: teamName }),
     })
-    .eq('id', registrationId);
-    
+    .eq("id", registrationId);
+
   if (reactivateError) {
-    console.error('❌ Error reactivating registration:', reactivateError);
-    throw new Error('Failed to reactivate registration');
+    console.error("❌ Error reactivating registration:", reactivateError);
+    throw new Error("Failed to reactivate registration");
   }
-  
+
   // Get the reactivated registration with participants
   const { data: reactivatedReg, error: finalFetchError } = await supabase
-    .from('event_registrations')
-    .select(`
+    .from("event_registrations")
+    .select(
+      `
       *,
       event_registration_participants (
         user_id,
@@ -413,32 +480,38 @@ export async function reactivateEventRegistration(
           email
         )
       )
-    `)
-    .eq('id', registrationId)
+    `,
+    )
+    .eq("id", registrationId)
     .single();
-    
+
   if (finalFetchError || !reactivatedReg) {
-    console.error('❌ Error fetching reactivated registration:', finalFetchError);
-    throw new Error('Failed to fetch reactivated registration');
+    console.error(
+      "❌ Error fetching reactivated registration:",
+      finalFetchError,
+    );
+    throw new Error("Failed to fetch reactivated registration");
   }
-  
-  console.log('🎉 Registration reactivated successfully:', registrationId);
-  
+
+  console.log("🎉 Registration reactivated successfully:", registrationId);
+
   return {
     id: reactivatedReg.id,
     eventId: reactivatedReg.event_id,
     teamName: reactivatedReg.team_name || undefined,
-    status: reactivatedReg.status as 'active' | 'withdrawn' | 'pending',
+    status: reactivatedReg.status as "active" | "withdrawn" | "pending",
     createdAt: reactivatedReg.created_at || new Date().toISOString(),
-    participants: reactivatedReg.event_registration_participants.map(p => ({
+    participants: reactivatedReg.event_registration_participants.map((p) => ({
       userId: p.user_id,
-      role: p.role as 'lead' | 'follow' | 'coach' | 'member',
-      userInfo: p.user_info ? {
-        firstname: p.user_info.firstname || '',
-        lastname: p.user_info.lastname || '',
-        email: p.user_info.email || ''
-      } : undefined
-    }))
+      role: p.role as "lead" | "follow" | "coach" | "member",
+      userInfo: p.user_info
+        ? {
+            firstname: p.user_info.firstname || "",
+            lastname: p.user_info.lastname || "",
+            email: p.user_info.email || "",
+          }
+        : undefined,
+    })),
   };
 }
 
@@ -448,13 +521,14 @@ export async function reactivateEventRegistration(
 export async function getUserEventRegistrations(
   userToken: string,
   userId: string,
-  competitionId: string
+  competitionId: string,
 ): Promise<EventRegistrationApi[]> {
   const supabase = getSupabaseUser(userToken);
-  
+
   const { data: registrations, error } = await supabase
-    .from('event_registrations')
-    .select(`
+    .from("event_registrations")
+    .select(
+      `
       *,
       event_info!inner (
         id,
@@ -473,31 +547,34 @@ export async function getUserEventRegistrations(
           email
         )
       )
-    `)
-    .eq('event_info.comp_id', competitionId)
-    .eq('event_registration_participants.user_id', userId)
-    .eq('status', 'active'); // Only return active registrations
-    
+    `,
+    )
+    .eq("event_info.comp_id", competitionId)
+    .eq("event_registration_participants.user_id", userId)
+    .eq("status", "active"); // Only return active registrations
+
   if (error) {
-    console.error('Error fetching user registrations:', error);
-    throw new Error('Failed to fetch user registrations');
+    console.error("Error fetching user registrations:", error);
+    throw new Error("Failed to fetch user registrations");
   }
 
-  return (registrations || []).map(reg => ({
+  return (registrations || []).map((reg) => ({
     id: reg.id,
     eventId: reg.event_id,
     teamName: reg.team_name || undefined,
-    status: reg.status as 'active' | 'withdrawn' | 'pending',
+    status: reg.status as "active" | "withdrawn" | "pending",
     createdAt: reg.created_at || new Date().toISOString(),
-    participants: reg.event_registration_participants.map(p => ({
+    participants: reg.event_registration_participants.map((p) => ({
       userId: p.user_id,
-      role: p.role as 'lead' | 'follow' | 'coach' | 'member',
-      userInfo: p.user_info ? {
-        firstname: p.user_info.firstname || '',
-        lastname: p.user_info.lastname || '',
-        email: p.user_info.email || ''
-      } : undefined
-    }))
+      role: p.role as "lead" | "follow" | "coach" | "member",
+      userInfo: p.user_info
+        ? {
+            firstname: p.user_info.firstname || "",
+            lastname: p.user_info.lastname || "",
+            email: p.user_info.email || "",
+          }
+        : undefined,
+    })),
   }));
 }
 
@@ -506,13 +583,14 @@ export async function getUserEventRegistrations(
  */
 export async function getEventRegistrations(
   userToken: string,
-  eventId: string
+  eventId: string,
 ): Promise<EventRegistrationApi[]> {
   const supabase = getSupabaseUser(userToken);
-  
+
   const { data: registrations, error } = await supabase
-    .from('event_registrations')
-    .select(`
+    .from("event_registrations")
+    .select(
+      `
       *,
       event_registration_participants (
         user_id,
@@ -523,68 +601,73 @@ export async function getEventRegistrations(
           email
         )
       )
-    `)
-    .eq('event_id', eventId);
-    
+    `,
+    )
+    .eq("event_id", eventId);
+
   if (error) {
-    console.error('Error fetching event registrations:', error);
-    throw new Error('Failed to fetch event registrations');
+    console.error("Error fetching event registrations:", error);
+    throw new Error("Failed to fetch event registrations");
   }
 
-  return (registrations || []).map(reg => ({
+  return (registrations || []).map((reg) => ({
     id: reg.id,
     eventId: reg.event_id,
     teamName: reg.team_name || undefined,
-    status: reg.status as 'active' | 'withdrawn' | 'pending',
+    status: reg.status as "active" | "withdrawn" | "pending",
     createdAt: reg.created_at || new Date().toISOString(),
-    participants: reg.event_registration_participants.map(p => ({
+    participants: reg.event_registration_participants.map((p) => ({
       userId: p.user_id,
-      role: p.role as 'lead' | 'follow' | 'coach' | 'member',
-      userInfo: p.user_info ? {
-        firstname: p.user_info.firstname || '',
-        lastname: p.user_info.lastname || '',
-        email: p.user_info.email || ''
-      } : undefined
-    }))
+      role: p.role as "lead" | "follow" | "coach" | "member",
+      userInfo: p.user_info
+        ? {
+            firstname: p.user_info.firstname || "",
+            lastname: p.user_info.lastname || "",
+            email: p.user_info.email || "",
+          }
+        : undefined,
+    })),
   }));
 }
 
 /**
- * Cancel/withdraw from an event registration  
+ * Cancel/withdraw from an event registration
  */
 export async function cancelEventRegistration(
   userToken: string,
   userId: string,
-  registrationId: string
+  registrationId: string,
 ): Promise<void> {
   const supabase = getSupabaseUser(userToken);
-  
+
   // First verify the registration exists and the user is a participant
   const { data: registration, error: fetchError } = await supabase
-    .from('event_registrations')
-    .select(`
+    .from("event_registrations")
+    .select(
+      `
       id,
       event_registration_participants!inner (
         user_id
       )
-    `)
-    .eq('id', registrationId)
-    .eq('event_registration_participants.user_id', userId)
+    `,
+    )
+    .eq("id", registrationId)
+    .eq("event_registration_participants.user_id", userId)
     .single();
-    
+
   if (fetchError || !registration) {
-    throw new Error('Registration not found or access denied');
+    throw new Error("Registration not found or access denied");
   }
-  
+
   // Update registration status to withdrawn
   const { error: updateError } = await supabase
-    .from('event_registrations')
-    .update({ status: 'withdrawn' })
-    .eq('id', registrationId);
-    
+    .from("event_registrations")
+    .update({ status: "withdrawn" })
+    .eq("id", registrationId);
+
   if (updateError) {
-    console.error('Error cancelling registration:', updateError);
-    throw new Error('Failed to cancel registration');
+    console.error("Error cancelling registration:", updateError);
+    throw new Error("Failed to cancel registration");
   }
 }
 
@@ -595,54 +678,54 @@ export async function removeParticipantFromRegistration(
   userToken: string,
   requestingUserId: string,
   registrationId: string,
-  userIdToRemove: string
+  userIdToRemove: string,
 ): Promise<void> {
   const supabase = getSupabaseUser(userToken);
-  
+
   // Verify the requesting user is a participant in this registration
   const { data: requestingParticipant, error: requestingError } = await supabase
-    .from('event_registration_participants')
-    .select('user_id')
-    .eq('registration_id', registrationId)
-    .eq('user_id', requestingUserId)
+    .from("event_registration_participants")
+    .select("user_id")
+    .eq("registration_id", registrationId)
+    .eq("user_id", requestingUserId)
     .single();
-    
+
   if (requestingError || !requestingParticipant) {
-    throw new Error('Access denied');
+    throw new Error("Access denied");
   }
-  
+
   // Remove the participant
   const { error: removeError } = await supabase
-    .from('event_registration_participants')
+    .from("event_registration_participants")
     .delete()
-    .eq('registration_id', registrationId)
-    .eq('user_id', userIdToRemove);
-    
+    .eq("registration_id", registrationId)
+    .eq("user_id", userIdToRemove);
+
   if (removeError) {
-    console.error('Error removing participant:', removeError);
-    throw new Error('Failed to remove participant');
+    console.error("Error removing participant:", removeError);
+    throw new Error("Failed to remove participant");
   }
 
   // Check if this was the last participant - if so, delete the registration
   const { data: remainingParticipants, error: remainingError } = await supabase
-    .from('event_registration_participants')
-    .select('user_id')
-    .eq('registration_id', registrationId);
-    
+    .from("event_registration_participants")
+    .select("user_id")
+    .eq("registration_id", registrationId);
+
   if (remainingError) {
-    console.error('Error checking remaining participants:', remainingError);
+    console.error("Error checking remaining participants:", remainingError);
     return; // Don't fail the operation if we can't check
   }
 
   if (!remainingParticipants || remainingParticipants.length === 0) {
     // Delete the registration if no participants remain
     const { error: deleteError } = await supabase
-      .from('event_registrations')
+      .from("event_registrations")
       .delete()
-      .eq('id', registrationId);
-      
+      .eq("id", registrationId);
+
     if (deleteError) {
-      console.error('Error deleting empty registration:', deleteError);
+      console.error("Error deleting empty registration:", deleteError);
       // Don't throw - the participant removal succeeded
     }
   }

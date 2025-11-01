@@ -24,13 +24,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { CompEvent } from "@ballroomcompmanager/shared";
 
-interface EventData {
-  id: string;
-  name: string;
-  startAt: string; // ISO 8601 UTC timestamp
-  endAt: string;   // ISO 8601 UTC timestamp
-  eventStatus: 'scheduled' | 'current' | 'completed' | 'cancelled';
+type EventStatus = 'scheduled' | 'current' | 'completed' | 'cancelled';
+
+function getEventStatus(event: CompEvent): EventStatus {
+  if (!event.startDate || !event.endDate) {
+    return 'scheduled';
+  }
+  
+  const now = Date.now();
+  const start = new Date(event.startDate).getTime();
+  const end = new Date(event.endDate).getTime();
+  
+  if (now < start) {
+    return 'scheduled';
+  } else if (now >= start && now <= end) {
+    return 'current';
+  } else {
+    return 'completed';
+  }
 }
 
 const statusColors = {
@@ -117,7 +130,7 @@ export default function EventsPage() {
     );
   }
 
-  const typedEvents = (events || []) as EventData[];
+  const typedEvents = (events || []) as CompEvent[];
 
   // Filter events based on search term and status
   const filteredEvents = typedEvents.filter((event) => {
@@ -128,9 +141,9 @@ export default function EventsPage() {
 
   // Get stats
   const totalEvents = typedEvents.length;
-  const scheduledEvents = typedEvents.filter(e => e.eventStatus === 'scheduled').length;
-  const currentEvents = typedEvents.filter(e => e.eventStatus === 'current').length;
-  const completedEvents = typedEvents.filter(e => e.eventStatus === 'completed').length;
+  const scheduledEvents = typedEvents.filter(e => getEventStatus(e) === 'scheduled').length;
+  const currentEvents = typedEvents.filter(e => getEventStatus(e) === 'current').length;
+  const completedEvents = typedEvents.filter(e => getEventStatus(e) === 'completed').length;
 
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-6">
@@ -262,8 +275,8 @@ export default function EventsPage() {
                           <h4 className="text-lg font-semibold text-gray-900 mb-1">
                             {event.name}
                           </h4>
-                          <Badge className={statusColors[event.eventStatus]}>
-                            {statusLabels[event.eventStatus]}
+                          <Badge className={statusColors[getEventStatus(event)]}>
+                            {statusLabels[getEventStatus(event)]}
                           </Badge>
                         </div>
                         
@@ -297,14 +310,22 @@ export default function EventsPage() {
                         <div className="flex items-center gap-2">
                           <Calendar className="h-4 w-4" />
                           <span>
-                            {formatDate(event.startAt)} - {formatDate(event.endAt)}
+                            {event.startDate && event.endDate ? (
+                              `${formatDate(event.startDate.toString())} - ${formatDate(event.endDate.toString())}`
+                            ) : (
+                              'TBD'
+                            )}
                           </span>
                         </div>
                         
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4" />
                           <span>
-                            {formatTime(event.startAt)} - {formatTime(event.endAt)}
+                            {event.startDate && event.endDate ? (
+                              `${formatTime(event.startDate.toString())} - ${formatTime(event.endDate.toString())}`
+                            ) : (
+                              'TBD'
+                            )}
                           </span>
                         </div>
                       </div>

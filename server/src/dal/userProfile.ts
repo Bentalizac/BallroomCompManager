@@ -26,7 +26,7 @@ export async function getUserProfile(
   
   const { data: userInfo, error } = await supabase
     .from('user_info')
-    .select('id, role, email, firstname, lastname, created_at')
+    .select('id, role, email, firstname, lastname, created_at, created_by, is_stub, ndca_number')
     .eq('id', userId)
     .single();
     
@@ -60,7 +60,7 @@ export async function updateUserProfile(
       lastname: updates.lastname
     })
     .eq('id', userId)
-    .select('id, role, email, firstname, lastname, created_at')
+    .select('id, role, email, firstname, lastname, created_at, created_by, is_stub, ndca_number')
     .single();
     
   if (error) {

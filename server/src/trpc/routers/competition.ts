@@ -2,42 +2,19 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, authedProcedure } from "../base";
 import { getSupabaseAnon, getSupabaseUser } from "../../dal/supabase";
-import { CompetitionApi, EventApi, generateCompetitionSlug } from "@ballroomcompmanager/shared";
-import { mapCompetitionRowToDTO, mapEventRowToDTO } from "../mappers";
+import {
+  CompetitionApi,
+  generateCompetitionSlug,
+} from "@ballroomcompmanager/shared";
+import { mapCompetitionRowToDTO, mapEventRowToCompEvent } from "../../mappers";
 import { getCompetitionSchema } from "../schemas";
+import * as CompetitionDAL from "../../dal/competition";
 
 export const competitionRouter = router({
   // Get all competitions
   getAll: publicProcedure.query(async () => {
-    const supabase = getSupabaseAnon();
-    const { data: competitions, error } = await supabase
-      .from("comp_info")
-      .select(
-        `
-        id,
-        slug,
-        name,
-        start_date,
-        end_date,
-        time_zone,
-        venue:venue_id (
-          id,
-          name,
-          city,
-          state
-        ),
-        events:event_info (
-          id,
-          name,
-          start_date,
-          end_date,
-          event_status,
-          comp_id,
-          category_ruleset_id
-        )
-      `,
-      )
-      .order("start_date", { ascending: true });
+    const { data: competitions, error } =
+      await CompetitionDAL.getAllCompetitions(getSupabaseAnon());
 
     if (error) {
       if (process.env.NODE_ENV === "development")
@@ -48,7 +25,6 @@ export const competitionRouter = router({
       });
     }
 
-    // Check that we have valid data and not error objects
     if (!competitions || !Array.isArray(competitions)) {
       throw new TRPCError({
         code: "INTERNAL_SERVER_ERROR",
@@ -56,47 +32,17 @@ export const competitionRouter = router({
       });
     }
 
-    // Map DB rows to DTOs
-    const mapped = competitions.map(mapCompetitionRowToDTO);
-
-    // Validate with zod schema
-    return z.array(CompetitionApi).parse(mapped);
+    return z
+      .array(CompetitionApi)
+      .parse(competitions.map(mapCompetitionRowToDTO));
   }),
 
   // Get competition by ID
   getById: publicProcedure
     .input(getCompetitionSchema)
     .query(async ({ input }) => {
-      const supabase = getSupabaseAnon();
-      const { data: competition, error } = await supabase
-        .from("comp_info")
-        .select(
-          `
-          id,
-          slug,
-          name,
-          start_date,
-          end_date,
-          time_zone,
-          venue:venue_id (
-            id,
-            name,
-            city,
-            state
-          ),
-          events:event_info (
-            id,
-            name,
-            start_date,
-            end_date,
-            event_status,
-            comp_id,
-            category_ruleset_id
-          )
-        `,
-        )
-        .eq("id", input.id)
-        .single();
+      const { data: competition, error } =
+        await CompetitionDAL.getCompetitionById(getSupabaseAnon(), input.id);
 
       if (error && error.code !== "PGRST116") {
         if (process.env.NODE_ENV === "development")
@@ -115,45 +61,18 @@ export const competitionRouter = router({
         return null;
       }
 
-      // Map DB row to DTO and validate
-      const mapped = mapCompetitionRowToDTO(competition);
-      return CompetitionApi.parse(mapped);
+      return CompetitionApi.parse(mapCompetitionRowToDTO(competition));
     }),
 
   // Get competition by slug
   getBySlug: publicProcedure
     .input(z.object({ slug: z.string() }))
     .query(async ({ input }) => {
-      const supabase = getSupabaseAnon();
-      const { data: competition, error } = await supabase
-        .from("comp_info")
-        .select(
-          `
-          id,
-          slug,
-          name,
-          start_date,
-          end_date,
-          time_zone,
-          venue:venue_id (
-            id,
-            name,
-            city,
-            state
-          ),
-          events:event_info (
-            id,
-            name,
-            start_date,
-            end_date,
-            event_status,
-            comp_id,
-            category_ruleset_id
-          )
-        `,
-        )
-        .eq("slug", input.slug)
-        .single();
+      const { data: competition, error } =
+        await CompetitionDAL.getCompetitionBySlug(
+          getSupabaseAnon(),
+          input.slug,
+        );
 
       if (error && error.code !== "PGRST116") {
         if (process.env.NODE_ENV === "development")
@@ -172,48 +91,17 @@ export const competitionRouter = router({
         return null;
       }
 
-      // Map DB row to DTO and validate
-      const mapped = mapCompetitionRowToDTO(competition);
-      return CompetitionApi.parse(mapped);
+      return CompetitionApi.parse(mapCompetitionRowToDTO(competition));
     }),
 
   // Get events for a competition
   getEvents: publicProcedure
     .input(z.object({ competitionId: z.string() }))
     .query(async ({ input }) => {
-      const supabase = getSupabaseAnon();
-
-      // First get competition time zone
-      const { data: comp, error: compError } = await supabase
-        .from("comp_info")
-        .select("time_zone")
-        .eq("id", input.competitionId)
-        .single();
-
-      if (compError || !comp) {
-        if (process.env.NODE_ENV === "development")
-          console.error("Error fetching competition:", compError);
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Competition not found",
-        });
-      }
-
-      const { data: events, error } = await supabase
-        .from("event_info")
-        .select(
-          `
-          id,
-          name,
-          start_date,
-          end_date,
-          event_status,
-          comp_id,
-          category_ruleset_id
-        `,
-        )
-        .eq("comp_id", input.competitionId)
-        .order("start_date", { ascending: true });
+      const { data: events, error } = await CompetitionDAL.getCompetitionEvents(
+        getSupabaseAnon(),
+        input.competitionId,
+      );
 
       if (error) {
         if (process.env.NODE_ENV === "development")
@@ -224,7 +112,6 @@ export const competitionRouter = router({
         });
       }
 
-      // Check that we have valid data and not error objects
       if (!events || !Array.isArray(events)) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
@@ -232,45 +119,18 @@ export const competitionRouter = router({
         });
       }
 
-      // Map DB rows to DTOs with competition time zone
-      const mapped = events.map((event) =>
-        mapEventRowToDTO(event, comp.time_zone),
-      );
-
-      // Validate with zod schema
-      return z.array(EventApi).parse(mapped);
+      return events.map(mapEventRowToCompEvent);
     }),
 
   // Get all event registrations for a competition (admin/organizer use)
   getEventRegistrations: publicProcedure
     .input(z.object({ competitionId: z.string() }))
     .query(async ({ input }) => {
-      const supabase = getSupabaseAnon();
-      const { data: registrations, error } = await supabase
-        .from("event_registration")
-        .select(
-          `
-          id,
-          role,
-          registration_status,
-          event_info!inner (
-            id,
-            name,
-            comp_id
-          ),
-          comp_participant (
-            id,
-            user_info (
-              id,
-              firstname,
-              lastname,
-              email
-            )
-          )
-        `,
-        )
-        .eq("event_info.comp_id", input.competitionId)
-        .order("event_info.start_date", { ascending: true });
+      const { data: registrations, error } =
+        await CompetitionDAL.getCompetitionEventRegistrations(
+          getSupabaseAnon(),
+          input.competitionId,
+        );
 
       if (error) {
         if (process.env.NODE_ENV === "development")
@@ -288,28 +148,12 @@ export const competitionRouter = router({
   getUserRegistration: publicProcedure
     .input(z.object({ competitionId: z.string(), userId: z.string() }))
     .query(async ({ input }) => {
-      const supabase = getSupabaseAnon();
-      const { data: registration, error } = await supabase
-        .from("comp_participant")
-        .select(
-          `
-          user_id,
-          role,
-          participation_status,
-          created_at,
-          user_info!comp_participant_user_id_fkey (
-            id,
-            firstname,
-            lastname,
-            email,
-            role,
-            created_at
-          )
-          `,
-        )
-        .eq("comp_id", input.competitionId)
-        .eq("user_id", input.userId)
-        .single();
+      const { data: registration, error } =
+        await CompetitionDAL.getUserCompetitionRegistration(
+          getSupabaseAnon(),
+          input.competitionId,
+          input.userId,
+        );
 
       if (error && error.code !== "PGRST116") {
         if (process.env.NODE_ENV === "development")
@@ -326,27 +170,11 @@ export const competitionRouter = router({
   getRegistrations: publicProcedure
     .input(z.object({ competitionId: z.string() }))
     .query(async ({ input }) => {
-      const supabase = getSupabaseAnon();
-      const { data: registrations, error } = await supabase
-        .from("comp_participant")
-        .select(
-          `
-          user_id,
-          role,
-          participation_status,
-          created_at,
-          user_info!comp_participant_user_id_fkey (
-            id,
-            firstname,
-            lastname,
-            email,
-            role,
-            created_at
-          )
-          `,
-        )
-        .eq("comp_id", input.competitionId)
-        .order("role", { ascending: true });
+      const { data: registrations, error } =
+        await CompetitionDAL.getCompetitionRegistrations(
+          getSupabaseAnon(),
+          input.competitionId,
+        );
 
       if (error) {
         if (process.env.NODE_ENV === "development")
@@ -393,8 +221,11 @@ export const competitionRouter = router({
 
       try {
         // Generate slug for competition
-        const slug = generateCompetitionSlug(input.name, new Date(input.startDate));
-        
+        const slug = generateCompetitionSlug(
+          input.name,
+          new Date(input.startDate),
+        );
+
         // Create competition
         if (process.env.NODE_ENV === "development")
           console.log("🎯 Creating competition with data:", {
@@ -406,18 +237,15 @@ export const competitionRouter = router({
             userId: ctx.userId,
           });
 
-        const { data: competition, error: compError } = await supabase
-          .from("comp_info")
-          .insert({
+        const { data: competition, error: compError } =
+          await CompetitionDAL.createCompetition(supabase, {
             name: input.name,
             slug: slug,
             start_date: input.startDate,
             end_date: input.endDate,
             time_zone: input.timeZone,
             venue_id: input.venueId || null,
-          })
-          .select("id, slug, name, start_date, end_date, time_zone, venue_id")
-          .single();
+          });
 
         if (process.env.NODE_ENV === "development")
           console.log("🎯 Competition creation result:", {
@@ -441,14 +269,13 @@ export const competitionRouter = router({
         }
 
         // Make user a participant organizer
-        const { error: participantError } = await supabase
-          .from("comp_participant")
-          .insert({
-            user_id: ctx.userId,
-            comp_id: competition.id,
-            role: "organizer",
-            participation_status: "active",
-          });
+        const { error: participantError } =
+          await CompetitionDAL.createCompetitionParticipant(
+            supabase,
+            competition.id,
+            ctx.userId,
+            "organizer",
+          );
 
         if (participantError) {
           if (process.env.NODE_ENV === "development")
@@ -460,12 +287,12 @@ export const competitionRouter = router({
         }
 
         // Make user a competition admin
-        const { error: adminError } = await supabase
-          .from("competition_admins")
-          .insert({
-            user_id: ctx.userId,
-            comp_id: competition.id,
-          });
+        const { error: adminError } =
+          await CompetitionDAL.createCompetitionAdmin(
+            supabase,
+            competition.id,
+            ctx.userId,
+          );
 
         if (adminError) {
           if (process.env.NODE_ENV === "development")
@@ -521,12 +348,8 @@ export const competitionRouter = router({
       const supabase = getSupabaseUser(ctx.userToken);
 
       // Check if user is admin of this competition
-      const { data: adminCheck, error: adminError } = await supabase
-        .from("competition_admins")
-        .select("id")
-        .eq("comp_id", input.id)
-        .eq("user_id", ctx.userId)
-        .single();
+      const { data: adminCheck, error: adminError } =
+        await CompetitionDAL.isCompetitionAdmin(supabase, input.id, ctx.userId);
 
       if (adminError || !adminCheck) {
         throw new TRPCError({
@@ -548,19 +371,25 @@ export const competitionRouter = router({
       }
 
       try {
-        const updateData: any = {};
+        const updateData: Partial<{
+          name: string;
+          start_date: string;
+          end_date: string;
+          time_zone: string;
+          venue_id: string | null;
+        }> = {};
         if (input.name) updateData.name = input.name;
         if (input.startDate) updateData.start_date = input.startDate;
         if (input.endDate) updateData.end_date = input.endDate;
         if (input.timeZone) updateData.time_zone = input.timeZone;
         if (input.venueId !== undefined) updateData.venue_id = input.venueId;
 
-        const { data: competition, error } = await supabase
-          .from("comp_info")
-          .update(updateData)
-          .eq("id", input.id)
-          .select()
-          .single();
+        const { data: competition, error } =
+          await CompetitionDAL.updateCompetition(
+            supabase,
+            input.id,
+            updateData,
+          );
 
         if (error || !competition) {
           if (process.env.NODE_ENV === "development")
@@ -603,12 +432,8 @@ export const competitionRouter = router({
       const supabase = getSupabaseUser(ctx.userToken);
 
       // Check if user is admin of this competition
-      const { data: adminCheck, error: adminError } = await supabase
-        .from("competition_admins")
-        .select("id")
-        .eq("comp_id", input.id)
-        .eq("user_id", ctx.userId)
-        .single();
+      const { data: adminCheck, error: adminError } =
+        await CompetitionDAL.isCompetitionAdmin(supabase, input.id, ctx.userId);
 
       if (adminError || !adminCheck) {
         throw new TRPCError({
@@ -618,10 +443,10 @@ export const competitionRouter = router({
       }
 
       try {
-        const { error } = await supabase
-          .from("comp_info")
-          .delete()
-          .eq("id", input.id);
+        const { error } = await CompetitionDAL.deleteCompetition(
+          supabase,
+          input.id,
+        );
 
         if (error) {
           if (process.env.NODE_ENV === "development")

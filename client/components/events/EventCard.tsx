@@ -1,27 +1,13 @@
 "use client";
 
-import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import {
-  Calendar,
-  Clock,
-  Users,
-  MapPin,
-  CheckCircle,
-  AlertCircle,
-} from "lucide-react";
+import { Calendar, Clock, Users, CheckCircle, AlertCircle } from "lucide-react";
+import { CompEvent } from "@ballroom/shared/dist";
 
 interface EventCardProps {
-  event: {
-    id: string;
-    name: string;
-
-    startDate: string;
-    endDate: string;
-    eventStatus: "scheduled" | "current" | "completed" | "cancelled";
-  };
+  event: CompEvent;
   userRegistration?: {
     id: string;
     role: string;
@@ -34,19 +20,19 @@ interface EventCardProps {
   showRegistration?: boolean;
 }
 
-const statusColors = {
+const statusColors: Record<string, string> = {
   scheduled: "bg-blue-100 text-blue-800 border-blue-200",
   current: "bg-green-100 text-green-800 border-green-200",
   completed: "bg-gray-100 text-gray-800 border-gray-200",
   cancelled: "bg-red-100 text-red-800 border-red-200",
-} as const;
+};
 
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   scheduled: "Scheduled",
   current: "In Progress",
   completed: "Completed",
   cancelled: "Cancelled",
-} as const;
+};
 
 export function EventCard({
   event,
@@ -75,20 +61,40 @@ export function EventCard({
     });
   };
 
-  const canRegister = event.eventStatus === "scheduled" && !userRegistration;
+  const getEventStatus = () => {
+    if (!event.startDate || !event.endDate) {
+      return "scheduled";
+    }
+
+    const now = Date.now();
+    const start = new Date(event.startDate).getTime();
+    const end = new Date(event.endDate).getTime();
+
+    if (now < start) {
+      return "scheduled";
+    } else if (now >= start && now <= end) {
+      return "current";
+    } else {
+      return "completed";
+    }
+  };
+
+  const eventStatus = getEventStatus();
+  const canRegister = eventStatus === "scheduled" && !userRegistration;
+
   const canCancel =
     userRegistration && userRegistration.registrationStatus === "active";
-
+  console.log(event);
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader>
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-lg font-semibold text-gray-900 mb-2">
-              {event.name}
+              {event.name} - {event.category}
             </CardTitle>
-            <Badge className={statusColors[event.eventStatus]}>
-              {statusLabels[event.eventStatus]}
+            <Badge className={statusColors[eventStatus]}>
+              {statusLabels[eventStatus]}
             </Badge>
           </div>
 
@@ -109,16 +115,18 @@ export function EventCard({
           <div className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             <span>
-              {formatDate(event.startDate)}
-              {event.startDate !== event.endDate &&
-                ` - ${formatDate(event.endDate)}`}
+              {event.startDate && formatDate(event.startDate.toString())}
+              {event.endDate &&
+                event.startDate !== event.endDate &&
+                ` - ${formatDate(event.endDate.toString())}`}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
             <span>
-              {formatTime(event.startDate)} - {formatTime(event.endDate)}
+              {event.startDate &&
+                formatTime(formatDate(event.startDate.toString()))}
             </span>
           </div>
         </div>
@@ -152,7 +160,7 @@ export function EventCard({
               <div className="space-y-3">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <AlertCircle className="h-4 w-4" />
-                  <span>You're registered for this event</span>
+                  <span>You&apos;re registered for this event</span>
                 </div>
 
                 <Button
@@ -173,16 +181,14 @@ export function EventCard({
               </div>
             )}
 
-            {!canRegister &&
-              !canCancel &&
-              event.eventStatus === "scheduled" && (
-                <div className="text-center text-gray-500 text-sm">
-                  <AlertCircle className="h-4 w-4 mx-auto mb-1" />
-                  Registration not available
-                </div>
-              )}
+            {!canRegister && !canCancel && eventStatus === "scheduled" && (
+              <div className="text-center text-gray-500 text-sm">
+                <AlertCircle className="h-4 w-4 mx-auto mb-1" />
+                Registration not available
+              </div>
+            )}
 
-            {event.eventStatus !== "scheduled" && (
+            {eventStatus !== "scheduled" && (
               <div className="text-center text-gray-500 text-sm">
                 <AlertCircle className="h-4 w-4 mx-auto mb-1" />
                 Registration closed
