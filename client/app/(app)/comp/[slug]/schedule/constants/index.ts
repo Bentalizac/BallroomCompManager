@@ -11,6 +11,8 @@ export type TimeSettings = {
   START_TIME: number; // minutes from midnight
   END_TIME: number; // minutes from midnight
   TIME_GAP_INTERVAL: number; // gap in minutes per line
+  RESIZE_STEP_MINUTES: number; // snap step for resizing items
+  DROP_SNAP_MINUTES: number; // snap step when dropping/moving items
 };
 
 // Derived settings that are calculated from user settings
@@ -33,7 +35,9 @@ export const DEFAULT_LAYOUT_SETTINGS: LayoutSettings = {
 export const DEFAULT_TIME_SETTINGS: TimeSettings = {
   START_TIME: 480, // 8:00 AM
   END_TIME: 1320,  // 10:00 PM
-  TIME_GAP_INTERVAL: 15 // 15 minutes per line
+  TIME_GAP_INTERVAL: 15, // 15 minutes per line
+  RESIZE_STEP_MINUTES: 5,
+  DROP_SNAP_MINUTES: 5
 };
 
 // Function to calculate derived time settings
@@ -89,6 +93,8 @@ export const TIME_CONSTANTS = {
   get LINE_INTERVAL() { return getCurrentTimeSettings().TIME_GAP_INTERVAL; },
   get LINES_PER_HOUR() { return getCurrentTimeSettings().LINES_PER_HOUR; },
   get TOTAL_LINES() { return getCurrentTimeSettings().TOTAL_LINES; },
+  get RESIZE_STEP() { return getCurrentTimeSettings().RESIZE_STEP_MINUTES; },
+  get DROP_SNAP() { return getCurrentTimeSettings().DROP_SNAP_MINUTES; },
   // Legacy aliases
   get SLOT_INTERVAL() { return getCurrentTimeSettings().TIME_GAP_INTERVAL; },
   get PIXELS_PER_SLOT() { return getCurrentLayoutSettings().GRID_SLOT_HEIGHT; },

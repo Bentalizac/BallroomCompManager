@@ -1,5 +1,5 @@
 import { TIME_CONSTANTS } from '../constants';
-import { pixelsToMinutes, roundToNearestSlot, clampTimeToSchedule } from './timeUtils';
+import { pixelsToMinutes, clampTimeToSchedule } from './timeUtils';
 
 /**
  * Calculate time slot from drop position
@@ -14,8 +14,8 @@ export function calculateTimeSlotFromPosition(
   const minutesFromStart = pixelsToMinutes(relativeY);
   const calculatedTime = TIME_CONSTANTS.START_TIME + minutesFromStart;
   
-  // Round to nearest slot and clamp to schedule bounds
-  const timeSlot = roundToNearestSlot(calculatedTime);
+  // Snap to desired drop increment (configurable) regardless of grid interval
+  const timeSlot = Math.round(calculatedTime / TIME_CONSTANTS.DROP_SNAP) * TIME_CONSTANTS.DROP_SNAP;
   return clampTimeToSchedule(timeSlot);
 }
 

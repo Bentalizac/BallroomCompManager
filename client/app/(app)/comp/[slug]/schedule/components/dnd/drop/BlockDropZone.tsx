@@ -19,9 +19,12 @@ type DropItem = {
 
 export interface BlockDropZoneProps {
   block: Block;
-  children?: React.ReactNode;
+  children?: React.ReactNode | ((ctx: { isOver: boolean }) => React.ReactNode);
   className?: string;
   style?: React.CSSProperties;
+  // Constrain the internal events list between header and resize handle
+  eventsAreaTopPx?: number;    // distance from top in pixels
+  eventsAreaBottomPx?: number; // distance from bottom in pixels
 }
 
 export function BlockDropZone({
@@ -29,6 +32,8 @@ export function BlockDropZone({
   children,
   className = '',
   style,
+  eventsAreaTopPx = 20,    // ~top-5 (1.25rem)
+  eventsAreaBottomPx = 16, // ~bottom-4 (1rem)
 }: BlockDropZoneProps) {
   const dropZoneRef = useRef<HTMLDivElement>(null);
   const schedule = useScheduleState();
@@ -120,16 +125,26 @@ export function BlockDropZone({
       className={`relative h-full ${isOver ? 'ring-2 ring-blue-300' : ''} ${className}`}
       style={style}
     >
-      {children}
-      {/* Basic inline display of events inside this block */}
+      {typeof children === 'function' ? (children as (ctx: { isOver: boolean }) => React.ReactNode)({ isOver }) : children}
+      {/* Inline display of events constrained to the inner area (scrollable) */}
       {Array.isArray(block.eventIds) && block.eventIds.length > 0 && (
-        <div className="absolute left-1 bottom-1 right-1 p-1 rounded space-y-1 overflow-auto max-h-full text-white" style={{ zIndex: 5 }}>
+        <div
+          className="absolute rounded space-y-1 overflow-auto text-white"
+          style={{
+            left: 4,
+            right: 4,
+            top: eventsAreaTopPx,
+            bottom: eventsAreaBottomPx,
+            padding: 4,
+            zIndex: 2,
+          }}
+        >
           {block.eventIds.map((id) => {
             const ev = schedule.events.find(e => e.id === id);
             if (!ev) return null;
             return (
               <div key={id} className="shrink-0">
-                <DraggableEvent event={ev} colorOverride="#4f165d" />
+                <DraggableEvent event={ev} />
               </div>
             );
           })}
