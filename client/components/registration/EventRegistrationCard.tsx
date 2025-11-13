@@ -8,7 +8,16 @@ import {
 import { EntryType } from "@ballroom/shared/dist/data/enums/eventTypes";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader } from "../ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
 import { Users, UserPlus, X } from "lucide-react";
+import { useState } from "react";
 
 /**
  * Props for the EventRegistrationCard component.
@@ -66,6 +75,8 @@ export function EventRegistrationCard(props: EventRegistrationCardProps) {
     onRemoveParticipant,
     onWithdraw,
   } = props;
+
+  const [isAddParticipantOpen, setIsAddParticipantOpen] = useState(false);
 
   const requiredParticipants = getRequiredParticipants(entryType);
   const needsMoreParticipants = participants.length < requiredParticipants;
@@ -146,15 +157,32 @@ export function EventRegistrationCard(props: EventRegistrationCardProps) {
 
         {/* Add Participant Button */}
         {needsMoreParticipants && onAddParticipant && (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={onAddParticipant}
-            className="w-full text-xs"
-          >
-            <UserPlus className="h-3 w-3 mr-1" />
-            Add Participant ({participants.length}/{requiredParticipants})
-          </Button>
+          <Dialog open={isAddParticipantOpen} onOpenChange={setIsAddParticipantOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs"
+              >
+                <UserPlus className="h-3 w-3 mr-1" />
+                Add Participant ({participants.length}/{requiredParticipants})
+              </Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Participant</DialogTitle>
+                <DialogDescription>
+                  Add a participant to this {getEntryTypeLabel(entryType).toLowerCase()} registration for {event.name}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="py-4">
+                <p className="text-sm text-gray-500">
+                  TODO: Implement participant selection/search interface
+                </p>
+                {/* TODO: Add participant search/selection UI here */}
+              </div>
+            </DialogContent>
+          </Dialog>
         )}
 
         {/* Warning if incomplete */}

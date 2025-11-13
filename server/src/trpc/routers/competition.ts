@@ -6,15 +6,17 @@ import {
   CompetitionApi,
   generateCompetitionSlug,
 } from "@ballroomcompmanager/shared";
-import { mapCompetitionRowToDTO, mapEventRowToCompEvent } from "../../mappers";
+import { mapCompetitionRowToDTO } from "../../mappers";
 import { getCompetitionSchema } from "../schemas";
 import * as CompetitionDAL from "../../dal/competition";
+import { mapEventRowEnrichedToCompEvent } from "../../mappers/eventMapper";
 
 export const competitionRouter = router({
   // Get all competitions
   getAll: publicProcedure.query(async () => {
     const { data: competitions, error } =
       await CompetitionDAL.getAllCompetitions(getSupabaseAnon());
+    console.log(competitions, " \nERROR: ", error);
 
     if (error) {
       if (process.env.NODE_ENV === "development")
@@ -31,10 +33,10 @@ export const competitionRouter = router({
         message: "Invalid data structure returned from database",
       });
     }
-
-    return z
+    var res = z
       .array(CompetitionApi)
       .parse(competitions.map(mapCompetitionRowToDTO));
+    return res;
   }),
 
   // Get competition by ID
@@ -119,7 +121,7 @@ export const competitionRouter = router({
         });
       }
 
-      return events.map(mapEventRowToCompEvent);
+      return events.map(mapEventRowEnrichedToCompEvent);
     }),
 
   // Get all event registrations for a competition (admin/organizer use)

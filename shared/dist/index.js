@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractYearFromSlug = exports.extractNameFromSlug = exports.isValidCompetitionSlug = exports.generateCompetitionSlugWithSuffix = exports.generateCompetitionSlug = exports.getEventInfoSchema = exports.createEventSchema = exports.getCompetitionInfoSchema = exports.createCompetitionSchema = exports.registerForCompSchema = exports.CompetitionApi = exports.EventApi = exports.VenueApi = exports.EventStatus = exports.mockParticipants = exports.mockBallroomCompetitors = exports.mockUsers = exports.RoundLevel = exports.EventType = exports.EntryType = exports.EventRoles = exports.CompRoles = exports.ScoringMethods = exports.CompetitionRole = void 0;
+exports.extractYearFromSlug = exports.extractNameFromSlug = exports.isValidCompetitionSlug = exports.generateCompetitionSlugWithSuffix = exports.generateCompetitionSlug = exports.getEventInfoSchema = exports.createEventSchema = exports.getCompetitionInfoSchema = exports.createCompetitionSchema = exports.registerForCompSchema = exports.CompetitionApi = exports.EventApi = exports.VenueApi = exports.EventStatus = exports.CountrySwingLevel = exports.WCSLevel = exports.BallroomLevel = exports.DanceStyle = exports.RoundLevel = exports.EntryType = exports.EventRoles = exports.CompRoles = exports.ScoringMethods = exports.CompetitionRole = void 0;
 // Enums exports
 var roles_1 = require("./data/enums/roles");
 Object.defineProperty(exports, "CompetitionRole", { enumerable: true, get: function () { return roles_1.CompetitionRole; } });
@@ -11,15 +11,11 @@ Object.defineProperty(exports, "CompRoles", { enumerable: true, get: function ()
 Object.defineProperty(exports, "EventRoles", { enumerable: true, get: function () { return eventRoles_1.EventRoles; } });
 var eventTypes_1 = require("./data/enums/eventTypes");
 Object.defineProperty(exports, "EntryType", { enumerable: true, get: function () { return eventTypes_1.EntryType; } });
-Object.defineProperty(exports, "EventType", { enumerable: true, get: function () { return eventTypes_1.EventType; } });
 Object.defineProperty(exports, "RoundLevel", { enumerable: true, get: function () { return eventTypes_1.RoundLevel; } });
-// Fake data exports
-var fakeUsers_1 = require("./fakedata/user/fakeUsers");
-Object.defineProperty(exports, "mockUsers", { enumerable: true, get: function () { return fakeUsers_1.mockUsers; } });
-Object.defineProperty(exports, "mockBallroomCompetitors", { enumerable: true, get: function () { return fakeUsers_1.mockBallroomCompetitors; } });
-Object.defineProperty(exports, "mockParticipants", { enumerable: true, get: function () { return fakeUsers_1.mockParticipants; } });
-//export { mockCompetitions } from './fakedata/competition/fakeCompetitions';
-//export { mockEvents } from './fakedata/event/fakeEvents';
+Object.defineProperty(exports, "DanceStyle", { enumerable: true, get: function () { return eventTypes_1.DanceStyle; } });
+Object.defineProperty(exports, "BallroomLevel", { enumerable: true, get: function () { return eventTypes_1.BallroomLevel; } });
+Object.defineProperty(exports, "WCSLevel", { enumerable: true, get: function () { return eventTypes_1.WCSLevel; } });
+Object.defineProperty(exports, "CountrySwingLevel", { enumerable: true, get: function () { return eventTypes_1.CountrySwingLevel; } });
 // API types exports
 var schemas_1 = require("./api/schemas");
 Object.defineProperty(exports, "EventStatus", { enumerable: true, get: function () { return schemas_1.EventStatus; } });

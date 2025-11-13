@@ -12,6 +12,31 @@ export type Database = {
   __InternalSupabase: {
     PostgrestVersion: "13.0.5";
   };
+  graphql_public: {
+    Tables: {
+      [_ in never]: never;
+    };
+    Views: {
+      [_ in never]: never;
+    };
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json;
+          operationName?: string;
+          query?: string;
+          variables?: Json;
+        };
+        Returns: Json;
+      };
+    };
+    Enums: {
+      [_ in never]: never;
+    };
+    CompositeTypes: {
+      [_ in never]: never;
+    };
+  };
   public: {
     Tables: {
       category_ruleset: {
@@ -31,13 +56,6 @@ export type Database = {
           ruleset_id?: string;
         };
         Relationships: [
-          {
-            foreignKeyName: "fk_cr_category";
-            columns: ["category_id"];
-            isOneToOne: false;
-            referencedRelation: "event_categories";
-            referencedColumns: ["id"];
-          },
           {
             foreignKeyName: "fk_cr_ruleset";
             columns: ["ruleset_id"];
@@ -159,6 +177,21 @@ export type Database = {
           },
         ];
       };
+      dance_styles: {
+        Row: {
+          id: string;
+          name: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+        };
+        Relationships: [];
+      };
       event_audit_log: {
         Row: {
           action: string;
@@ -193,55 +226,73 @@ export type Database = {
       };
       event_categories: {
         Row: {
+          dance_style: string;
+          event_level: string | null;
           id: string;
-          name: string;
         };
         Insert: {
+          dance_style?: string;
+          event_level?: string | null;
           id?: string;
-          name: string;
         };
         Update: {
+          dance_style?: string;
+          event_level?: string | null;
           id?: string;
-          name?: string;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: "event_categories_dance_style_fkey";
+            columns: ["dance_style"];
+            isOneToOne: false;
+            referencedRelation: "dance_styles";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "event_categories_event_level_fkey";
+            columns: ["event_level"];
+            isOneToOne: false;
+            referencedRelation: "event_levels";
+            referencedColumns: ["id"];
+          },
+        ];
       };
       event_info: {
         Row: {
           category_ruleset_id: string;
           comp_id: string;
-          end_at: string;
-          end_date: string;
+          end_at: string | null;
+          end_date: string | null;
           entry_type: Database["public"]["Enums"]["entry_type"] | null;
           event_status: string;
           id: string;
           name: string;
-          start_at: string;
-          start_date: string;
+          start_at: string | null;
+          start_date: string | null;
         };
         Insert: {
           category_ruleset_id: string;
           comp_id: string;
-          end_at: string;
-          end_date: string;
+          end_at?: string | null;
+          end_date?: string | null;
           entry_type?: Database["public"]["Enums"]["entry_type"] | null;
           event_status?: string;
           id?: string;
           name: string;
-          start_at: string;
-          start_date: string;
+          start_at?: string | null;
+          start_date?: string | null;
         };
         Update: {
           category_ruleset_id?: string;
           comp_id?: string;
-          end_at?: string;
-          end_date?: string;
+          end_at?: string | null;
+          end_date?: string | null;
           entry_type?: Database["public"]["Enums"]["entry_type"] | null;
           event_status?: string;
           id?: string;
           name?: string;
-          start_at?: string;
-          start_date?: string;
+          start_at?: string | null;
+          start_date?: string | null;
         };
         Relationships: [
           {
@@ -259,6 +310,21 @@ export type Database = {
             referencedColumns: ["id"];
           },
         ];
+      };
+      event_levels: {
+        Row: {
+          id: string;
+          name: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+        };
+        Relationships: [];
       };
       event_registration_participants: {
         Row: {
@@ -621,6 +687,9 @@ export type CompositeTypes<
     : never;
 
 export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
   public: {
     Enums: {
       entry_type: ["solo", "partner", "team"],

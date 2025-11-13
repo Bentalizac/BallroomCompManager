@@ -2,15 +2,16 @@ import { trpc } from "@/lib/trpc";
 import { useMemo } from "react";
 import type {
   CompetitionApiType,
-  DomainCompetition,
+  Competition,
 } from "@ballroomcompmanager/shared";
-import { competitionApiToDomain } from "@ballroomcompmanager/shared";
 
 // Hook to get all competitions
-export function useCompetitions() {
-  return trpc.competition.getAll.useQuery(undefined, {
+export function useCompetitions(): Competition[] {
+  var comps = trpc.competition.getAll.useQuery(undefined, {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+  console.log(comps);
+  return comps;
 }
 
 // Hook to get a single competition by ID
@@ -87,16 +88,24 @@ export function useCompetitionRegistrations(competitionId: string | undefined) {
 }
 
 // Custom hook for competition display data with computed fields
-export function useCompetitionDisplay(
-  competition: CompetitionApiType | undefined,
-) {
+export function useCompetitionDisplay(competition: Competition | undefined) {
   return useMemo(() => {
     if (!competition) return null;
 
     const now = new Date();
-    // Parse dates from YYYY-MM-DD string format
-    const startDate = new Date(competition.startDate + "T00:00:00.000Z");
-    const endDate = new Date(competition.endDate + "T00:00:00.000Z");
+    // Parse dates - handles both ISO format and YYYY-MM-DD format
+    console.log("Start date: ", competition.startDate);
+    const startDate = new Date(competition.startDate);
+    const endDate = new Date(competition.endDate);
+
+    // Check for invalid dates
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      console.error("Invalid date format:", {
+        startDate: competition.startDate,
+        endDate: competition.endDate,
+      });
+      return null;
+    }
 
     return {
       ...competition,
@@ -153,7 +162,7 @@ export function useCanRegister(
     }
 
     const now = new Date();
-    const startDate = new Date(competition.startDate + "T00:00:00.000Z");
+    const startDate = new Date(competition.startDate);
 
     if (startDate <= now) {
       return {

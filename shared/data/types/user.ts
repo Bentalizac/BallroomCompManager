@@ -1,5 +1,5 @@
-import { EventType } from "../enums/eventTypes";
 import { CompetitionRole } from "../enums/roles";
+import { EventCategory } from "../enums/eventTypes";
 
 /**
  * Any user of this software. Auth info is handled by Supabase
@@ -26,5 +26,5 @@ export interface Participant {
   /**Role enum */
   role: CompetitionRole;
   /**What type of event is this */
-  eventType: EventType;
+  eventType: EventCategory;
 }

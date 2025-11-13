@@ -20,8 +20,8 @@ const COMPETITION_FIELDS = `
   events:event_info (
     id,
     name,
-    start_date,
-    end_date,
+    start_at,
+    end_at,
     event_status,
     comp_id,
     category_ruleset_id

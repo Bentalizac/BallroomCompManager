@@ -1,6 +1,6 @@
 // Types exports
 export type { User, Participant } from "./data/types/user";
-export type { Competition } from "./data/types/competition";
+export type { Competition, Venue, Address } from "./data/types/competition";
 export type { CompEvent } from "./data/types/event";
 export type { BallroomCompetitor } from "./data/types/userExtensions";
 export type {
@@ -15,16 +15,16 @@ export type {
 export { CompetitionRole } from "./data/enums/roles";
 export { ScoringMethods } from "./data/enums/scoringMethods";
 export { CompRoles, EventRoles } from "./data/enums/eventRoles";
-export { EntryType, EventType, RoundLevel } from "./data/enums/eventTypes";
-
-// Fake data exports
 export {
-  mockUsers,
-  mockBallroomCompetitors,
-  mockParticipants,
-} from "./fakedata/user/fakeUsers";
-//export { mockCompetitions } from './fakedata/competition/fakeCompetitions';
-//export { mockEvents } from './fakedata/event/fakeEvents';
+  EntryType,
+  RoundLevel,
+  DanceStyle,
+  BallroomLevel,
+  WCSLevel,
+  CountrySwingLevel,
+  type EventCategory,
+  type EventLevel,
+} from "./data/enums/eventTypes";
 
 // API types exports
 export {
@@ -37,9 +37,6 @@ export {
   getCompetitionInfoSchema,
   createEventSchema,
   getEventInfoSchema,
-  type VenueApi as VenueApiType,
-  type EventApi as EventApiType,
-  type CompetitionApi as CompetitionApiType,
   type EventStatus as EventStatusType,
 } from "./api/schemas";
 

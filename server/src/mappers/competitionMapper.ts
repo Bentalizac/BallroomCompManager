@@ -1,8 +1,8 @@
-import type { CompetitionApi } from '@ballroomcompmanager/shared';
-import type { VenueRow } from './venueMapper';
-import type { EventRow } from './eventMapper';
-import { mapVenueRowToDTO } from './venueMapper';
-import { mapEventRowToDTO } from './eventMapper';
+import type { Competition } from "@ballroomcompmanager/shared";
+import type { VenueRow } from "./venueMapper";
+import type { EventRow } from "./eventMapper";
+import { mapVenueRowToDTO } from "./venueMapper";
+import { mapEventRowEnrichedToCompEvent } from "./eventMapper";
 
 export type CompRow = {
   id: string;
@@ -18,15 +18,18 @@ export type CompRow = {
 /**
  * Map competition database row to CompetitionApi DTO
  */
-export function mapCompetitionRowToDTO(row: CompRow): CompetitionApi {
-  return {
+export function mapCompetitionRowToDTO(row: CompRow): Competition {
+  var r = {
     id: row.id,
     slug: row.slug,
     name: row.name,
-    startDate: row.start_date,
-    endDate: row.end_date,
+    startDate: new Date(row.start_date),
+    endDate: new Date(row.end_date),
     timeZone: row.time_zone,
     venue: row.venue ? mapVenueRowToDTO(row.venue) : null,
-    events: row.events ? row.events.map(event => mapEventRowToDTO(event, row.time_zone)) : [],
+    events: row.events
+      ? row.events.map((event) => mapEventRowEnrichedToCompEvent(event))
+      : [],
   };
+  return r;
 }
