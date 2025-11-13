@@ -1,9 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Event, Block } from '../types';
 import { mockBlocks, mockEvents } from '../data/mockData';
-import { scheduledEventToBasicEvent, clampTimeToSchedule, isTimeInSchedule } from '../utils';
 import { Venue } from '../types';
-import { TIME_CONSTANTS } from '../constants';
 import { STATE_TYPES } from '../components/dnd/drag/draggableItem';
 
 
@@ -44,11 +42,20 @@ export function useScheduleState(): ScheduleState {
   const [days, setDays] = useState<Date[]>([day1, day2]);
   const [locations, setLocations] = useState<Venue[]>([{ name: 'Wilk' }, { name: 'RB' }]);
   
-  const [selectedItemID, setSelectedItemID] = useState<string | null>(null);
+  const [selectedItemID, setSelectedItemIDState] = useState<string | null>(null);
   
   const [events, setEvents] = useState<Event[]>(mockEvents);
   const [blocks, setBlocks] = useState<Block[]>(mockBlocks);
 
+  // Wrapper for setSelectedItemID with logging
+  const setSelectedItemID = useCallback((id: string | null) => {
+    console.log('setSelectedItemID called with:', id);
+    setSelectedItemIDState(id);
+  }, []);
+
+  useEffect(() => {
+    console.log('selectedItemID changed to:', selectedItemID);
+  }, [selectedItemID]);
 
   const getAvailableEvents = useCallback((): Event[] => {
     return events.filter(event => event.state === STATE_TYPES.AVAILABLE || event.state === STATE_TYPES.INFINITE);
@@ -68,16 +75,20 @@ export function useScheduleState(): ScheduleState {
 
   
   const handleEventUpdate = (eventID: string, updates: Partial<Event>) => {
-    setEvents(prev => {
-      const updated = prev.map(event => {
-        if (event.id === eventID) {
-          const merged = { ...event, ...updates };
-          return merged;
+    // If state is being changed and the current event is inside a block, remove it from that block
+    const existing = events.find(e => e.id === eventID);
+    if (updates.state && existing?.state === STATE_TYPES.IN_BLOCK) {
+      // Remove event from its block's eventIds
+      blocks.forEach(block => {  
+        if (block.eventIds?.includes(eventID)) {
+          block.eventIds = block.eventIds.filter(id => id !== eventID);
         }
-        return event;
       });
-      return updated;
-    });
+    }
+
+    setEvents(prev => prev.map(event => (
+      event.id === eventID ? { ...event, ...updates } : event
+    )));
   };
 
   const handleEventCopy = (eventID: string) => {
@@ -115,6 +126,12 @@ export function useScheduleState(): ScheduleState {
   };
 
   const handleBlockDelete = (blockID: string) => {
+    const blockToDelete = blocks.find(b => b.id === blockID);
+    if (blockToDelete) {
+      blockToDelete.eventIds?.forEach(eventID => {
+        handleEventUpdate(eventID, { state: STATE_TYPES.AVAILABLE, venue: null, startDate: null, endDate: null });
+      });
+    }
     setBlocks(prev => prev.filter(b => b.id !== blockID));
   }
 

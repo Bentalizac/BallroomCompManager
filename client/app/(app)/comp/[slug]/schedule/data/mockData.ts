@@ -3,16 +3,18 @@ import { EventType } from '@/../shared/data/enums/eventTypes';
 import { ScoringMethods } from '@/../shared/data/enums/scoringMethods';
 import { STATE_TYPES } from '../components/dnd/drag/draggableItem';
 
-const color = '#4f165d'; // Default color for mock events
+const color = '#4e155d'; // Default color for mock events
+const blockColor = '#9970a3ff';
 
 export const mockBlocks: Block[] = [
   {
-    id: '1',
+    id: '0',
     name: 'New Block',
     state: STATE_TYPES.INFINITE,
     startDate: null,
     endDate: null,
     venue: null,
+    color: blockColor,
   },
 ]
 

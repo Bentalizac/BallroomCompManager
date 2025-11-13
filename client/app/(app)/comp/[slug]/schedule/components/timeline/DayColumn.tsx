@@ -21,7 +21,7 @@ export const DayColumn = ({ day, locations }: DayColumnProps) => {
       <div className="border-b border-gray-200 p-3 text-center font-medium sticky top-0 bg-white z-10">
         {formatDate(day)}
       </div>
-      <div className="flex">
+      <div className="flex gap-0.5">
 
         {locations && locations.length > 0 && locations
           .map((location) => (
