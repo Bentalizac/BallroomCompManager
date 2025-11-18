@@ -22,6 +22,11 @@ export interface Competition {
 export interface Venue {
   name: string;
   address: Address;
+  floors: DanceFloor[];
+}
+
+export interface DanceFloor {
+  size: string;
 }
 
 export interface Address {

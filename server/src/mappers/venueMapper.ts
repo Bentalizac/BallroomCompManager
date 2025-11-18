@@ -9,7 +9,7 @@ export type VenueRow = Pick<
 /**
  * Map venue database row to VenueApi DTO
  */
-export function mapVenueRowToDTO(row: VenueRow): VenueApi {
+export function mapVenueRowToDTO(row: VenueRow): Venue {
   return {
     id: row.id,
     name: row.name,
