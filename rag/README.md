@@ -107,6 +107,29 @@ The RAG system indexes the following directories:
 - **ChromaDB**: Stored in `tools/chroma_db/`
 - **Index metadata**: Stored in `tools/chroma_indexed.json` (tracks file modification times for incremental updates)
 
+## Automatic Reindexing
+
+The RAG system automatically reindexes when you commit changes to relevant files (`.md`, `.ts`, `.tsx`).
+
+### Git Pre-Commit Hook
+A pre-commit hook is installed at `.git/hooks/pre-commit` that:
+- Detects changes to documentation or TypeScript files
+- Automatically reindexes the RAG before the commit completes
+- Shows colored output indicating indexing progress
+- Won't block commits if indexing fails (shows warning instead)
+
+### Manual Reindexing
+You can also manually reindex at any time:
+
+```bash
+# Quick reindex script
+./rag/reindex.sh
+
+# Or manually:
+cd rag/tools
+python rag_service.py
+```
+
 ## Development
 
 ### Standalone RAG usage (without MCP):

@@ -2,11 +2,11 @@
 # rag/tools/mcp_server/server.py
 import asyncio
 import logging
-from typing import Any, Optional
+from typing import Any
 
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent
+from mcp.types import TextContent, Tool
 
 # Import handlers
 from .handlers import handle_ingest, handle_list, handle_query
@@ -41,7 +41,14 @@ async def list_tools() -> list[Tool]:
                     "type_filter": {
                         "type": "string",
                         "description": "Optional filter by type: design, schema, domain, frontend, backend, architecture",
-                        "enum": ["design", "schema", "domain", "frontend", "backend", "architecture"],
+                        "enum": [
+                            "design",
+                            "schema",
+                            "domain",
+                            "frontend",
+                            "backend",
+                            "architecture",
+                        ],
                     },
                 },
                 "required": ["query"],
@@ -79,13 +86,17 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
         if name == "rag_query":
             query = arguments.get("query")
             if not query:
-                return [TextContent(type="text", text="Error: 'query' parameter is required")]
-            
+                return [
+                    TextContent(
+                        type="text", text="Error: 'query' parameter is required"
+                    )
+                ]
+
             top_k = int(arguments.get("top_k", 5))
             type_filter = arguments.get("type_filter")
-            
+
             result = handle_query(query, top_k=top_k, type_filter=type_filter)
-            
+
             # Format the response
             if result.get("ok") and result.get("chunks"):
                 chunks = result["chunks"]
@@ -95,24 +106,33 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                 return [TextContent(type="text", text=response)]
             else:
                 return [TextContent(type="text", text="No relevant chunks found.")]
-        
+
         elif name == "rag_ingest":
             force_rebuild = arguments.get("force_rebuild", False)
             result = handle_ingest(force_rebuild=force_rebuild)
-            
+
             if result.get("ok"):
-                return [TextContent(type="text", text=result.get("message", "Indexing completed"))]
+                return [
+                    TextContent(
+                        type="text", text=result.get("message", "Indexing completed")
+                    )
+                ]
             else:
-                return [TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
-        
+                return [
+                    TextContent(
+                        type="text",
+                        text=f"Error: {result.get('error', 'Unknown error')}",
+                    )
+                ]
+
         elif name == "rag_list":
             result = handle_list()
-            
+
             if result.get("ok"):
                 count = result.get("count", 0)
                 docs = result.get("documents", [])
                 response = f"Total indexed documents: {count}\n\n"
-                
+
                 # Group by source file
                 by_source = {}
                 for doc in docs:
@@ -120,18 +140,23 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
                     if source not in by_source:
                         by_source[source] = 0
                     by_source[source] += 1
-                
+
                 response += "Documents by source:\n"
                 for source, chunk_count in sorted(by_source.items()):
                     response += f"  {source}: {chunk_count} chunks\n"
-                
+
                 return [TextContent(type="text", text=response)]
             else:
-                return [TextContent(type="text", text=f"Error: {result.get('error', 'Unknown error')}")]
-        
+                return [
+                    TextContent(
+                        type="text",
+                        text=f"Error: {result.get('error', 'Unknown error')}",
+                    )
+                ]
+
         else:
             return [TextContent(type="text", text=f"Unknown tool: {name}")]
-    
+
     except Exception as e:
         logger.error(f"Error calling tool {name}: {e}", exc_info=True)
         return [TextContent(type="text", text=f"Error: {str(e)}")]
@@ -140,11 +165,7 @@ async def call_tool(name: str, arguments: Any) -> list[TextContent]:
 async def main():
     """Run the MCP server using stdio transport."""
     async with stdio_server() as (read_stream, write_stream):
-        await app.run(
-            read_stream,
-            write_stream,
-            app.create_initialization_options()
-        )
+        await app.run(read_stream, write_stream, app.create_initialization_options())
 
 
 if __name__ == "__main__":

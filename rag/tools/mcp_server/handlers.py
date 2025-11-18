@@ -1,6 +1,6 @@
 # rag/tools/mcp_server/handlers.py
-import os
-from typing import Any, Dict, List
+
+from typing import Any, Dict
 
 # Import functions / objects from your existing rag_service module.
 # Adjust the import path if rag_service.py lives elsewhere.
@@ -34,7 +34,7 @@ def handle_ingest(force_rebuild: bool = False) -> Dict[str, Any]:
         return {"ok": False, "error": f"Indexing failed: {str(e)}"}
 
 
-def handle_query(query: str, top_k: int = 5, type_filter: str = None) -> Dict[str, Any]:
+def handle_query(query: str, top_k: int = 5, type_filter=None) -> Dict[str, Any]:
     """
     Run a RAG query and return the results.
     """

@@ -8,11 +8,12 @@ import asyncio
 import os
 import sys
 
-# Add the project root to the path so imports work correctly
+from rag.tools.mcp_server.server import main
+
 project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+# Add the project root to the path so imports work correctly
 sys.path.insert(0, project_root)
 
-from rag.tools.mcp_server.server import main
 
 # Import and run the server
 
