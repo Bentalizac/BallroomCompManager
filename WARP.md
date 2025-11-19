@@ -16,7 +16,7 @@ BallroomCompManager is a full-stack TypeScript application for managing ballroom
 ### Key Technologies
 - **Frontend**: Next.js 15 with Turbopack, React 19, TailwindCSS, Radix UI components
 - **Backend**: Express.js with tRPC for type-safe API communication
-- **Database/Auth**: Supabase for authentication and data storage
+- **Database/Auth**: Supabase for authentication and data storage. All development currently uses the remote Supabase instance linked to /server.
 - **State Management**: TanStack React Query for server state management
 - **Package Management**: pnpm with workspace configuration
 
@@ -157,14 +157,6 @@ curl http://localhost:3001/export/event/80000000-8000-8000-8000-800000000001/reg
 npm run test:rls
 ```
 
-The seed data creates:
-- **Competition**: Bay Area Open Championship 2024
-- **Admin**: Alice Admin (can export CSVs)
-- **Competitors**: David, Eve, Frank, Grace
-- **Judges**: Bob Judge, Carol Scrutineer
-- **Events**: Amateur Standard, Amateur Latin, Professional Smooth
-- **Sample Results**: For completed events
-
 ### Working with Shared Types
 1. When adding new types or utilities, add them to the `shared` package
 2. Export them from `shared/index.ts`
@@ -196,9 +188,8 @@ The seed data creates:
 - `shared/index.ts`: Main exports for shared package
 
 ### Type Definitions
-- `shared/data/types/`: Core business logic types (User, Competition, Event, etc.)
+- `shared/data/types/`: Core business logic types (User, Competition, CompEvent, etc.)
 - `shared/data/enums/`: Enums for roles, scoring methods, event types
-- `shared/fakedata/`: Mock data for development and testing
 
 ## Development Server Ports
 - Client (Next.js): http://localhost:3000
@@ -211,3 +202,37 @@ The project currently has placeholder test scripts. When implementing tests:
 - Client: Use Next.js testing patterns with Jest/Vitest
 - Server: Test tRPC procedures and Express endpoints
 - Shared: Unit test type utilities and mock data functions
+
+# Code Modification Policies
+
+## Doc Guidelines
+
+## Guiding Principles
+- Shared types define the canonical domain model.
+- All server → client data must conform exactly to shared types.
+- No database schema drift: migrations are always manual and reviewed.
+- Refactors must not change behavior unless explicitly stated.
+- All major changes must be documented before code is written.
+
+### When proposing changes to the codebase, follow these steps:
+- Use the templates in `/rag/doc_templates/` to create proposal documents. Ensure all relevant sections are filled out.
+- Place proposals in `/rag/design/refactors/proposed/` for review
+- A reviewer will mark the proposal as approved or rejected, then they will move the proposal to `/rag/design/refactors/approved/` or `/rag/design/refactors/rejected/` respecitively.
+- Once approved, implement the changes as per the proposal. If rejected, address feedback and resubmit a new proposal, keeping the rejected proposal for reference.
+- After implementation, move the proposal to `/rag/design/refactors/completed/` and update documentation accordingly. 
+- If new features are added, create a new feature doc and add it to `/rag/design/features/`. 
+- If new architecure decisions are made, document them in `/rag/design/architecture/` using the ard-template.md.
+
+## Zoning Guidelines
+
+### Restricted Zones (Require Explicit Approval)
+- **shared/** any changes to shared must be proposed and reviewed. Proposals must include reasoning for changes and impact analysis.
+- **server/src/trpc/router.ts** changes to API endpoints must be reviewed to ensure type safety and security compliance.
+- **Database Migrations**: Never auto-generate or apply migrations. Create a migration request using refactor-template.md in /rag/doc_templates and place it in /rag/design/refactors/proposed for review.
+
+### Contract Zones (Require Notification)
+- **server/src/mappers/** changes to data mappers must be communicated and must adhere to the domain defined by shared types.
+- **server/src/trpc/** Code can be changed, but any values going to the client must adhere to the shared types contract. If a new type is needed, create a refactor proposal
+
+### Unrestricted Zones
+- **client/** frontend code can be modified freely, but changes affecting API calls must be communicated
