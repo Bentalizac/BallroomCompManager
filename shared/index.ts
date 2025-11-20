@@ -26,20 +26,6 @@ export {
   type EventLevel,
 } from "./data/enums/eventTypes";
 
-// API types exports
-export {
-  EventStatus,
-  VenueApi,
-  EventApi,
-  CompetitionApi,
-  registerForCompSchema,
-  createCompetitionSchema,
-  getCompetitionInfoSchema,
-  createEventSchema,
-  getEventInfoSchema,
-  type EventStatus as EventStatusType,
-} from "./api/schemas";
-
 // Utility exports
 export {
   generateCompetitionSlug,
