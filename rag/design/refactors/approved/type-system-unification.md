@@ -5,7 +5,7 @@
 Unify the dual type system by establishing a clear architecture where domain types are the canonical source of truth, with Zod schemas used exclusively for validation at API boundaries, not as separate type definitions.
 
 **Status:**  
-- Approved
+- Approved - Under review of implementation
 
 **Owner:**  
 - TBD
