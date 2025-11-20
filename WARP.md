@@ -205,7 +205,6 @@ The project currently has placeholder test scripts. When implementing tests:
 
 # Code Modification Policies
 
-## Doc Guidelines
 
 ## Guiding Principles
 - Shared types define the canonical domain model.
@@ -214,14 +213,43 @@ The project currently has placeholder test scripts. When implementing tests:
 - Refactors must not change behavior unless explicitly stated.
 - All major changes must be documented before code is written.
 
+## Doc Guidelines
+
 ### When proposing changes to the codebase, follow these steps:
 - Use the templates in `/rag/doc_templates/` to create proposal documents. Ensure all relevant sections are filled out.
 - Place proposals in `/rag/design/refactors/proposed/` for review
 - A reviewer will mark the proposal as approved or rejected, then they will move the proposal to `/rag/design/refactors/approved/` or `/rag/design/refactors/rejected/` respecitively.
 - Once approved, implement the changes as per the proposal. If rejected, address feedback and resubmit a new proposal, keeping the rejected proposal for reference.
+- Follow the steps listed below to implement the proposal
 - After implementation, move the proposal to `/rag/design/refactors/completed/` and update documentation accordingly. 
 - If new features are added, create a new feature doc and add it to `/rag/design/features/`. 
 - If new architecure decisions are made, document them in `/rag/design/architecture/` using the ard-template.md.
+
+### Implementing Approved Proposals
+1. Review the approved proposal document thoroughly.
+2. Create a new branch from main for the changes.
+3. Create a plan of vertical slices to implement the changes incrementally.
+4. For each vertical slice (must be independently reviewable and testable):
+
+    - **Fix the scope up front**:
+      - Name the slice (e.g. "Type System Unification – Competition only").
+      - List the exact files/modules that are allowed to change.
+      - State the “after” contract in 1–3 bullets (e.g. "competition.getAll returns `Competition[]` domain types").
+
+    - **Implement only what the slice promises**:
+      - Implement the necessary code changes within the declared file scope.
+      - Do not “clean up” or refactor unrelated domains in this branch, even if you see issues.
+
+    - **Enforce contracts and tests**:
+      - Ensure all changes conform to shared types and existing contracts, unless the proposal explicitly changes them.
+      - Add at least one runtime test (unit or integration) that would fail if the slice is broken.
+      - Add type-level checks where it matters (e.g. router outputs assignable to shared domain types).
+
+    - **Stop when the slice’s completion criteria are met**:
+      - Do not expand the slice mid-branch. Additional refactors get their own slices/branches.
+5. Once all slices are complete, perform a full integration test.
+6. Submit a pull request with a reference to the proposal document for final review.
+
 
 ## Zoning Guidelines
 

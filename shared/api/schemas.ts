@@ -11,7 +11,12 @@ export const EventStatus = z.enum([
 ]);
 export type EventStatus = z.infer<typeof EventStatus>;
 
-// Venue API Schema
+/**
+ * @deprecated Use VenueSchema from server/src/validation/schemas.ts instead.
+ * This schema is part of the legacy dual type system and will be removed in a future version.
+ * Use the domain Venue type from @ballroomcompmanager/shared for type definitions.
+ * @see rag/design/architecture/adr-004-type-system-architecture.md
+ */
 export const VenueApi = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -20,7 +25,12 @@ export const VenueApi = z.object({
 });
 export type VenueApi = z.infer<typeof VenueApi>;
 
-// Event API Schema
+/**
+ * @deprecated Use CompEventSchema from server/src/validation/schemas.ts instead.
+ * This schema is part of the legacy dual type system and will be removed in a future version.
+ * Use the domain CompEvent type from @ballroomcompmanager/shared for type definitions.
+ * @see rag/design/architecture/adr-004-type-system-architecture.md
+ */
 export const EventApi = z.object({
   id: z.uuid(),
   name: z.string(),
@@ -33,7 +43,16 @@ export const EventApi = z.object({
 });
 export type EventApi = z.infer<typeof EventApi>;
 
-// Competition API Schema
+/**
+ * @deprecated Use CompetitionSchema from server/src/validation/schemas.ts instead.
+ * This schema is part of the legacy dual type system and will be removed in a future version.
+ * Use the domain Competition type from @ballroomcompmanager/shared for type definitions.
+ * Migration pattern:
+ *   OLD: import { CompetitionApi } from "@ballroomcompmanager/shared";
+ *   NEW: import type { Competition } from "@ballroomcompmanager/shared";
+ *        import { CompetitionSchema } from "../validation/schemas";
+ * @see rag/design/architecture/adr-004-type-system-architecture.md
+ */
 export const CompetitionApi = z.object({
   id: z.uuid(),
   slug: z.string(),

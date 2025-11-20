@@ -2,10 +2,8 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, authedProcedure } from "../base";
 import { getSupabaseAnon, getSupabaseUser } from "../../dal/supabase";
-import {
-  CompetitionApi,
-  generateCompetitionSlug,
-} from "@ballroomcompmanager/shared";
+import type { Competition } from "@ballroomcompmanager/shared";
+import { generateCompetitionSlug } from "@ballroomcompmanager/shared";
 import { mapCompetitionRowToDTO } from "../../mappers";
 import { getCompetitionSchema } from "../schemas";
 import * as CompetitionDAL from "../../dal/competition";
@@ -33,10 +31,9 @@ export const competitionRouter = router({
         message: "Invalid data structure returned from database",
       });
     }
-    var res = z
-      .array(CompetitionApi)
-      .parse(competitions.map(mapCompetitionRowToDTO));
-    return res;
+    // Map database rows to domain Competition types
+    const result: Competition[] = competitions.map(mapCompetitionRowToDTO);
+    return result;
   }),
 
   // Get competition by ID
@@ -63,7 +60,8 @@ export const competitionRouter = router({
         return null;
       }
 
-      return CompetitionApi.parse(mapCompetitionRowToDTO(competition));
+      // Return domain Competition type (mapper handles transformation)
+      return mapCompetitionRowToDTO(competition);
     }),
 
   // Get competition by slug
@@ -93,7 +91,8 @@ export const competitionRouter = router({
         return null;
       }
 
-      return CompetitionApi.parse(mapCompetitionRowToDTO(competition));
+      // Return domain Competition type (mapper handles transformation)
+      return mapCompetitionRowToDTO(competition);
     }),
 
   // Get events for a competition

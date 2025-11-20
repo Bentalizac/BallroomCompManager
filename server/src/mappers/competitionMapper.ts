@@ -2,7 +2,6 @@ import type { Competition } from "@ballroomcompmanager/shared";
 import type { VenueRow } from "./venueMapper";
 import type { EventRow } from "./eventMapper";
 import { mapVenueRowToDTO } from "./venueMapper";
-import { mapEventRowEnrichedToCompEvent } from "./eventMapper";
 
 export type CompRow = {
   id: string;
@@ -16,10 +15,17 @@ export type CompRow = {
 };
 
 /**
- * Map competition database row to CompetitionApi DTO
+ * Map competition database row to Competition domain type.
+ * 
+ * Note: The events array from the competition query contains minimal event data
+ * (EventRow without entry_type). For full event details including participants,
+ * judges, and entry types, use the dedicated getCompetitionEvents endpoint.
+ * 
+ * TODO: Update COMPETITION_FIELDS in dal/competition.ts to include entry_type
+ * and other enriched event data to support full CompEvent mapping here.
  */
 export function mapCompetitionRowToDTO(row: CompRow): Competition {
-  var r = {
+  return {
     id: row.id,
     slug: row.slug,
     name: row.name,
@@ -27,9 +33,8 @@ export function mapCompetitionRowToDTO(row: CompRow): Competition {
     endDate: new Date(row.end_date),
     timeZone: row.time_zone,
     venue: row.venue ? mapVenueRowToDTO(row.venue) : null,
-    events: row.events
-      ? row.events.map((event) => mapEventRowEnrichedToCompEvent(event))
-      : [],
+    // Empty events array - clients should fetch events via dedicated endpoint
+    // This prevents type mismatches between EventRow and EventRowEnriched
+    events: [],
   };
-  return r;
 }

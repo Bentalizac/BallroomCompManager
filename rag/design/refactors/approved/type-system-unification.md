@@ -5,7 +5,7 @@
 Unify the dual type system by establishing a clear architecture where domain types are the canonical source of truth, with Zod schemas used exclusively for validation at API boundaries, not as separate type definitions.
 
 **Status:**  
-- Proposed
+- Approved
 
 **Owner:**  
 - TBD
@@ -90,25 +90,25 @@ shared/
 
 **Principle:** Domain types are canonical. Zod schemas exist only for validation.
 
+**Architectural Refinement (2024-11-20):** Validation schemas live in `server/` package, not `shared/`, since they are only used by the server for API boundary validation. The client receives fully-typed domain objects through tRPC and does not need Zod schemas.
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      SHARED TYPES                           │
+│                   SHARED PACKAGE                            │
 │                                                             │
 │  Domain Types (TypeScript Interfaces)                      │
 │  ├── Competition, CompEvent, Registration, etc.            │
 │  └── Source of truth for all type information              │
-│                                                             │
-│  Zod Schemas (for validation only)                         │
-│  ├── CompetitionSchema, CompEventSchema, etc.              │
-│  └── Used ONLY at API boundaries for runtime validation    │
 └─────────────────────────────────────────────────────────────┘
          │                                │
          ▼                                ▼
     ┌─────────┐                    ┌──────────┐
     │ Server  │                    │  Client  │
     │         │                    │          │
-    │ Mappers │◄───────────────────┤  tRPC    │
-    │ tRPC    │                    │  Hooks   │
+    │ Zod     │                    │  tRPC    │
+    │ Schemas │                    │  (typed  │
+    │ Mappers │◄───────────────────┤  domain  │
+    │ tRPC    │                    │  objects)│
     └─────────┘                    └──────────┘
 ```
 
@@ -136,10 +136,10 @@ export interface Venue {
 }
 ```
 
-#### B. Create `shared/validation/schemas.ts` (new file)
+#### B. Create `server/src/validation/schemas.ts` (new file)
 ```typescript
 import { z } from "zod";
-import type { Competition, CompEvent, Venue } from "../data/types";
+import type { Competition, CompEvent, Venue } from "@ballroomcompmanager/shared";
 
 // Zod schemas mirror domain types but with wire-format transformations
 // These are used ONLY for validation at tRPC boundaries
@@ -193,13 +193,8 @@ export { CompetitionRole } from "./data/enums/roles";
 export { ScoringMethods } from "./data/enums/scoringMethods";
 // ... other enums
 
-// Validation schemas (for tRPC use ONLY)
-export {
-  CompetitionSchema,
-  CompEventSchema,
-  VenueSchema,
-  EventRegistrationSchema,
-} from "./validation/schemas";
+// NOTE: Validation schemas now live in server/src/validation/schemas.ts
+// They are NOT exported from shared since only server needs them
 
 // Legacy API schemas (deprecated, for migration period)
 export {
