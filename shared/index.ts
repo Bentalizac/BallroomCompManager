@@ -34,6 +34,15 @@ export {
   type EventLevel,
 } from "./data/enums/eventTypes";
 
+// Request and Response Schema exports
+
+export {
+  createCompetitionSchema,
+  getEventInfoSchema,
+  createEventSchema,
+  registerForCompSchema
+} from "./req_res_schemas/requests"
+
 // Validation exports
 export {
   CompRoleSchema,

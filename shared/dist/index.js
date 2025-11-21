@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractYearFromSlug = exports.extractNameFromSlug = exports.isValidCompetitionSlug = exports.generateCompetitionSlugWithSuffix = exports.generateCompetitionSlug = exports.BallroomLevelSchema = exports.DanceStyleSchema = exports.EntryTypeSchema = exports.ScoringMethodSchema = exports.AllEventRegistrationRoleSchema = exports.RegistrationRoleSchema = exports.EventRoleSchema = exports.CompRoleSchema = exports.CountrySwingLevel = exports.WCSLevel = exports.BallroomLevel = exports.DanceStyle = exports.RoundLevel = exports.EntryType = exports.AllEventRegistrationRoles = exports.RegistrationRoles = exports.EventRoles = exports.CompRoles = exports.ScoringMethods = exports.CompetitionRole = void 0;
+exports.extractYearFromSlug = exports.extractNameFromSlug = exports.isValidCompetitionSlug = exports.generateCompetitionSlugWithSuffix = exports.generateCompetitionSlug = exports.BallroomLevelSchema = exports.DanceStyleSchema = exports.EntryTypeSchema = exports.ScoringMethodSchema = exports.AllEventRegistrationRoleSchema = exports.RegistrationRoleSchema = exports.EventRoleSchema = exports.CompRoleSchema = exports.registerForCompSchema = exports.createEventSchema = exports.getEventInfoSchema = exports.createCompetitionSchema = exports.CountrySwingLevel = exports.WCSLevel = exports.BallroomLevel = exports.DanceStyle = exports.RoundLevel = exports.EntryType = exports.AllEventRegistrationRoles = exports.RegistrationRoles = exports.EventRoles = exports.CompRoles = exports.ScoringMethods = exports.CompetitionRole = void 0;
 // Enums exports
 var roles_1 = require("./data/enums/roles");
 Object.defineProperty(exports, "CompetitionRole", { enumerable: true, get: function () { return roles_1.CompetitionRole; } });
@@ -19,6 +19,12 @@ Object.defineProperty(exports, "DanceStyle", { enumerable: true, get: function (
 Object.defineProperty(exports, "BallroomLevel", { enumerable: true, get: function () { return eventTypes_1.BallroomLevel; } });
 Object.defineProperty(exports, "WCSLevel", { enumerable: true, get: function () { return eventTypes_1.WCSLevel; } });
 Object.defineProperty(exports, "CountrySwingLevel", { enumerable: true, get: function () { return eventTypes_1.CountrySwingLevel; } });
+// Request and Response Schema exports
+var requests_1 = require("./req_res_schemas/requests");
+Object.defineProperty(exports, "createCompetitionSchema", { enumerable: true, get: function () { return requests_1.createCompetitionSchema; } });
+Object.defineProperty(exports, "getEventInfoSchema", { enumerable: true, get: function () { return requests_1.getEventInfoSchema; } });
+Object.defineProperty(exports, "createEventSchema", { enumerable: true, get: function () { return requests_1.createEventSchema; } });
+Object.defineProperty(exports, "registerForCompSchema", { enumerable: true, get: function () { return requests_1.registerForCompSchema; } });
 // Validation exports
 var zodEnums_1 = require("./validation/zodEnums");
 Object.defineProperty(exports, "CompRoleSchema", { enumerable: true, get: function () { return zodEnums_1.CompRoleSchema; } });

@@ -37,7 +37,7 @@ export const userRouter = router({
       }
 
       const supabase = getSupabaseUser(ctx.userToken!);
-      
+
       // Check if user is already registered for this comp
 
       const { data: existingRegs, error: fetchError } = await UserDAL.checkCompetitionRegistration(
@@ -151,7 +151,7 @@ export const userRouter = router({
       }
 
       // If user is an admin but doesn't have an organizer participant role, create one
-      if (isAdmin && (!participantRoles || participantRoles.length === 0 || 
+      if (isAdmin && (!participantRoles || participantRoles.length === 0 ||
           !participantRoles.some(p => p.role === 'organizer'))) {
         try {
           const { error: insertError } = await UserDAL.createOrganizerParticipant(
@@ -172,9 +172,9 @@ export const userRouter = router({
               .eq("comp_id", input.competitionId)
               .eq("user_id", ctx.userId)
               .eq("participation_status", "active");
-            
+
             if (updatedRoles) {
-              participantRoles?.push(...updatedRoles.filter(r => 
+              participantRoles?.push(...updatedRoles.filter(r =>
                 !participantRoles.some(p => p.id === r.id)));
             }
           }
@@ -187,7 +187,7 @@ export const userRouter = router({
 
       // Determine the highest level role
       let highestRole: string | null = null;
-      
+
       if (isAdmin) {
         // Admins always have admin role, regardless of participant table
         highestRole = "admin";
@@ -195,17 +195,17 @@ export const userRouter = router({
         // Priority: organizer > judge > competitor > spectator
         const rolePriority: Record<string, number> = {
           organizer: 3,
-          judge: 2, 
+          judge: 2,
           competitor: 1,
           spectator: 0
         };
-        
+
         const topRole = participantRoles.reduce((prev, current) => {
           const prevPriority = rolePriority[prev.role] || -1;
           const currentPriority = rolePriority[current.role] || -1;
           return currentPriority > prevPriority ? current : prev;
         });
-        
+
         highestRole = topRole.role;
       }
 
