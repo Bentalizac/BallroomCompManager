@@ -2,6 +2,10 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, authedProcedure } from "../base";
 import {
+  AllEventRegistrationRoleSchema,
+  RegistrationRoleSchema,
+} from "@ballroomcompmanager/shared";
+import {
   createEventRegistration,
   getUserEventRegistrations,
   getEventRegistrations,
@@ -22,17 +26,7 @@ export const eventRouter = router({
     .input(
       z.object({
         eventId: z.string().uuid(),
-        role: z
-          .enum([
-            "competitor",
-            "judge",
-            "scrutineer",
-            "lead",
-            "follow",
-            "coach",
-            "member",
-          ])
-          .optional(),
+        role: AllEventRegistrationRoleSchema.optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {
@@ -57,7 +51,14 @@ export const eventRouter = router({
             participants: [
               {
                 userId: ctx.userId,
-                role: input.role || "member", // DAL will handle role mapping
+                role: (input.role || "member") as
+                  | "competitor"
+                  | "judge"
+                  | "scrutineer"
+                  | "lead"
+                  | "follow"
+                  | "coach"
+                  | "member", // DAL will handle role mapping
               },
             ],
           },
@@ -101,9 +102,7 @@ export const eventRouter = router({
           .array(
             z.object({
               userId: z.string().uuid(),
-              role: z
-                .enum(["lead", "follow", "coach", "member"])
-                .default("member"),
+              role: RegistrationRoleSchema.default("member"),
             }),
           )
           .min(1, "At least one participant is required"),
@@ -130,7 +129,17 @@ export const eventRouter = router({
           ctx.userId,
           {
             eventId: input.eventId,
-            participants: input.participants,
+            participants: input.participants as Array<{
+              userId: string;
+              role:
+                | "competitor"
+                | "judge"
+                | "scrutineer"
+                | "lead"
+                | "follow"
+                | "coach"
+                | "member";
+            }>,
             teamName: input.teamName,
           },
         );

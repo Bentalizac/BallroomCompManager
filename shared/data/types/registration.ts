@@ -1,4 +1,4 @@
-import { EventRoles } from "../enums/eventRoles";
+import { EventRoles, type RegistrationRole } from "../enums/eventRoles";
 
 export interface Registration {
   id: string;
@@ -18,7 +18,7 @@ export interface EventRegistration extends Registration {
 export interface EventRegistrationParticipant {
   registrationId: string;
   userId: string;
-  role: 'lead' | 'follow' | 'coach' | 'member';
+  role: RegistrationRole;
 }
 
 export interface EventRegistrationEntry {
@@ -39,7 +39,7 @@ export interface EventRegistrationApi {
   createdAt: string; // ISO string for API transport
   participants: {
     userId: string;
-    role: 'lead' | 'follow' | 'coach' | 'member';
+    role: RegistrationRole;
     userInfo?: {
       firstname: string;
       lastname: string;
