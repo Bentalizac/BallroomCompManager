@@ -5,10 +5,10 @@
 Eliminate hardcoded enum values in tRPC routers and other server code, replacing them with imports from shared enum definitions to prevent role/status drift and maintain single source of truth.
 
 **Status:**  
-- Proposed
+- Approved
 
 **Owner:**  
-- TBD
+- Eli
 
 **Dependencies:**
 - None (can be implemented independently)
