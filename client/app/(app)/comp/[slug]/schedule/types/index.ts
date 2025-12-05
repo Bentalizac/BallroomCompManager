@@ -1,6 +1,5 @@
-import { EventType } from '@/../shared/data/enums/eventTypes';
-import { CompEvent } from '@/../shared/data/types/event';
-import { STATE_TYPES } from '../components/dnd/drag/draggableItem';
+import { CompEvent } from "@/../shared/data/types/event";
+import { STATE_TYPES } from "../components/dnd/drag/draggableItem";
 
 export interface Event extends CompEvent {
   color: string | null;

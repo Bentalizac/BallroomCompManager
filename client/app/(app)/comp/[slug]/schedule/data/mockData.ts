@@ -1,29 +1,39 @@
-import { Block, Event } from '../types';
-import { EventType } from '@/../shared/data/enums/eventTypes';
-import { ScoringMethods } from '@/../shared/data/enums/scoringMethods';
-import { STATE_TYPES } from '../components/dnd/drag/draggableItem';
+import { Block, Event } from "../types";
+import {
+  BallroomLevel,
+  DanceStyle,
+  EventCategory,
+  OtherLevel,
+} from "@/../shared/data/enums/eventTypes";
+import { ScoringMethods } from "@/../shared/data/enums/scoringMethods";
+import { STATE_TYPES } from "../components/dnd/drag/draggableItem";
+import { EntryType } from "@ballroom/shared/dist";
 
-const color = '#4e155d'; // Default color for mock events
-const blockColor = '#9970a3ff';
+const color = "#4e155d"; // Default color for mock events
+const blockColor = "#9970a3ff";
 
 export const mockBlocks: Block[] = [
   {
-    id: '0',
-    name: 'New Block',
+    id: "0",
+    name: "New Block",
     state: STATE_TYPES.INFINITE,
     startDate: null,
     endDate: null,
     venue: null,
     color: blockColor,
   },
-]
+];
 
 export const mockEvents: Event[] = [
   {
-    id: '1',
-    competitionId: '12',
-    category: EventType.Latin,
-    name: 'Pre Champ Latin',
+    id: "1",
+    competitionId: "12",
+    category: {
+      style: DanceStyle.Latin,
+      level: BallroomLevel.PreChamp,
+    },
+    entryType: EntryType.Partner,
+    name: "Pre Champ Latin",
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -34,10 +44,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '2',
-    competitionId: '12',
-    name: 'Amateur Latin',
-    category: EventType.Latin,
+    id: "2",
+    competitionId: "12",
+    name: "Amateur Latin",
+    category: {
+      style: DanceStyle.Latin,
+      level: BallroomLevel.Champ,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -48,10 +62,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '3',
-    competitionId: '12',
-    name: 'Novice Latin',
-    category: EventType.Latin,
+    id: "3",
+    competitionId: "12",
+    name: "Novice Latin",
+    category: {
+      style: DanceStyle.Latin,
+      level: BallroomLevel.Novice,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -62,10 +80,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '4',
-    competitionId: '12',
-    name: 'Class 485',
-    category: EventType.Latin,
+    id: "4",
+    competitionId: "12",
+    name: "Class 485",
+    category: {
+      style: DanceStyle.Latin,
+      level: BallroomLevel.Bronze,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -76,10 +98,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '5',
-    competitionId: '12',
-    name: 'Class 385',
-    category: EventType.Latin,
+    id: "5",
+    competitionId: "12",
+    name: "Class 385",
+    category: {
+      style: DanceStyle.Latin,
+      level: BallroomLevel.Silver,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -90,10 +116,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '6',
-    competitionId: '12',
-    name: 'Class 383',
-    category: EventType.Latin,
+    id: "6",
+    competitionId: "12",
+    name: "Class 383",
+    category: {
+      style: DanceStyle.Latin,
+      level: BallroomLevel.Gold,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -104,10 +134,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '7',
-    competitionId: '12',
-    name: 'Pre Champ Ballroom',
-    category: EventType.Ballroom,
+    id: "7",
+    competitionId: "12",
+    name: "Pre Champ Ballroom",
+    category: {
+      style: DanceStyle.Ballroom,
+      level: BallroomLevel.PreChamp,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -118,10 +152,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '8',
-    competitionId: '12',
-    name: 'Amateur Ballroom',
-    category: EventType.Ballroom,
+    id: "8",
+    competitionId: "12",
+    name: "Amateur Ballroom",
+    category: {
+      style: DanceStyle.Ballroom,
+      level: BallroomLevel.Champ,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -132,10 +170,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '9',
-    competitionId: '12',
-    name: 'Novice Ballroom',
-    category: EventType.Ballroom,
+    id: "9",
+    competitionId: "12",
+    name: "Novice Ballroom",
+    category: {
+      style: DanceStyle.Ballroom,
+      level: BallroomLevel.Novice,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -146,10 +188,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '10',
-    competitionId: '12',
-    name: 'Class 484',
-    category: EventType.Ballroom,
+    id: "10",
+    competitionId: "12",
+    name: "Class 484",
+    category: {
+      style: DanceStyle.Ballroom,
+      level: BallroomLevel.Bronze,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -160,10 +206,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '11',
-    competitionId: '12',
-    name: 'Class 384',
-    category: EventType.Ballroom,
+    id: "11",
+    competitionId: "12",
+    name: "Class 384",
+    category: {
+      style: DanceStyle.Ballroom,
+      level: BallroomLevel.Silver,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -174,10 +224,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '12',
-    competitionId: '12',
-    name: 'Class 382',
-    category: EventType.Ballroom,
+    id: "12",
+    competitionId: "12",
+    name: "Class 382",
+    category: {
+      style: DanceStyle.Ballroom,
+      level: BallroomLevel.Gold,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -188,10 +242,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '13',
-    competitionId: '12',
-    name: 'Formation Teams',
-    category: EventType.Other,
+    id: "13",
+    competitionId: "12",
+    name: "Formation Teams",
+    category: {
+      style: DanceStyle.Other,
+      level: OtherLevel.Team,
+    },
+    entryType: EntryType.Team,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,
@@ -202,10 +260,14 @@ export const mockEvents: Event[] = [
     venue: null,
   },
   {
-    id: '14',
-    competitionId: '12',
-    name: 'Cabaret',
-    category: EventType.Other,
+    id: "14",
+    competitionId: "12",
+    name: "Cabaret",
+    category: {
+      style: DanceStyle.Other,
+      level: OtherLevel.Showcase,
+    },
+    entryType: EntryType.Partner,
     competitors: [],
     judges: [],
     scoring: ScoringMethods.Ballroom,

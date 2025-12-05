@@ -5,7 +5,7 @@
 Ensure all tRPC router endpoints return data that conforms to shared domain types, eliminating ad-hoc return objects that violate the type contract.
 
 **Status:**  
-- Proposed
+- Approved
 
 **Owner:**  
 - TBD

@@ -206,7 +206,7 @@ def query_rag(query_text, top_k=5, type_filter=None):
     docs = results["documents"][0] if results["documents"] else []
 
     if type_filter:
-        metadatas = results["metadatas"][0]
+        metadatas = results["metadatas"][0] if results["metadatas"] else []
         filtered_docs = [
             doc for doc, meta in zip(docs, metadatas) if meta.get("type") == type_filter
         ]
