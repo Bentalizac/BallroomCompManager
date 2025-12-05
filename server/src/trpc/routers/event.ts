@@ -4,6 +4,7 @@ import { router, authedProcedure } from "../base";
 import {
   AllEventRegistrationRoleSchema,
   RegistrationRoleSchema,
+  EventCategorySchema,
 } from "@ballroomcompmanager/shared";
 import {
   createEventRegistration,
@@ -379,9 +380,9 @@ export const eventRouter = router({
       z.object({
         competitionId: z.string().uuid(),
         name: z.string().min(1, "Event name is required"),
-        startDate: z.date().nullable(),
-        endDate: z.date().nullable(),
-        categoryId: z.string().uuid(),
+        startDate: z.coerce.date().nullable(),
+        endDate: z.coerce.date().nullable(),
+        category: EventCategorySchema,
         rulesetId: z.string().uuid(),
       }),
     )
@@ -418,11 +419,11 @@ export const eventRouter = router({
       }
 
       try {
-        // Get or create category_ruleset combination
+        // Convert EventCategory to category_ruleset_id
         const { data: categoryRuleset, error: crError } =
-          await EventDAL.getOrCreateCategoryRuleset(
+          await EventDAL.getCategoryRulesetFromEventCategory(
             supabase,
-            input.categoryId,
+            input.category,
             input.rulesetId,
           );
 
@@ -484,8 +485,8 @@ export const eventRouter = router({
       z.object({
         id: z.string().uuid(),
         name: z.string().min(1).optional(),
-        startDate: z.date().nullable().optional(),
-        endDate: z.date().nullable().optional(),
+        startDate: z.coerce.date().nullable().optional(),
+        endDate: z.coerce.date().nullable().optional(),
       }),
     )
     .mutation(async ({ input, ctx }) => {

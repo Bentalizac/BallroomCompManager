@@ -3,7 +3,7 @@
  * Uses date-fns-tz for robust timezone handling including DST transitions
  */
 
-import { format, formatInTimeZone, zonedTimeToUtc, utcToZonedTime } from 'date-fns-tz';
+import { format, formatInTimeZone, fromZonedTime, toZonedTime } from 'date-fns-tz';
 import { parseISO, isValid } from 'date-fns';
 
 /**
@@ -27,7 +27,7 @@ export function localInputToUtcIso(localInput: string, timeZone: string): string
     }
 
     // Convert from the local timezone to UTC
-    const utcDate = zonedTimeToUtc(localDate, timeZone);
+    const utcDate = fromZonedTime(localDate, timeZone);
     
     return utcDate.toISOString();
   } catch (error) {
@@ -54,7 +54,7 @@ export function utcIsoToLocalInput(utcIso: string, timeZone: string): string {
     }
 
     // Convert UTC to local timezone
-    const localDate = utcToZonedTime(utcDate, timeZone);
+    const localDate = toZonedTime(utcDate, timeZone);
     
     // Format for datetime-local input (YYYY-MM-DDTHH:mm)
     return format(localDate, "yyyy-MM-dd'T'HH:mm");
@@ -108,7 +108,7 @@ export function getCurrentTimeInZone(timeZone: string): string {
 
   try {
     const now = new Date();
-    const localDate = utcToZonedTime(now, timeZone);
+    const localDate = toZonedTime(now, timeZone);
     
     // Format for datetime-local input (YYYY-MM-DDTHH:mm)
     return format(localDate, "yyyy-MM-dd'T'HH:mm");

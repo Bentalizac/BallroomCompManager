@@ -2,8 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import { useCreateEvent } from '@/hooks/useCompetitions';
-import { useEventCategories, useRulesets } from '@/hooks/useData';
+import { useRulesets } from '@/hooks/useData';
 import { localInputToUtcIso, getCurrentTimeInZone } from '@/lib/datetime';
+import {
+  DanceStyle,
+  BallroomLevel,
+  WCSLevel,
+  CountrySwingLevel,
+  OtherLevel,
+  type EventCategory,
+} from '@ballroomcompmanager/shared';
 
 interface CreateEventFormProps {
   competitionId: string;
@@ -28,14 +36,40 @@ export function CreateEventForm({
     name: '',
     startDate: '', // datetime-local format in competition timezone
     endDate: '',   // datetime-local format in competition timezone
-    categoryId: '',
+    style: '' as DanceStyle | '',
+    level: '',
     rulesetId: '',
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const { data: categories, isLoading: categoriesLoading } = useEventCategories();
   const { data: rulesets, isLoading: rulesetsLoading } = useRulesets();
   const createEvent = useCreateEvent();
+
+  // Get available levels based on selected dance style
+  const getAvailableLevels = (): string[] => {
+    if (!formData.style) return [];
+    
+    switch (formData.style) {
+      case DanceStyle.Ballroom:
+      case DanceStyle.Latin:
+      case DanceStyle.Smooth:
+      case DanceStyle.Rhythm:
+        return Object.values(BallroomLevel);
+      case DanceStyle.WestCoast:
+        return Object.values(WCSLevel);
+      case DanceStyle.CountrySwing:
+        return Object.values(CountrySwingLevel);
+      case DanceStyle.Other:
+        return Object.values(OtherLevel);
+      default:
+        return [];
+    }
+  };
+
+  // Reset level when style changes
+  useEffect(() => {
+    setFormData(prev => ({ ...prev, level: '' }));
+  }, [formData.style]);
 
   // Initialize default times in competition timezone
   useEffect(() => {
@@ -113,8 +147,12 @@ export function CreateEventForm({
       }
     }
     
-    if (!formData.categoryId) {
-      newErrors.categoryId = 'Event category is required';
+    if (!formData.style) {
+      newErrors.style = 'Dance style is required';
+    }
+    
+    if (!formData.level) {
+      newErrors.level = 'Level is required';
     }
     
     if (!formData.rulesetId) {
@@ -137,12 +175,18 @@ export function CreateEventForm({
       const startDate = new Date(localInputToUtcIso(formData.startDate, competitionTimeZone));
       const endDate = new Date(localInputToUtcIso(formData.endDate, competitionTimeZone));
       
+      // Construct EventCategory from style and level
+      const category: EventCategory = {
+        style: formData.style as DanceStyle,
+        level: formData.level as any, // Type will be validated by EventCategorySchema on server
+      };
+      
       const result = await createEvent.mutateAsync({
         competitionId,
         name: formData.name.trim(),
         startDate,
         endDate,
-        categoryId: formData.categoryId,
+        category,
         rulesetId: formData.rulesetId,
       });
 
@@ -158,14 +202,19 @@ export function CreateEventForm({
     }
   };
 
-  // Generate event name suggestion based on category and ruleset
+  // Generate event name suggestion based on style, level, and ruleset
   const generateEventName = () => {
-    if (formData.categoryId && formData.rulesetId) {
-      const category = categories?.find(c => c.id === formData.categoryId);
+    if (formData.style && formData.level && formData.rulesetId) {
       const ruleset = rulesets?.find(r => r.id === formData.rulesetId);
       
-      if (category && ruleset) {
-        const suggestedName = `${category.name} ${ruleset.name}`;
+      if (ruleset) {
+        // Format style and level for display
+        const styleDisplay = formData.style.split('_').map(word => 
+          word.charAt(0).toUpperCase() + word.slice(1)
+        ).join(' ');
+        const levelDisplay = formData.level.charAt(0).toUpperCase() + formData.level.slice(1);
+        
+        const suggestedName = `${styleDisplay} ${levelDisplay} - ${ruleset.name}`;
         setFormData(prev => ({ ...prev, name: suggestedName }));
       }
     }
@@ -191,7 +240,7 @@ export function CreateEventForm({
               <button
                 type="button"
                 onClick={generateEventName}
-                disabled={!formData.categoryId || !formData.rulesetId}
+                disabled={!formData.style || !formData.level || !formData.rulesetId}
                 className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
                 Auto-generate
@@ -210,58 +259,81 @@ export function CreateEventForm({
             {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
           </div>
 
-          {/* Event Category and Ruleset */}
+          {/* Dance Style and Level (cascading) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="categoryId" className="block text-sm font-medium text-gray-700 mb-2">
-                Event Category *
+              <label htmlFor="style" className="block text-sm font-medium text-gray-700 mb-2">
+                Dance Style *
               </label>
               <select
-                id="categoryId"
-                value={formData.categoryId}
-                onChange={(e) => setFormData(prev => ({ ...prev, categoryId: e.target.value }))}
+                id="style"
+                value={formData.style}
+                onChange={(e) => setFormData(prev => ({ ...prev, style: e.target.value as DanceStyle }))}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.categoryId ? 'border-red-300' : 'border-gray-300'
+                  errors.style ? 'border-red-300' : 'border-gray-300'
                 }`}
-                disabled={categoriesLoading}
               >
-                <option value="">Select category</option>
-                {categories?.map((category) => (
-                  <option key={category.id} value={category.id}>
-                    {category.name}
+                <option value="">Select dance style</option>
+                {Object.values(DanceStyle).map((style) => (
+                  <option key={style} value={style}>
+                    {style.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
                   </option>
                 ))}
               </select>
-              {errors.categoryId && <p className="mt-1 text-sm text-red-600">{errors.categoryId}</p>}
+              {errors.style && <p className="mt-1 text-sm text-red-600">{errors.style}</p>}
             </div>
 
             <div>
-              <label htmlFor="rulesetId" className="block text-sm font-medium text-gray-700 mb-2">
-                Ruleset *
+              <label htmlFor="level" className="block text-sm font-medium text-gray-700 mb-2">
+                Level *
               </label>
               <select
-                id="rulesetId"
-                value={formData.rulesetId}
-                onChange={(e) => setFormData(prev => ({ ...prev, rulesetId: e.target.value }))}
+                id="level"
+                value={formData.level}
+                onChange={(e) => setFormData(prev => ({ ...prev, level: e.target.value }))}
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.rulesetId ? 'border-red-300' : 'border-gray-300'
+                  errors.level ? 'border-red-300' : 'border-gray-300'
                 }`}
-                disabled={rulesetsLoading}
+                disabled={!formData.style}
               >
-                <option value="">Select ruleset</option>
-                {rulesets?.map((ruleset) => (
-                  <option key={ruleset.id} value={ruleset.id}>
-                    {ruleset.name} 
-                    {ruleset.scoring_methods && (
-                      <span className="text-gray-500">
-                        ({ruleset.scoring_methods.name})
-                      </span>
-                    )}
+                <option value="">Select level</option>
+                {getAvailableLevels().map((level) => (
+                  <option key={level} value={level}>
+                    {level.charAt(0).toUpperCase() + level.slice(1)}
                   </option>
                 ))}
               </select>
-              {errors.rulesetId && <p className="mt-1 text-sm text-red-600">{errors.rulesetId}</p>}
+              {errors.level && <p className="mt-1 text-sm text-red-600">{errors.level}</p>}
             </div>
+          </div>
+
+          {/* Ruleset */}
+          <div>
+            <label htmlFor="rulesetId" className="block text-sm font-medium text-gray-700 mb-2">
+              Ruleset *
+            </label>
+            <select
+              id="rulesetId"
+              value={formData.rulesetId}
+              onChange={(e) => setFormData(prev => ({ ...prev, rulesetId: e.target.value }))}
+              className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
+                errors.rulesetId ? 'border-red-300' : 'border-gray-300'
+              }`}
+              disabled={rulesetsLoading}
+            >
+              <option value="">Select ruleset</option>
+              {rulesets?.map((ruleset) => (
+                <option key={ruleset.id} value={ruleset.id}>
+                  {ruleset.name} 
+                  {ruleset.scoring_methods && (
+                    <span className="text-gray-500">
+                      ({ruleset.scoring_methods.name})
+                    </span>
+                  )}
+                </option>
+              ))}
+            </select>
+            {errors.rulesetId && <p className="mt-1 text-sm text-red-600">{errors.rulesetId}</p>}
           </div>
 
           {/* Selected Ruleset Info */}

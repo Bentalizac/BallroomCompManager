@@ -30,6 +30,7 @@ export {
   BallroomLevel,
   WCSLevel,
   CountrySwingLevel,
+  OtherLevel,
   type EventCategory,
   type EventLevel,
 } from "./data/enums/eventTypes";
@@ -53,6 +54,10 @@ export {
   EntryTypeSchema,
   DanceStyleSchema,
   BallroomLevelSchema,
+  WCSLevelSchema,
+  CountrySwingLevelSchema,
+  OtherLevelSchema,
+  EventCategorySchema,
 } from "./validation/zodEnums";
 
 // Utility exports

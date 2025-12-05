@@ -91,7 +91,7 @@ export function EventCard({
         <div className="flex items-start justify-between">
           <div>
             <CardTitle className="text-lg font-semibold text-gray-900 mb-2">
-              {event.name} - {event.category}
+              {event.category.style} - {event.category.level}
             </CardTitle>
             <Badge className={statusColors[eventStatus]}>
               {statusLabels[eventStatus]}

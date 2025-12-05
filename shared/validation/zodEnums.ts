@@ -6,7 +6,14 @@ import {
   AllEventRegistrationRoles,
 } from "../data/enums/eventRoles";
 import { ScoringMethods } from "../data/enums/scoringMethods";
-import { EntryType, DanceStyle, BallroomLevel } from "../data/enums/eventTypes";
+import {
+  EntryType,
+  DanceStyle,
+  BallroomLevel,
+  WCSLevel,
+  CountrySwingLevel,
+  OtherLevel,
+} from "../data/enums/eventTypes";
 
 /**
  * Utility to create Zod enum from readonly array
@@ -29,3 +36,31 @@ export const ScoringMethodSchema = z.nativeEnum(ScoringMethods);
 export const EntryTypeSchema = z.nativeEnum(EntryType);
 export const DanceStyleSchema = z.nativeEnum(DanceStyle);
 export const BallroomLevelSchema = z.nativeEnum(BallroomLevel);
+export const WCSLevelSchema = z.nativeEnum(WCSLevel);
+export const CountrySwingLevelSchema = z.nativeEnum(CountrySwingLevel);
+export const OtherLevelSchema = z.nativeEnum(OtherLevel);
+
+// Event Category discriminated union
+export const EventCategorySchema = z.discriminatedUnion("style", [
+  z.object({
+    style: z.enum([
+      DanceStyle.Ballroom,
+      DanceStyle.Latin,
+      DanceStyle.Smooth,
+      DanceStyle.Rhythm,
+    ]),
+    level: BallroomLevelSchema,
+  }),
+  z.object({
+    style: z.literal(DanceStyle.WestCoast),
+    level: WCSLevelSchema,
+  }),
+  z.object({
+    style: z.literal(DanceStyle.CountrySwing),
+    level: CountrySwingLevelSchema,
+  }),
+  z.object({
+    style: z.literal(DanceStyle.Other),
+    level: OtherLevelSchema,
+  }),
+]);

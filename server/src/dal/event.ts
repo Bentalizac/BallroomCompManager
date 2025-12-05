@@ -1,5 +1,6 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "./database.types";
+import type { EventCategory } from "@ballroomcompmanager/shared";
 
 type SupabaseClientType = SupabaseClient<Database>;
 
@@ -223,4 +224,57 @@ export async function getOrCreateCategoryRuleset(
 
   // Return the error if it wasn't a "not found" error
   return { data: null, error: fetchError };
+}
+
+/**
+ * Convert EventCategory discriminated union to category_ruleset_id
+ * This bridges the gap between domain types and database structure
+ */
+export async function getCategoryRulesetFromEventCategory(
+  supabase: SupabaseClientType,
+  category: EventCategory,
+  rulesetId: string,
+): Promise<{ data: { id: string } | null; error: any }> {
+  // Step 1: Look up dance_style_id from enum value
+  const { data: danceStyle, error: styleError } = await supabase
+    .from("dance_styles")
+    .select("id")
+    .eq("name", category.style)
+    .single();
+
+  if (styleError || !danceStyle) {
+    return {
+      data: null,
+      error: styleError || new Error(`Dance style '${category.style}' not found`),
+    };
+  }
+
+  // Step 2: Look up event_level_id from enum value
+  const { data: eventLevel, error: levelError } = await supabase
+    .from("event_levels")
+    .select("id")
+    .eq("name", category.level)
+    .single();
+
+  if (levelError || !eventLevel) {
+    return {
+      data: null,
+      error: levelError || new Error(`Event level '${category.level}' not found`),
+    };
+  }
+
+  // Step 3: Get or create event_category
+  const { data: eventCategory, error: categoryError } =
+    await getOrCreateEventCategory(supabase, danceStyle.id, eventLevel.id);
+
+  if (categoryError || !eventCategory) {
+    return { data: null, error: categoryError };
+  }
+
+  // Step 4: Get or create category_ruleset
+  return await getOrCreateCategoryRuleset(
+    supabase,
+    eventCategory.id,
+    rulesetId,
+  );
 }
