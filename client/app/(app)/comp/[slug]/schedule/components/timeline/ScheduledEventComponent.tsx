@@ -1,15 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import { useDrag } from 'react-dnd';
-import { getDragItemHeight } from '../../utils';
 import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
 
 // Local props type to satisfy compiler; this component is currently unused.
 type ScheduledEventProps = {
   event: { id: string; name: string; startDate: Date | null; endDate: Date | null; color?: string };
-  onEventSelect: (event: any) => void;
+  onEventSelect: (event: { id: string; name: string; startDate: Date | null; endDate: Date | null; color?: string }) => void;
   selectedEvent: { id: string } | null;
   onEventUpdate: (id: string, updates: Partial<{ endDate: Date }>) => void;
-  onEventMove: (...args: any[]) => void;
 };
 
 
@@ -25,15 +23,12 @@ export function ScheduledEventComponent({
   event, 
   onEventSelect, 
   selectedEvent, 
-  onEventUpdate, 
-  onEventMove 
+  onEventUpdate
 }: ScheduledEventProps) {
   const [isResizing, setIsResizing] = useState(false);
-  const [isDragging, setIsDragging] = useState(false);
+  const [isDragging] = useState(false);
   const startYRef = useRef(0);
   const startDurationRef = useRef(0);
-
-  const duration = getDuration(event.startDate, event.endDate);
 
   // Make the event draggable
   const [{ isDragState }, drag, preview] = useDrag({
@@ -60,7 +55,7 @@ export function ScheduledEventComponent({
     e.stopPropagation();
     setIsResizing(true);
     startYRef.current = e.clientY;
-    startDurationRef.current = duration;
+    startDurationRef.current = getDuration(event.startDate, event.endDate);
 
     const handleMouseMove = (e: MouseEvent) => {
       const deltaY = e.clientY - startYRef.current;
@@ -85,12 +80,11 @@ export function ScheduledEventComponent({
     document.addEventListener('mouseup', handleMouseUp);
   };
 
-  const height = getDragItemHeight(duration);
   const displayColor = event.color || '#3b82f6';
 
   return (
     <div
-      ref={drag as any}
+      ref={drag as unknown as React.Ref<HTMLDivElement>}
       className={`absolute left-0 top-0 w-full h-full rounded shadow-sm border-2 transition-colors ${
         selectedEvent?.id === event.id ? 'border-blue-500 ring-2 ring-blue-200' : 'border-transparent'
       } ${isDragState || isDragging ? 'opacity-50 cursor-grabbing' : 'cursor-grab'} ${isResizing ? 'cursor-ns-resize' : ''}`}

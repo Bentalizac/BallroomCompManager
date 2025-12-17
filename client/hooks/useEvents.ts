@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DanceStyle, BallroomLevel } from "@ballroomcompmanager/shared";
 import { trpc } from "@/lib/trpc";
 
 /**
@@ -48,6 +49,14 @@ export function useEventCreate(competitionId?: string) {
     endDate: Date | null;
     categoryId: string;
     rulesetId: string;
+    category: {
+      style:
+        | DanceStyle.Ballroom
+        | DanceStyle.Latin
+        | DanceStyle.Smooth
+        | DanceStyle.Rhythm;
+      level: BallroomLevel;
+    };
   }) => {
     return createMutation.mutateAsync(eventData);
   };

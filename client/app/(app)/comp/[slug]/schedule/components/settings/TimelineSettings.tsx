@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -22,7 +22,9 @@ export function TimelineSettings({ onSettingsChange }: TimelineSettingsProps) {
   const [timeSettings, setTimeSettings] = useState<TimeSettings>({
     START_TIME: getCurrentTimeSettings().START_TIME,
     END_TIME: getCurrentTimeSettings().END_TIME,
-    TIME_GAP_INTERVAL: getCurrentTimeSettings().TIME_GAP_INTERVAL
+    TIME_GAP_INTERVAL: getCurrentTimeSettings().TIME_GAP_INTERVAL,
+    RESIZE_STEP_MINUTES: getCurrentTimeSettings().RESIZE_STEP_MINUTES,
+    DROP_SNAP_MINUTES: getCurrentTimeSettings().DROP_SNAP_MINUTES,
   });
 
   const formatTime = (minutes: number): string => {

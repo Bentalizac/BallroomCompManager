@@ -2,10 +2,10 @@
 
 import React, { createContext, useContext } from "react";
 import { useCompetitionBySlug } from "@/hooks/useCompetitions";
-import type { CompetitionApiType } from "@ballroomcompmanager/shared";
+import { Competition } from "@ballroom/shared/dist";
 
 type CompProviderContextType = {
-  competition: CompetitionApiType | null | undefined;
+  competition: Competition | null;
   isLoading: boolean;
   slug: string;
 };
@@ -21,10 +21,15 @@ export const CompProvider: React.FC<CompProviderProps> = ({
   slug,
   children,
 }) => {
-  const { data: competition, isLoading, error } = useCompetitionBySlug(slug);
+  const { data: rawCompetition, isLoading, error } = useCompetitionBySlug(slug);
+
+  const competition = rawCompetition ? { 
+    ...rawCompetition, 
+    startDate: new Date(rawCompetition.startDate),
+  } : null;
 
   const contextValue: CompProviderContextType = {
-    competition,
+    competition: competition,
     isLoading,
     slug,
   };

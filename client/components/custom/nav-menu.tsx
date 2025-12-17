@@ -1,12 +1,10 @@
 import {
   NavigationMenu,
   NavigationMenuContent,
-  NavigationMenuIndicator,
   NavigationMenuItem,
   NavigationMenuLink,
   NavigationMenuList,
   NavigationMenuTrigger,
-  NavigationMenuViewport,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 
@@ -22,7 +20,7 @@ interface HeaderProps extends React.ComponentProps<"div"> {
   menuItems: MenuItem[];
 }
 
-function navMenu({ className, menuItems, ...props }: HeaderProps) {
+function navMenu({ menuItems }: HeaderProps) {
   return (
     <NavigationMenu viewport={false}>
       <NavigationMenuList>

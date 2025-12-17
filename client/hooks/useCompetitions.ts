@@ -1,17 +1,14 @@
 import { trpc } from "@/lib/trpc";
 import { useMemo } from "react";
 import type {
-  CompetitionApiType,
   Competition,
 } from "@ballroomcompmanager/shared";
 
 // Hook to get all competitions
-export function useCompetitions(): Competition[] {
-  var comps = trpc.competition.getAll.useQuery(undefined, {
+export function useCompetitions() {
+  return trpc.competition.getAll.useQuery(undefined, {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
-  console.log(comps);
-  return comps;
 }
 
 // Hook to get a single competition by ID
@@ -135,7 +132,7 @@ export function useCompetitionDisplay(competition: Competition | undefined) {
 
 // Hook to check if user can register for a competition
 export function useCanRegister(
-  competition: CompetitionApiType | undefined,
+  competition: Competition | undefined,
   userRegistration: { status: string } | undefined,
   isAuthenticated: boolean = true,
 ) {

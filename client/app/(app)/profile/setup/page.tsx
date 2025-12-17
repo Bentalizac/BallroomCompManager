@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useProfileCompletion, useProfileManager, useUserDisplay, useUserRegistration } from "@/hooks/useUser";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,8 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function ProfileSetupPage() {
-  const router = useRouter();
-  const { isComplete, requiresSetup, missingFields, isLoading, user } = useProfileCompletion();
+  const { isComplete, missingFields, isLoading, user } = useProfileCompletion();
   const { updateProfile, isUpdating } = useProfileManager();
   const { displayName, email } = useUserDisplay();
   const { formatDate, isNewUser } = useUserRegistration();

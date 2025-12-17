@@ -10,7 +10,7 @@ interface ProfileCardProps {
 }
 
 export function ProfileCard({ className }: ProfileCardProps) {
-  const { user, profile, loading, profileLoading } = useUser();
+  const { user, loading, profileLoading } = useUser();
 
   // Determine loading state
   const isLoading = loading || profileLoading;

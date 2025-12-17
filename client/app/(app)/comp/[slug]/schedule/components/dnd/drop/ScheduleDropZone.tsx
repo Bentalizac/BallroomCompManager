@@ -2,7 +2,7 @@ import React, { useRef, useEffect } from 'react';
 import { useDroppable } from '../../../hooks/useDroppable';
 import { DRAG_TYPES } from '../../../hooks/useDraggable';
 import { calculateTimeSlotFromPosition } from '../../../utils';
-import type { Event, Block, Venue } from '../../../types';
+import type { Venue } from '../../../types';
 import type { DropTargetMonitor } from 'react-dnd';
 import { LAYOUT_CONSTANTS } from '../../../constants';
 import { STATE_TYPES } from '../../dnd/drag/draggableItem';
@@ -26,7 +26,11 @@ type DropItem = {
   dragType: 'event' | 'block';
   state: 'available' | 'scheduled' | 'infinite' | 'in_block';
   id: string;
-  [key: string]: any;
+  grabOffsetY?: number;
+  grabOffsetX?: number;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  [key: string]: unknown;
 };
 
 export interface ScheduleDropZoneProps {
@@ -162,7 +166,7 @@ export function ScheduleDropZone({
     });
   }
 
-  const { dropRef, isOver } = useDroppable<DropItem>({
+  const { dropRef } = useDroppable<DropItem>({
     accept: [DRAG_TYPES.EVENT, DRAG_TYPES.BLOCK],
     onDrop: (item, monitor: DropTargetMonitor) => {
       const clientOffset = monitor.getClientOffset();
@@ -237,8 +241,8 @@ export function ScheduleDropZone({
 
   return (
     <div
-      ref={combinedRef as any}
-      className={`relative ${className} ${isPreviewTarget ? 'bg-blue-50' : ''}`}
+      ref={combinedRef as React.RefCallback<HTMLDivElement>}
+      className={`relative h-full ${isPreviewTarget ? 'ring-2 ring-blue-400' : ''} ${className}`}
       style={style}
     >
       {children}

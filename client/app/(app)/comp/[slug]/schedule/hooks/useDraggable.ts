@@ -12,7 +12,7 @@ export type DragType = typeof DRAG_TYPES[keyof typeof DRAG_TYPES];
 
 export interface UseDraggableOptions<TItem> {
   type: DragType;
-  buildItem: (monitor?: any) => TItem; // Build the item payload at drag time (keeps it fresh)
+  buildItem: (monitor?: unknown) => TItem; // Build the item payload at drag time (keeps it fresh)
 }
 
 export function useDraggable<TItem>({ type, buildItem }: UseDraggableOptions<TItem>) {
@@ -25,8 +25,8 @@ export function useDraggable<TItem>({ type, buildItem }: UseDraggableOptions<TIt
         const startPointer = monitor.getInitialClientOffset?.();
         const startSource = monitor.getInitialSourceClientOffset?.();
         if (startPointer && startSource && item && typeof item === 'object') {
-          (item as any).grabOffsetY = startPointer.y - startSource.y;
-          (item as any).grabOffsetX = startPointer.x - startSource.x;
+          (item as Record<string, unknown>).grabOffsetY = startPointer.y - startSource.y;
+          (item as Record<string, unknown>).grabOffsetX = startPointer.x - startSource.x;
         }
       } catch {}
       return item;

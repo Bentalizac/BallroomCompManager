@@ -8,9 +8,7 @@ import {
   Settings,
   Users,
   Calendar,
-  BarChart3,
   Shield,
-  ChevronRight,
 } from "lucide-react";
 
 interface AdminNavProps {

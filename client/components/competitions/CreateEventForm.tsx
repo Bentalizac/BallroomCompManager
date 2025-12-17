@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useCreateEvent } from '@/hooks/useCompetitions';
-import { useRulesets } from '@/hooks/useData';
-import { localInputToUtcIso, getCurrentTimeInZone } from '@/lib/datetime';
+import { useState, useEffect } from "react";
+import { useCreateEvent } from "@/hooks/useCompetitions";
+import { useRulesets } from "@/hooks/useData";
+import { localInputToUtcIso, getCurrentTimeInZone } from "@/lib/datetime";
 import {
   DanceStyle,
   BallroomLevel,
@@ -11,7 +11,7 @@ import {
   CountrySwingLevel,
   OtherLevel,
   type EventCategory,
-} from '@ballroomcompmanager/shared';
+} from "@ballroomcompmanager/shared";
 
 interface CreateEventFormProps {
   competitionId: string;
@@ -23,22 +23,22 @@ interface CreateEventFormProps {
   onCancel?: () => void;
 }
 
-export function CreateEventForm({ 
-  competitionId, 
+export function CreateEventForm({
+  competitionId,
   competitionName,
   competitionStartDate,
   competitionEndDate,
   competitionTimeZone,
-  onSuccess, 
-  onCancel 
+  onSuccess,
+  onCancel,
 }: CreateEventFormProps) {
   const [formData, setFormData] = useState({
-    name: '',
-    startDate: '', // datetime-local format in competition timezone
-    endDate: '',   // datetime-local format in competition timezone
-    style: '' as DanceStyle | '',
-    level: '',
-    rulesetId: '',
+    name: "",
+    startDate: "", // datetime-local format in competition timezone
+    endDate: "", // datetime-local format in competition timezone
+    style: "" as DanceStyle | "",
+    level: "",
+    rulesetId: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -48,7 +48,7 @@ export function CreateEventForm({
   // Get available levels based on selected dance style
   const getAvailableLevels = (): string[] => {
     if (!formData.style) return [];
-    
+
     switch (formData.style) {
       case DanceStyle.Ballroom:
       case DanceStyle.Latin:
@@ -68,7 +68,7 @@ export function CreateEventForm({
 
   // Reset level when style changes
   useEffect(() => {
-    setFormData(prev => ({ ...prev, level: '' }));
+    setFormData((prev) => ({ ...prev, level: "" }));
   }, [formData.style]);
 
   // Initialize default times in competition timezone
@@ -76,31 +76,31 @@ export function CreateEventForm({
     try {
       // Set default start time to current time in competition timezone
       const currentTime = getCurrentTimeInZone(competitionTimeZone);
-      
+
       // If we have competition start date, use that as default, otherwise use current time
       let defaultStartDate = currentTime;
       if (competitionStartDate) {
         // Convert competition start date to datetime-local format at 9:00 AM in competition timezone
         defaultStartDate = `${competitionStartDate}T09:00`;
       }
-      
+
       // Default end time is 3 hours after start time
       let defaultEndDate = currentTime;
       if (competitionStartDate) {
         defaultEndDate = `${competitionStartDate}T17:00`;
       }
-      
-      setFormData(prev => ({
+
+      setFormData((prev) => ({
         ...prev,
         startDate: defaultStartDate,
         endDate: defaultEndDate,
       }));
     } catch (error) {
-      console.error('Failed to set default times:', error);
+      console.error("Failed to set default times:", error);
       // Fallback to basic datetime-local format
       const now = new Date();
       const isoString = now.toISOString().slice(0, 16); // YYYY-MM-DDTHH:mm
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         startDate: isoString,
         endDate: isoString,
@@ -110,53 +110,55 @@ export function CreateEventForm({
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!formData.name.trim()) {
-      newErrors.name = 'Event name is required';
+      newErrors.name = "Event name is required";
     }
-    
+
     if (!formData.startDate) {
-      newErrors.startDate = 'Start time is required';
+      newErrors.startDate = "Start time is required";
     }
-    
+
     if (!formData.endDate) {
-      newErrors.endDate = 'End time is required';
+      newErrors.endDate = "End time is required";
     }
-    
+
     if (formData.startDate && formData.endDate) {
       const startDate = new Date(formData.startDate);
       const endDate = new Date(formData.endDate);
-      
+
       if (startDate >= endDate) {
-        newErrors.endDate = 'End time must be after start time';
+        newErrors.endDate = "End time must be after start time";
       }
-      
+
       // Check if dates are within competition date range
       if (competitionStartDate && competitionEndDate) {
         // Convert competition dates to datetime for comparison (using start of day and end of day)
         const compStart = new Date(`${competitionStartDate}T00:00`);
         const compEnd = new Date(`${competitionEndDate}T23:59`);
-        
+
         if (startDate < compStart) {
-          newErrors.startDate = 'Event start time cannot be before competition start date';
+          newErrors.startDate =
+            "Event start time cannot be before competition start date";
         }
-        
+
         if (endDate > compEnd) {
-          newErrors.endDate = 'Event end time cannot be after competition end date';
+          newErrors.endDate =
+            "Event end time cannot be after competition end date";
         }
       }
     }
-    
+
     if (!formData.style) {
-      newErrors.style = 'Dance style is required';
+      newErrors.style = "Dance style is required";
     }
-    
+
     if (!formData.level) {
-      newErrors.level = 'Level is required';
+      newErrors.level = "Level is required";
     }
-    
+
     if (!formData.rulesetId) {
-      newErrors.rulesetId = 'Ruleset is required';
+      newErrors.rulesetId = "Ruleset is required";
     }
 
     setErrors(newErrors);
@@ -165,22 +167,26 @@ export function CreateEventForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     try {
       // Convert local datetime-local inputs to Date objects
-      const startDate = new Date(localInputToUtcIso(formData.startDate, competitionTimeZone));
-      const endDate = new Date(localInputToUtcIso(formData.endDate, competitionTimeZone));
-      
+      const startDate = new Date(
+        localInputToUtcIso(formData.startDate, competitionTimeZone),
+      );
+      const endDate = new Date(
+        localInputToUtcIso(formData.endDate, competitionTimeZone),
+      );
+
       // Construct EventCategory from style and level
       const category: EventCategory = {
-        style: formData.style as DanceStyle,
-        level: formData.level as any, // Type will be validated by EventCategorySchema on server
+        style: formData.style as DanceStyle.Other,
+        level: formData.level as OtherLevel, // Type will be validated by EventCategorySchema on server
       };
-      
+
       const result = await createEvent.mutateAsync({
         competitionId,
         name: formData.name.trim(),
@@ -194,10 +200,15 @@ export function CreateEventForm({
         onSuccess(result.id);
       }
     } catch (error) {
-      console.error('Failed to create event:', error);
+      console.error("Failed to create event:", error);
       // Handle timezone conversion errors specifically
-      if (error instanceof Error && error.message.includes('Failed to convert')) {
-        setErrors({ general: 'Invalid date/time format. Please check your entries.' });
+      if (
+        error instanceof Error &&
+        error.message.includes("Failed to convert")
+      ) {
+        setErrors({
+          general: "Invalid date/time format. Please check your entries.",
+        });
       }
     }
   };
@@ -205,17 +216,19 @@ export function CreateEventForm({
   // Generate event name suggestion based on style, level, and ruleset
   const generateEventName = () => {
     if (formData.style && formData.level && formData.rulesetId) {
-      const ruleset = rulesets?.find(r => r.id === formData.rulesetId);
-      
+      const ruleset = rulesets?.find((r) => r.id === formData.rulesetId);
+
       if (ruleset) {
         // Format style and level for display
-        const styleDisplay = formData.style.split('_').map(word => 
-          word.charAt(0).toUpperCase() + word.slice(1)
-        ).join(' ');
-        const levelDisplay = formData.level.charAt(0).toUpperCase() + formData.level.slice(1);
-        
+        const styleDisplay = formData.style
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+        const levelDisplay =
+          formData.level.charAt(0).toUpperCase() + formData.level.slice(1);
+
         const suggestedName = `${styleDisplay} ${levelDisplay} - ${ruleset.name}`;
-        setFormData(prev => ({ ...prev, name: suggestedName }));
+        setFormData((prev) => ({ ...prev, name: suggestedName }));
       }
     }
   };
@@ -229,18 +242,23 @@ export function CreateEventForm({
             <p className="text-gray-600 mt-1">for {competitionName}</p>
           )}
         </div>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Event Name */}
           <div>
             <div className="flex justify-between items-center mb-2">
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="name"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Event Name *
               </label>
               <button
                 type="button"
                 onClick={generateEventName}
-                disabled={!formData.style || !formData.level || !formData.rulesetId}
+                disabled={
+                  !formData.style || !formData.level || !formData.rulesetId
+                }
                 className="text-xs text-blue-600 hover:text-blue-800 disabled:text-gray-400 disabled:cursor-not-allowed"
               >
                 Auto-generate
@@ -250,49 +268,73 @@ export function CreateEventForm({
               type="text"
               id="name"
               value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, name: e.target.value }))
+              }
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.name ? 'border-red-300' : 'border-gray-300'
+                errors.name ? "border-red-300" : "border-gray-300"
               }`}
               placeholder="e.g., Amateur Standard, Professional Latin"
             />
-            {errors.name && <p className="mt-1 text-sm text-red-600">{errors.name}</p>}
+            {errors.name && (
+              <p className="mt-1 text-sm text-red-600">{errors.name}</p>
+            )}
           </div>
 
           {/* Dance Style and Level (cascading) */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="style" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="style"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Dance Style *
               </label>
               <select
                 id="style"
                 value={formData.style}
-                onChange={(e) => setFormData(prev => ({ ...prev, style: e.target.value as DanceStyle }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    style: e.target.value as DanceStyle,
+                  }))
+                }
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.style ? 'border-red-300' : 'border-gray-300'
+                  errors.style ? "border-red-300" : "border-gray-300"
                 }`}
               >
                 <option value="">Select dance style</option>
                 {Object.values(DanceStyle).map((style) => (
                   <option key={style} value={style}>
-                    {style.split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')}
+                    {style
+                      .split("_")
+                      .map(
+                        (word) => word.charAt(0).toUpperCase() + word.slice(1),
+                      )
+                      .join(" ")}
                   </option>
                 ))}
               </select>
-              {errors.style && <p className="mt-1 text-sm text-red-600">{errors.style}</p>}
+              {errors.style && (
+                <p className="mt-1 text-sm text-red-600">{errors.style}</p>
+              )}
             </div>
 
             <div>
-              <label htmlFor="level" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="level"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Level *
               </label>
               <select
                 id="level"
                 value={formData.level}
-                onChange={(e) => setFormData(prev => ({ ...prev, level: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, level: e.target.value }))
+                }
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.level ? 'border-red-300' : 'border-gray-300'
+                  errors.level ? "border-red-300" : "border-gray-300"
                 }`}
                 disabled={!formData.style}
               >
@@ -303,28 +345,35 @@ export function CreateEventForm({
                   </option>
                 ))}
               </select>
-              {errors.level && <p className="mt-1 text-sm text-red-600">{errors.level}</p>}
+              {errors.level && (
+                <p className="mt-1 text-sm text-red-600">{errors.level}</p>
+              )}
             </div>
           </div>
 
           {/* Ruleset */}
           <div>
-            <label htmlFor="rulesetId" className="block text-sm font-medium text-gray-700 mb-2">
+            <label
+              htmlFor="rulesetId"
+              className="block text-sm font-medium text-gray-700 mb-2"
+            >
               Ruleset *
             </label>
             <select
               id="rulesetId"
               value={formData.rulesetId}
-              onChange={(e) => setFormData(prev => ({ ...prev, rulesetId: e.target.value }))}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, rulesetId: e.target.value }))
+              }
               className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                errors.rulesetId ? 'border-red-300' : 'border-gray-300'
+                errors.rulesetId ? "border-red-300" : "border-gray-300"
               }`}
               disabled={rulesetsLoading}
             >
               <option value="">Select ruleset</option>
               {rulesets?.map((ruleset) => (
                 <option key={ruleset.id} value={ruleset.id}>
-                  {ruleset.name} 
+                  {ruleset.name}
                   {ruleset.scoring_methods && (
                     <span className="text-gray-500">
                       ({ruleset.scoring_methods.name})
@@ -333,13 +382,18 @@ export function CreateEventForm({
                 </option>
               ))}
             </select>
-            {errors.rulesetId && <p className="mt-1 text-sm text-red-600">{errors.rulesetId}</p>}
+            {errors.rulesetId && (
+              <p className="mt-1 text-sm text-red-600">{errors.rulesetId}</p>
+            )}
           </div>
 
           {/* Selected Ruleset Info */}
-          {formData.rulesetId && rulesets && (
+          {formData.rulesetId &&
+            rulesets &&
             (() => {
-              const selectedRuleset = rulesets.find(r => r.id === formData.rulesetId);
+              const selectedRuleset = rulesets.find(
+                (r) => r.id === formData.rulesetId,
+              );
               if (selectedRuleset?.scoring_methods) {
                 return (
                   <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
@@ -355,8 +409,7 @@ export function CreateEventForm({
                 );
               }
               return null;
-            })()
-          )}
+            })()}
 
           {/* Timezone Info */}
           <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
@@ -364,42 +417,60 @@ export function CreateEventForm({
               Competition Time Zone: {competitionTimeZone}
             </h4>
             <p className="text-sm text-blue-700">
-              All event times will be converted to UTC for storage and displayed in the competition&apos;s local time.
+              All event times will be converted to UTC for storage and displayed
+              in the competition&apos;s local time.
             </p>
           </div>
 
           {/* DateTime Range */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label htmlFor="startDate" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="startDate"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Event Start Time *
               </label>
               <input
                 type="datetime-local"
                 id="startDate"
                 value={formData.startDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({
+                    ...prev,
+                    startDate: e.target.value,
+                  }))
+                }
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.startDate ? 'border-red-300' : 'border-gray-300'
+                  errors.startDate ? "border-red-300" : "border-gray-300"
                 }`}
               />
-              {errors.startDate && <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>}
+              {errors.startDate && (
+                <p className="mt-1 text-sm text-red-600">{errors.startDate}</p>
+              )}
             </div>
 
             <div>
-              <label htmlFor="endDate" className="block text-sm font-medium text-gray-700 mb-2">
+              <label
+                htmlFor="endDate"
+                className="block text-sm font-medium text-gray-700 mb-2"
+              >
                 Event End Time *
               </label>
               <input
                 type="datetime-local"
                 id="endDate"
                 value={formData.endDate}
-                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, endDate: e.target.value }))
+                }
                 className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 ${
-                  errors.endDate ? 'border-red-300' : 'border-gray-300'
+                  errors.endDate ? "border-red-300" : "border-gray-300"
                 }`}
               />
-              {errors.endDate && <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>}
+              {errors.endDate && (
+                <p className="mt-1 text-sm text-red-600">{errors.endDate}</p>
+              )}
             </div>
           </div>
 
@@ -407,8 +478,8 @@ export function CreateEventForm({
           {competitionStartDate && competitionEndDate && (
             <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded-md">
               <p>
-                <strong>Competition dates:</strong> {' '}
-                {new Date(competitionStartDate).toLocaleDateString()} to{' '}
+                <strong>Competition dates:</strong>{" "}
+                {new Date(competitionStartDate).toLocaleDateString()} to{" "}
                 {new Date(competitionEndDate).toLocaleDateString()}
               </p>
               <p className="mt-1">
@@ -430,11 +501,8 @@ export function CreateEventForm({
             )}
             <button
               type="submit"
-              disabled={createEvent.isLoading}
               className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {createEvent.isLoading ? 'Creating...' : 'Create Event'}
-            </button>
+            ></button>
           </div>
         </form>
 
@@ -442,7 +510,8 @@ export function CreateEventForm({
         {(createEvent.error || errors.general) && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-sm text-red-600">
-              {errors.general || `Failed to create event: ${createEvent.error?.message}`}
+              {errors.general ||
+                `Failed to create event: ${createEvent.error?.message}`}
             </p>
           </div>
         )}

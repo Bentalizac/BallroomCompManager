@@ -86,7 +86,7 @@ export default function Results() {
                 </span>
             </div>
             <div className="space-y-6 mt-4 transition-all duration-700" key={isLive ? feedIndex : undefined}>
-                {liveEvents.filter(Boolean).map((event, idx) =>
+                {liveEvents.filter(Boolean).map((event) =>
                     event ? (
                         <div key={event.heat + '-' + event.name} className="border rounded-lg p-4 shadow animate-slidein">
                             <div className="flex justify-between items-center mb-2">

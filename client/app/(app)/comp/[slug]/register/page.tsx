@@ -92,8 +92,16 @@ export default function RegisterPage() {
             <EventRegistrationCard
               key={reg.id}
               entryType={event.entryType}
-              event={event}
-              participants={reg.participants || []}
+              event={{
+                ...event,
+                startDate: event.startDate ? new Date(event.startDate) : null,
+                endDate: event.endDate ? new Date(event.endDate) : null,
+              }}
+              participants={reg.participants?.map(p => ({
+                registrationId: reg.id,
+                userId: p.userId,
+                role: p.role,
+              })) || []}
               registration={{
                 id: reg.id,
                 eventId: reg.eventId,
@@ -207,7 +215,11 @@ export default function RegisterPage() {
             {/* Events List - Takes up more space on larger screens */}
             <div className="flex-1">
               <EventsList
-                events={events}
+                events={events.map(event => ({
+                  ...event,
+                  startDate: event.startDate ? new Date(event.startDate) : null,
+                  endDate: event.endDate ? new Date(event.endDate) : null,
+                }))}
                 userRegistrations={
                   userRegistrations?.map((reg) => ({
                     id: reg.id,

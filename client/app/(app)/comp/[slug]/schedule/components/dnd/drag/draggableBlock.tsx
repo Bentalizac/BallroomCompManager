@@ -1,7 +1,7 @@
 import { GripVertical } from 'lucide-react';
 import { DRAG_TYPES } from '../../../hooks/useDraggable';
 import type { Block } from '../../../types';
-import { State, STATE_TYPES, DraggableItem  } from './draggableItem';
+import { DraggableItem  } from './draggableItem';
 import { useScheduleState } from '../../../hooks';
 import { getContrastingTextColor } from '../../../utils';
 

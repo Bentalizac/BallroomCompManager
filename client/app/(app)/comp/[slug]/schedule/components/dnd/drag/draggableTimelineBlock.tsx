@@ -1,6 +1,6 @@
 import { DraggableItem } from '../../dnd/drag/draggableItem';
 import type { Block } from '../../../types';
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import { TIME_CONSTANTS } from '../../../constants';
 import { useScheduleState } from '../../../hooks';
 import { DRAG_TYPES } from '../../../hooks/useDraggable';
@@ -22,8 +22,6 @@ export interface DraggableTimelineBlockProps {
 export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockProps) => {
 
     const schedule = useScheduleState();
-    const [isResizing, setIsResizing] = useState(false);
-    const [isDragging, setIsDragging] = useState(false);
     const startYRef = useRef(0);
     const startDurationRef = useRef(0);
     const RESIZE_STEP_MINUTES = TIME_CONSTANTS.RESIZE_STEP; // configurable resize snap
@@ -31,7 +29,6 @@ export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockPro
     const handleResizeStart = (e: React.MouseEvent) => {
         e.preventDefault();
         e.stopPropagation();
-        setIsResizing(true);
         startYRef.current = e.clientY;
         startDurationRef.current = getDuration(block.startDate, block.endDate);
     
@@ -51,7 +48,6 @@ export const DraggableTimelineBlock = ({ block, day }: DraggableTimelineBlockPro
                 };
     
         const handleMouseUp = () => {
-          setIsResizing(false);
           document.removeEventListener('mousemove', handleMouseMove);
           document.removeEventListener('mouseup', handleMouseUp);
         };

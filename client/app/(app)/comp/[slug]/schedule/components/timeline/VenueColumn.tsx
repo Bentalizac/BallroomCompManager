@@ -1,10 +1,9 @@
-import { Event, Block, Venue} from '../../types';
+import { Venue} from '../../types';
 import { useTimelineItemPositioning, useScheduleState } from '../../hooks';
 import { calculateEventRenderPosition } from '../../utils';
 import { TimeGrid } from './TimeGrid';
 import { LAYOUT_CONSTANTS, TIME_CONSTANTS } from '../../constants';
 import { ScheduleDropZone } from '../dnd/drop/ScheduleDropZone';
-import { STATE_TYPES } from '../dnd/drag/draggableItem';
 import { DraggableTimelineBlock } from '../dnd/drag/draggableTimelineBlock';
 import { DraggableTimelineEvent } from '../dnd/drag/draggableTimelineEvent';
 

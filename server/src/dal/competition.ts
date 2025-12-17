@@ -1,5 +1,5 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from './database.types';
+import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "./database.types";
 
 type SupabaseClientType = SupabaseClient<Database>;
 
@@ -15,7 +15,11 @@ const COMPETITION_FIELDS = `
     id,
     name,
     city,
-    state
+    state,
+    street,
+    postal_code,
+    country,
+    google_maps_url
   ),
   events:event_info (
     id,
@@ -30,59 +34,72 @@ const COMPETITION_FIELDS = `
   )
 ` as const;
 
-const EVENT_FIELDS = 'id, name, comp_id, dance_style, event_level, ruleset_id, entry_type, start_at, end_at' as const;
+const EVENT_FIELDS =
+  "id, name, comp_id, dance_style, event_level, ruleset_id, entry_type, start_at, end_at" as const;
 
 /**
  * Get all competitions
  */
 export async function getAllCompetitions(supabase: SupabaseClientType) {
   return await supabase
-    .from('comp_info')
+    .from("comp_info")
     .select(COMPETITION_FIELDS)
-    .order('start_date', { ascending: true });
+    .order("start_date", { ascending: true });
 }
 
 /**
  * Get competition by ID
  */
-export async function getCompetitionById(supabase: SupabaseClientType, id: string) {
+export async function getCompetitionById(
+  supabase: SupabaseClientType,
+  id: string,
+) {
   return await supabase
-    .from('comp_info')
+    .from("comp_info")
     .select(COMPETITION_FIELDS)
-    .eq('id', id)
+    .eq("id", id)
     .single();
 }
 
 /**
  * Get competition by slug
  */
-export async function getCompetitionBySlug(supabase: SupabaseClientType, slug: string) {
+export async function getCompetitionBySlug(
+  supabase: SupabaseClientType,
+  slug: string,
+) {
   return await supabase
-    .from('comp_info')
+    .from("comp_info")
     .select(COMPETITION_FIELDS)
-    .eq('slug', slug)
+    .eq("slug", slug)
     .single();
 }
 
 /**
  * Get events for a competition
  */
-export async function getCompetitionEvents(supabase: SupabaseClientType, competitionId: string) {
+export async function getCompetitionEvents(
+  supabase: SupabaseClientType,
+  competitionId: string,
+) {
   return await supabase
-    .from('event_info')
+    .from("event_info")
     .select(EVENT_FIELDS)
-    .eq('comp_id', competitionId)
-    .order('start_at', { ascending: true, nullsFirst: false });
+    .eq("comp_id", competitionId)
+    .order("start_at", { ascending: true, nullsFirst: false });
 }
 
 /**
  * Get competition time zone
  */
-export async function getCompetitionTimeZone(supabase: SupabaseClientType, competitionId: string) {
+export async function getCompetitionTimeZone(
+  supabase: SupabaseClientType,
+  competitionId: string,
+) {
   return await supabase
-    .from('comp_info')
-    .select('time_zone')
-    .eq('id', competitionId)
+    .from("comp_info")
+    .select("time_zone")
+    .eq("id", competitionId)
     .single();
 }
 
@@ -98,12 +115,12 @@ export async function createCompetition(
     end_date: string;
     time_zone: string;
     venue_id: string | null;
-  }
+  },
 ) {
   return await supabase
-    .from('comp_info')
+    .from("comp_info")
     .insert(data)
-    .select('id, slug, name, start_date, end_date, time_zone, venue_id')
+    .select("id, slug, name, start_date, end_date, time_zone, venue_id")
     .single();
 }
 
@@ -119,12 +136,12 @@ export async function updateCompetition(
     end_date: string;
     time_zone: string;
     venue_id: string | null;
-  }>
+  }>,
 ) {
   return await supabase
-    .from('comp_info')
+    .from("comp_info")
     .update(data)
-    .eq('id', id)
+    .eq("id", id)
     .select()
     .single();
 }
@@ -132,11 +149,11 @@ export async function updateCompetition(
 /**
  * Delete a competition
  */
-export async function deleteCompetition(supabase: SupabaseClientType, id: string) {
-  return await supabase
-    .from('comp_info')
-    .delete()
-    .eq('id', id);
+export async function deleteCompetition(
+  supabase: SupabaseClientType,
+  id: string,
+) {
+  return await supabase.from("comp_info").delete().eq("id", id);
 }
 
 /**
@@ -145,13 +162,13 @@ export async function deleteCompetition(supabase: SupabaseClientType, id: string
 export async function isCompetitionAdmin(
   supabase: SupabaseClientType,
   competitionId: string,
-  userId: string
+  userId: string,
 ) {
   return await supabase
-    .from('competition_admins')
-    .select('id')
-    .eq('comp_id', competitionId)
-    .eq('user_id', userId)
+    .from("competition_admins")
+    .select("id")
+    .eq("comp_id", competitionId)
+    .eq("user_id", userId)
     .single();
 }
 
@@ -161,14 +178,12 @@ export async function isCompetitionAdmin(
 export async function createCompetitionAdmin(
   supabase: SupabaseClientType,
   competitionId: string,
-  userId: string
+  userId: string,
 ) {
-  return await supabase
-    .from('competition_admins')
-    .insert({
-      user_id: userId,
-      comp_id: competitionId,
-    });
+  return await supabase.from("competition_admins").insert({
+    user_id: userId,
+    comp_id: competitionId,
+  });
 }
 
 /**
@@ -178,16 +193,14 @@ export async function createCompetitionParticipant(
   supabase: SupabaseClientType,
   competitionId: string,
   userId: string,
-  role: 'spectator' | 'competitor' | 'organizer' | 'judge'
+  role: "spectator" | "competitor" | "organizer" | "judge",
 ) {
-  return await supabase
-    .from('comp_participant')
-    .insert({
-      user_id: userId,
-      comp_id: competitionId,
-      role,
-      participation_status: 'active',
-    });
+  return await supabase.from("comp_participant").insert({
+    user_id: userId,
+    comp_id: competitionId,
+    role,
+    participation_status: "active",
+  });
 }
 
 /**
@@ -196,10 +209,10 @@ export async function createCompetitionParticipant(
 export async function getUserCompetitionRegistration(
   supabase: SupabaseClientType,
   competitionId: string,
-  userId: string
+  userId: string,
 ) {
   return await supabase
-    .from('comp_participant')
+    .from("comp_participant")
     .select(
       `
       user_id,
@@ -214,10 +227,10 @@ export async function getUserCompetitionRegistration(
         role,
         created_at
       )
-      `
+      `,
     )
-    .eq('comp_id', competitionId)
-    .eq('user_id', userId)
+    .eq("comp_id", competitionId)
+    .eq("user_id", userId)
     .single();
 }
 
@@ -226,10 +239,10 @@ export async function getUserCompetitionRegistration(
  */
 export async function getCompetitionRegistrations(
   supabase: SupabaseClientType,
-  competitionId: string
+  competitionId: string,
 ) {
   return await supabase
-    .from('comp_participant')
+    .from("comp_participant")
     .select(
       `
       user_id,
@@ -244,10 +257,10 @@ export async function getCompetitionRegistrations(
         role,
         created_at
       )
-      `
+      `,
     )
-    .eq('comp_id', competitionId)
-    .order('role', { ascending: true });
+    .eq("comp_id", competitionId)
+    .order("role", { ascending: true });
 }
 
 /**
@@ -255,10 +268,10 @@ export async function getCompetitionRegistrations(
  */
 export async function getCompetitionEventRegistrations(
   supabase: SupabaseClientType,
-  competitionId: string
+  competitionId: string,
 ): Promise<any> {
   return await supabase
-    .from('event_registrations')
+    .from("event_registrations")
     .select(
       `
       id,
@@ -278,8 +291,8 @@ export async function getCompetitionEventRegistrations(
           email
         )
       )
-      `
+      `,
     )
-    .eq('event_info.comp_id', competitionId)
-    .order('event_info.start_date', { ascending: true });
+    .eq("event_info.comp_id", competitionId)
+    .order("event_info.start_date", { ascending: true });
 }

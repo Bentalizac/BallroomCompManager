@@ -4,6 +4,7 @@ import {
   useCompetitionBySlug,
   useCompetitionDisplay,
 } from "@/hooks/useCompetitions";
+import type { Competition } from "@ballroomcompmanager/shared";
 import Link from "next/link";
 
 interface CompetitionCardProps {
@@ -15,7 +16,8 @@ export function CompetitionCard({ competitionSlug }: CompetitionCardProps) {
   const { data: competition, isLoading, error } = useCompetitionBySlug(competitionSlug);
 
   // Get computed display data
-  const displayData = useCompetitionDisplay(competition || undefined);
+  // Note: competition from API has string dates, but useCompetitionDisplay handles the conversion
+  const displayData = useCompetitionDisplay(competition as unknown as Competition);
 
   if (isLoading) {
     return (
@@ -91,9 +93,9 @@ export function CompetitionCard({ competitionSlug }: CompetitionCardProps) {
         {competition?.venue && (
           <div className="text-right">
             <p className="text-sm font-medium text-gray-700">{competition.venue.name}</p>
-            {competition.venue.city && competition.venue.state && (
+            {competition.venue.address && competition.venue.address.city && competition.venue.address.state && (
               <p className="text-xs text-gray-500">
-                {competition.venue.city}, {competition.venue.state}
+                {competition.venue.address.city}, {competition.venue.address.state}
               </p>
             )}
           </div>

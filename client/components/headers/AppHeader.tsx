@@ -28,11 +28,9 @@ export function AppHeader() {
   // Get competition details and user role
   const { competitionId } = useCompetitionBySlug(competitionSlug || undefined);
   const {
-    role: userRole,
     isAdmin,
     isOrganizer,
     isJudge,
-    isLoading: roleLoading,
   } = useUserRole(competitionId);
 
   const getNavItems = (): MenuItem[] => {

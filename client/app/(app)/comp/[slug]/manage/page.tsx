@@ -68,7 +68,7 @@ export default function ManageDashboard() {
 
             {/* Schedule */}
             <section className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-bold mb-4">Today's Schedule</h2>
+                <h2 className="text-xl font-bold mb-4">Today&apos;s Schedule</h2>
                 <ul className="divide-y divide-gray-200">
                     {schedule.map((item, i) => (
                         <li key={i} className="py-2 flex justify-between">

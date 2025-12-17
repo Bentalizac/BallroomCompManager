@@ -1,5 +1,4 @@
 import { useEffect } from 'react';
-import { Event } from '../types';
 import { useScheduleState } from './useScheduleState';
 
 export const useKeyboardShortcuts = () => {

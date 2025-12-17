@@ -10,7 +10,7 @@ import { CreateEventForm } from "@/components/competitions/CreateEventForm";
 export default function CreateEventPage() {
   const { competition } = useComp();
   const router = useRouter();
-  
+
   if (!competition) {
     return (
       <div className="p-6 max-w-4xl mx-auto">
@@ -37,10 +37,10 @@ export default function CreateEventPage() {
       <CreateEventForm
         competitionId={competition.id}
         competitionName={competition.name}
-        competitionStartDate={competition.startDate}
-        competitionEndDate={competition.endDate}
-        competitionTimeZone={competition.venue?.timeZone || "America/Los_Angeles"}
-        onSuccess={(eventId) => {
+        competitionStartDate={competition.startDate.toISOString()}
+        competitionEndDate={competition.endDate.toISOString()}
+        competitionTimeZone={competition.timeZone || "America/Los_Angeles"}
+        onSuccess={() => {
           router.push(`/comp/${competition.slug}/events`);
         }}
         onCancel={() => {

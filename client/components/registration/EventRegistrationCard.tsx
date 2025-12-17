@@ -128,7 +128,7 @@ export function EventRegistrationCard(props: EventRegistrationCardProps) {
 
         {/* Participants List */}
         <div className="space-y-2">
-          {participants.map((participant, index) => (
+          {participants.map((participant) => (
             <div
               key={participant.userId}
               className="flex items-center justify-between text-xs bg-gray-50 rounded px-3 py-2"

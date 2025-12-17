@@ -1,9 +1,4 @@
 import { navMenu } from "@/components/custom/nav-menu";
-import { useRouter } from "next/dist/client/components/navigation";
-
-import { useAuth } from "@/providers/auth/authProvider";
-import React, { useEffect } from "react";
-import { title } from "process";
 
 
 

@@ -1,5 +1,4 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertTriangle, Clock, Users, X, Pencil } from 'lucide-react';
+import { X, Pencil } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
@@ -177,7 +176,7 @@ export function SidePanel() {
     }
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent, field: 'startTime' | 'duration' | 'endTime') => {
+  const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       (e.target as HTMLInputElement).blur(); // Trigger blur event
@@ -295,7 +294,7 @@ export function SidePanel() {
                       onChange={(e) => setEditedValues(prev => ({ ...prev, startTime: e.target.value }))}
                       onFocus={() => setIsEditing(prev => ({ ...prev, startTime: true }))}
                       onBlur={handleStartTimeBlur}
-                      onKeyPress={(e) => handleKeyPress(e, 'startTime')}
+                      onKeyPress={handleKeyPress}
                       className="w-24 h-7 text-xs text-right"
                       placeholder="10:30am"
                     />
@@ -312,7 +311,7 @@ export function SidePanel() {
                       onChange={(e) => setEditedValues(prev => ({ ...prev, duration: e.target.value }))}
                       onFocus={() => setIsEditing(prev => ({ ...prev, duration: true }))}
                       onBlur={handleDurationBlur}
-                      onKeyPress={(e) => handleKeyPress(e, 'duration')}
+                      onKeyPress={handleKeyPress}
                       className="w-24 h-7 text-xs text-right"
                       placeholder="1h 30min"
                     />
@@ -329,7 +328,7 @@ export function SidePanel() {
                       onChange={(e) => setEditedValues(prev => ({ ...prev, endTime: e.target.value }))}
                       onFocus={() => setIsEditing(prev => ({ ...prev, endTime: true }))}
                       onBlur={handleEndTimeBlur}
-                      onKeyPress={(e) => handleKeyPress(e, 'endTime')}
+                      onKeyPress={handleKeyPress}
                       className="w-24 h-7 text-xs text-right"
                       placeholder="12:00pm"
                     />

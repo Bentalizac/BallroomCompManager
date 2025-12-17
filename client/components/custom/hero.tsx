@@ -6,7 +6,7 @@ type HeroProps = {
     imageUrl?: string;
 }
 
-function Hero({ title, date, imageUrl }: HeroProps) {
+function Hero({ title, date }: HeroProps) {
     return (
         <div className="relative flex flex-col items-center gap-4 py-45 bg-[url('/pexels-prime-cinematics-1005175-2057274.jpg')] bg-cover bg-center">
             <div className="absolute inset-0 bg-accent opacity-25 pointer-events-none z-0" />

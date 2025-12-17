@@ -2,12 +2,11 @@ import { Block, Event } from "../types";
 import {
   BallroomLevel,
   DanceStyle,
-  EventCategory,
   OtherLevel,
-} from "@shared/data/enums/eventTypes";
-import { ScoringMethods } from "@shared/data/enums/scoringMethods";
+  ScoringMethods,
+  EntryType,
+} from "@ballroom/shared/dist";
 import { STATE_TYPES } from "../components/dnd/drag/draggableItem";
-import { EntryType } from "@ballroom/shared/dist";
 
 const color = "#4e155d"; // Default color for mock events
 const blockColor = "#9970a3ff";

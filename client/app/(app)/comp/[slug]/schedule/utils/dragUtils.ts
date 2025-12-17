@@ -22,8 +22,8 @@ export function calculateTimeSlotFromPosition(
 /**
  * Check if drag item is a scheduled event
  */
-export function isScheduledEvent(item: any): item is { startTime: number } {
-  return item && typeof item.startTime === 'number';
+export function isScheduledEvent(item: unknown): item is { startTime: number } {
+  return !!item && typeof (item as { startTime?: number }).startTime === 'number';
 }
 
 /**

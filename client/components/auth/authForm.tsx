@@ -43,7 +43,7 @@ export default function AuthForm() {
           // Redirect will be handled by useEffect when user state updates
         }
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred');
     } finally {
       setIsSubmitting(false);

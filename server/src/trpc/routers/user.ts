@@ -10,7 +10,7 @@ import {
   type ProfileUpdateData,
 } from "../../dal/userProfile";
 import * as UserDAL from "../../dal/user";
-export const userRouter: any = router({
+export const userRouter = router({
   // Get current user's registrations (all competitions)
   getMyRegistrations: authedProcedure.query(async ({ ctx }) => {
     if (!ctx.userId || !ctx.userToken) {

@@ -28,7 +28,7 @@ export function DropItem<TItem>({
 
   return (
     <div
-      ref={dropRef as any}
+      ref={dropRef as unknown as React.Ref<HTMLDivElement>}
       className={`${className} ${isOver && canDropHere ? 'ring-2 ring-blue-400' : ''}`}
       style={style}
     >

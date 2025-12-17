@@ -32,8 +32,8 @@ export function ProfileCompletion({ onComplete, missingFields = [], showCard = t
         onComplete();
       }
     },
-    onError: (error) => {
-      setError(error.message);
+    onError: (err) => {
+      setError(err.message);
     },
   });
 
@@ -72,7 +72,7 @@ export function ProfileCompletion({ onComplete, missingFields = [], showCard = t
         firstname: formData.firstname.trim(),
         lastname: formData.lastname.trim(),
       });
-    } catch (error) {
+    } catch {
       // Error handling is done in onError callback
     }
   };

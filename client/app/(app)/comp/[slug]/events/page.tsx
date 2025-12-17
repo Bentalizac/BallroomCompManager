@@ -135,7 +135,7 @@ export default function EventsPage() {
   // Filter events based on search term and status
   const filteredEvents = typedEvents.filter((event) => {
     const matchesSearch = event.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === "all" || event.eventStatus === statusFilter;
+    const matchesStatus = statusFilter === "all" || getEventStatus(event) === statusFilter;
     return matchesSearch && matchesStatus;
   });
 

@@ -25,7 +25,7 @@ export interface Competition {
 export interface Venue {
   id: string;
   name: string;
-  address: Address | null;
+  address: Address;
   floors?: DanceFloor[];
 }
 

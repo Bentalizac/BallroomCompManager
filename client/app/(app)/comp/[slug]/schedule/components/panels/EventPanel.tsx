@@ -1,16 +1,13 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
-import { mockEvents } from "../../data/mockData";
-import { DanceStyle } from "@shared/data/enums/eventTypes";
-import { Event, Block } from "../../types";
-import { STATE_TYPES } from "../dnd/drag/draggableItem";
+import { DanceStyle } from "@ballroom/shared/dist";
 import { DraggableEvent } from "../dnd/drag/draggableEvent";
 import { DraggableBlock } from "../dnd/drag/draggableBlock";
 import { useScheduleState } from "../../hooks";
+import type { Event as ScheduleEvent } from "../../types";
 
 interface EventListProps {
-  events?: Event[];
+  events?: ScheduleEvent[];
 }
 
 const EventList = ({ events }: EventListProps) => {
@@ -25,7 +22,7 @@ const EventList = ({ events }: EventListProps) => {
 
 interface EventsCategoryProps {
   title: string;
-  events?: Event[];
+  events?: ScheduleEvent[];
 }
 
 const EventsCategory = ({ title, events }: EventsCategoryProps) => {

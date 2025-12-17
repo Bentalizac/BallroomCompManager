@@ -14,7 +14,10 @@ type DropItem = {
   // We also carry startDate/endDate when dragging scheduled items via DraggableItem
   startDate?: Date | null;
   endDate?: Date | null;
-  [key: string]: any;
+  grabOffsetY?: number;
+  grabOffsetX?: number;
+  name?: string;
+  [key: string]: unknown;
 };
 
 export interface BlockDropZoneProps {
@@ -51,8 +54,7 @@ export function BlockDropZone({
 
       let relativeMinutes: number | undefined = undefined;
       if (clientOffset && rect) {
-        const effectiveClientY = clientOffset.y - (typeof (item as any).grabOffsetY === 'number' ? (item as any).grabOffsetY : 0);
-        const effectiveClientX = clientOffset.x - (typeof (item as any).grabOffsetX === 'number' ? (item as any).grabOffsetX : 0);
+        const effectiveClientY = clientOffset.y - (typeof item.grabOffsetY === 'number' ? item.grabOffsetY : 0);
         const yWithin = effectiveClientY - rect.top; // px from top within block based on preview top
         // If block has a known duration, map pixel position to minutes within block
         const blockDuration = getDurationMins(block.startDate ?? null, block.endDate ?? null);
@@ -84,8 +86,8 @@ export function BlockDropZone({
         // Dev log: only for dragging an event into a block
         try {
           const blockInfo = {
-            blockId: (block as any)?.id,
-            blockName: (block as any)?.name,
+            blockId: block.id,
+            blockName: block.name,
             blockStart: block.startDate ? new Date(block.startDate).toISOString() : null,
             blockEnd: block.endDate ? new Date(block.endDate).toISOString() : null,
           };
@@ -95,15 +97,13 @@ export function BlockDropZone({
             pointerYWithin: clientOffset && rect ? clientOffset.y - rect.top : undefined,
           };
           // Note: item may or may not carry a name
-          // eslint-disable-next-line no-console
           console.log('[BlockDropZone] Event dropped into block', {
             eventId: item.id,
-            eventName: (item as any)?.name,
+            eventName: item.name,
             ...blockInfo,
             ...dropMetrics,
           });
         } catch {
-          // eslint-disable-next-line no-console
           console.log('[BlockDropZone] Event dropped into block', {
             eventId: item.id,
             relativeMinutes,
@@ -121,7 +121,7 @@ export function BlockDropZone({
 
   return (
     <div
-      ref={combinedRef as any}
+      ref={combinedRef as React.RefCallback<HTMLDivElement>}
       className={`relative h-full ${isOver ? 'ring-2 ring-blue-300' : ''} ${className}`}
       style={style}
     >

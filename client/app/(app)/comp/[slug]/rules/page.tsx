@@ -57,7 +57,7 @@ export default function Rules() {
             <Banner name="Rules" />
             <main className="max-w-4xl mx-auto py-10 px-4">
                 <div className="space-y-8">
-                    {ruleCategories.map((cat, i) => (
+                    {ruleCategories.map((cat) => (
                         <section key={cat.name} className="bg-white rounded-lg shadow p-6">
                             <div className="flex items-center justify-between mb-4">
                                 <h2 className="text-xl font-bold">{cat.name}</h2>
