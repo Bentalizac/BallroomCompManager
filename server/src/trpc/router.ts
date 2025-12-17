@@ -13,7 +13,7 @@ import { userRouter } from "./routers/user";
 import { dataRouter } from "./routers/data";
 
 // Main app router
-export const appRouter = router({
+export const appRouter: any = router({
   competition: competitionRouter,
   event: eventRouter,
   user: userRouter,

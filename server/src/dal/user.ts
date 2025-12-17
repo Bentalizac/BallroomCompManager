@@ -1,5 +1,5 @@
-import { SupabaseClient } from '@supabase/supabase-js';
-import { Database } from './database.types';
+import { SupabaseClient } from "@supabase/supabase-js";
+import { Database } from "./database.types";
 
 type SupabaseClientType = SupabaseClient<Database>;
 
@@ -47,13 +47,13 @@ const COMP_PARTICIPANT_FIELDS = `
  */
 export async function getUserEventRegistrations(
   supabase: SupabaseClientType,
-  userId: string
-) {
+  userId: string,
+): Promise<any> {
   return await supabase
-    .from('event_registrations')
+    .from("event_registrations")
     .select(USER_REGISTRATION_FIELDS)
-    .eq('comp_participant.user_id', userId)
-    .order('event_info.start_date', { ascending: true });
+    .eq("comp_participant.user_id", userId)
+    .order("event_info.start_date", { ascending: true });
 }
 
 /**
@@ -62,13 +62,13 @@ export async function getUserEventRegistrations(
 export async function checkCompetitionRegistration(
   supabase: SupabaseClientType,
   userId: string,
-  competitionId: string
+  competitionId: string,
 ) {
   return await supabase
-    .from('comp_participant')
-    .select('id')
-    .eq('user_id', userId)
-    .eq('comp_id', competitionId);
+    .from("comp_participant")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("comp_id", competitionId);
 }
 
 /**
@@ -78,19 +78,16 @@ export async function createCompetitionParticipants(
   supabase: SupabaseClientType,
   userId: string,
   competitionId: string,
-  roles: Array<'spectator' | 'competitor' | 'organizer' | 'judge'>
+  roles: Array<"spectator" | "competitor" | "organizer" | "judge">,
 ) {
-  const inserts = roles.map(role => ({
+  const inserts = roles.map((role) => ({
     user_id: userId,
     comp_id: competitionId,
     role,
-    participation_status: 'active' as const,
+    participation_status: "active" as const,
   }));
 
-  return await supabase
-    .from('comp_participant')
-    .insert(inserts)
-    .select();
+  return await supabase.from("comp_participant").insert(inserts).select();
 }
 
 /**
@@ -103,12 +100,12 @@ export async function updateUserInfo(
     firstname?: string;
     lastname?: string;
     email?: string;
-  }
+  },
 ) {
   return await supabase
-    .from('user_info')
+    .from("user_info")
     .update(data)
-    .eq('id', userId)
+    .eq("id", userId)
     .select()
     .single();
 }
@@ -119,13 +116,13 @@ export async function updateUserInfo(
 export async function checkUserIsCompetitionAdmin(
   supabase: SupabaseClientType,
   competitionId: string,
-  userId: string
+  userId: string,
 ) {
   return await supabase
-    .from('competition_admins')
-    .select('id')
-    .eq('comp_id', competitionId)
-    .eq('user_id', userId)
+    .from("competition_admins")
+    .select("id")
+    .eq("comp_id", competitionId)
+    .eq("user_id", userId)
     .single();
 }
 
@@ -135,14 +132,14 @@ export async function checkUserIsCompetitionAdmin(
 export async function getUserParticipantRoles(
   supabase: SupabaseClientType,
   competitionId: string,
-  userId: string
+  userId: string,
 ) {
   return await supabase
-    .from('comp_participant')
-    .select('id, role, participation_status')
-    .eq('comp_id', competitionId)
-    .eq('user_id', userId)
-    .eq('participation_status', 'active');
+    .from("comp_participant")
+    .select("id, role, participation_status")
+    .eq("comp_id", competitionId)
+    .eq("user_id", userId)
+    .eq("participation_status", "active");
 }
 
 /**
@@ -151,14 +148,12 @@ export async function getUserParticipantRoles(
 export async function createOrganizerParticipant(
   supabase: SupabaseClientType,
   competitionId: string,
-  userId: string
+  userId: string,
 ) {
-  return await supabase
-    .from('comp_participant')
-    .insert({
-      user_id: userId,
-      comp_id: competitionId,
-      role: 'organizer',
-      participation_status: 'active',
-    });
+  return await supabase.from("comp_participant").insert({
+    user_id: userId,
+    comp_id: competitionId,
+    role: "organizer",
+    participation_status: "active",
+  });
 }
