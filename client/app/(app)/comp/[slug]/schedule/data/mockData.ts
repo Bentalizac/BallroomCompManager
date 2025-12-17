@@ -4,8 +4,8 @@ import {
   DanceStyle,
   EventCategory,
   OtherLevel,
-} from "@/../shared/data/enums/eventTypes";
-import { ScoringMethods } from "@/../shared/data/enums/scoringMethods";
+} from "@shared/data/enums/eventTypes";
+import { ScoringMethods } from "@shared/data/enums/scoringMethods";
 import { STATE_TYPES } from "../components/dnd/drag/draggableItem";
 import { EntryType } from "@ballroom/shared/dist";
 

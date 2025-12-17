@@ -2,7 +2,7 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { mockEvents } from "../../data/mockData";
-import { DanceStyle } from "@/../shared/data/enums/eventTypes";
+import { DanceStyle } from "@shared/data/enums/eventTypes";
 import { Event, Block } from "../../types";
 import { STATE_TYPES } from "../dnd/drag/draggableItem";
 import { DraggableEvent } from "../dnd/drag/draggableEvent";
