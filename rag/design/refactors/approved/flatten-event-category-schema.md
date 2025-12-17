@@ -5,7 +5,7 @@
 Simplify the database schema by storing `dance_style_id` and `event_level_id` directly on the `event_info` table, eliminating the `event_categories` and `category_ruleset` junction tables. This aligns the database structure with the domain model where `EventCategory` is a value object, not an entity.
 
 **Status:**  
-- Proposed
+- Approved
 
 **Owner:**  
 - Development Team

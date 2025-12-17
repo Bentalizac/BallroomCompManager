@@ -7,6 +7,7 @@ import { generateCompetitionSlug } from "@ballroomcompmanager/shared";
 import { mapCompetitionRowToDTO } from "../../mappers";
 import { getCompetitionSchema } from "../schemas";
 import * as CompetitionDAL from "../../dal/competition";
+import * as EventDAL from "../../dal/event";
 import { mapEventRowEnrichedToCompEvent } from "../../mappers/eventMapper";
 
 export const competitionRouter = router({
@@ -99,7 +100,7 @@ export const competitionRouter = router({
   getEvents: publicProcedure
     .input(z.object({ competitionId: z.string() }))
     .query(async ({ input }) => {
-      const { data: events, error } = await CompetitionDAL.getCompetitionEvents(
+      const { data: events, error } = await EventDAL.getCompetitionEventsEnriched(
         getSupabaseAnon(),
         input.competitionId,
       );

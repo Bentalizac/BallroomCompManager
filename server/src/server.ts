@@ -44,13 +44,20 @@ app.use((req, res, next) => {
 });
 
 // CORS configuration for tRPC
+// Support multiple origins from environment variable (comma-separated)
+const allowedOrigins = process.env.CORS_ORIGIN
+  ? process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim())
+  : ["http://localhost:3000"];
+
+console.log("🌐 Allowed CORS origins:", allowedOrigins);
+
 app.use(
   cors({
-    origin: "http://localhost:3000", // Next.js client URL
+    origin: allowedOrigins,
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'x-trpc-source'],
-    exposedHeaders: ['x-trpc-source'],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "x-trpc-source"],
+    exposedHeaders: ["x-trpc-source"],
   }),
 );
 
@@ -134,7 +141,7 @@ app.get("/export/event/:id/results.csv", async (req, res) => {
 
     // Query results with names
     const supabase = getSupabaseAdmin();
-    
+
     // First get all registrations for this event
     const { data: registrations, error: regError } = await supabase
       .from("event_registrations")

@@ -20,7 +20,9 @@ export type EventRow = Pick<
   | "end_at"
   | "event_status"
   | "comp_id"
-  | "category_ruleset_id"
+  | "dance_style"
+  | "event_level"
+  | "ruleset_id"
 >;
 
 // Extended event row for full CompEvent mapping
@@ -29,41 +31,36 @@ export type EventRowFull = Pick<
   | "id"
   | "name"
   | "comp_id"
-  | "category_ruleset_id"
+  | "dance_style"
+  | "event_level"
+  | "ruleset_id"
   | "entry_type"
   | "start_at"
   | "end_at"
 >;
 
-// Enriched event row with joined category, ruleset, and scoring data
+// Enriched event row with direct joins to dance_styles, event_levels, and rulesets
 export interface EventRowEnriched {
   id: string;
   name: string;
   comp_id: string;
-  category_ruleset_id: string;
   entry_type: string | null;
   start_at: string | null;
   end_at: string | null;
-  category_ruleset?: {
+  dance_style?: {
     id: string;
-    event_category?: {
-      id: string;
-      dance_style: {
-        id: string;
-        name: string;
-      };
-      event_level: {
-        id: string;
-        name: string;
-      };
-    };
-    ruleset?: {
+    name: string;
+  };
+  event_level?: {
+    id: string;
+    name: string;
+  };
+  ruleset?: {
+    id: string;
+    name: string;
+    scoring_method?: {
       id: string;
       name: string;
-      scoring_method?: {
-        id: string;
-        name: string;
-      };
     };
   };
 }
@@ -79,7 +76,7 @@ export function mapEventRowEnrichedToCompEvent(
   const entryType: any = row.entry_type || "solo"; // Default to 'solo'
 
   let category: EventCategory;
-  const style = row.category_ruleset?.event_category?.dance_style.name;
+  const style = row.dance_style?.name;
   switch (style) {
     case DanceStyle.Ballroom:
     case DanceStyle.Latin:
@@ -87,22 +84,19 @@ export function mapEventRowEnrichedToCompEvent(
     case DanceStyle.Rhythm:
       category = {
         style: style,
-        level: row.category_ruleset!.event_category!.event_level
-          .name as BallroomLevel,
+        level: row.event_level!.name as BallroomLevel,
       };
       break;
     case DanceStyle.WestCoast:
       category = {
         style: style,
-        level: row.category_ruleset!.event_category!.event_level
-          .name as WCSLevel,
+        level: row.event_level!.name as WCSLevel,
       };
       break;
     case DanceStyle.CountrySwing:
       category = {
         style: style,
-        level: row.category_ruleset!.event_category!.event_level
-          .name as CountrySwingLevel, // Using BallroomLevel as a placeholder
+        level: row.event_level!.name as CountrySwingLevel,
       };
       break;
     default:
@@ -116,8 +110,7 @@ export function mapEventRowEnrichedToCompEvent(
   // Map scoring method name to ScoringMethods enum
   // Currently only ScoringMethods.Ballroom = "ballroom" is defined
   let scoring: ScoringMethods = ScoringMethods.Ballroom; // Default to ballroom
-  const scoringName =
-    row.category_ruleset?.ruleset?.scoring_method?.name?.toLowerCase();
+  const scoringName = row.ruleset?.scoring_method?.name?.toLowerCase();
   if (scoringName) {
     // When more scoring methods are added to the enum, add cases here
     switch (scoringName) {

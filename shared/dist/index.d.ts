@@ -8,8 +8,8 @@ export { ScoringMethods } from "./data/enums/scoringMethods";
 export { CompRoles, EventRoles } from "./data/enums/eventRoles";
 export { RegistrationRoles, AllEventRegistrationRoles, } from "./data/enums/eventRoles";
 export type { RegistrationRole, AllEventRegistrationRole, } from "./data/enums/eventRoles";
-export { EntryType, RoundLevel, DanceStyle, BallroomLevel, WCSLevel, CountrySwingLevel, type EventCategory, type EventLevel, } from "./data/enums/eventTypes";
+export { EntryType, RoundLevel, DanceStyle, BallroomLevel, WCSLevel, CountrySwingLevel, OtherLevel, type EventCategory, type EventLevel, } from "./data/enums/eventTypes";
 export { createCompetitionSchema, getEventInfoSchema, createEventSchema, registerForCompSchema } from "./req_res_schemas/requests";
-export { CompRoleSchema, EventRoleSchema, RegistrationRoleSchema, AllEventRegistrationRoleSchema, ScoringMethodSchema, EntryTypeSchema, DanceStyleSchema, BallroomLevelSchema, } from "./validation/zodEnums";
+export { CompRoleSchema, EventRoleSchema, RegistrationRoleSchema, AllEventRegistrationRoleSchema, ScoringMethodSchema, EntryTypeSchema, DanceStyleSchema, BallroomLevelSchema, WCSLevelSchema, CountrySwingLevelSchema, OtherLevelSchema, EventCategorySchema, } from "./validation/zodEnums";
 export { generateCompetitionSlug, generateCompetitionSlugWithSuffix, isValidCompetitionSlug, extractNameFromSlug, extractYearFromSlug, } from "./utils/slugs";
 //# sourceMappingURL=index.d.ts.map

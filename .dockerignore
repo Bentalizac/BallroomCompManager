@@ -1,0 +1,15 @@
+node_modules
+.git
+.gitignore
+*.md
+.env
+.env.*
+!.env.sample
+client
+docs
+rag
+scripts
+.vscode
+dist
+*.log
+.next

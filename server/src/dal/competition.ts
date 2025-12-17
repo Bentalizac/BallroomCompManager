@@ -24,11 +24,13 @@ const COMPETITION_FIELDS = `
     end_at,
     event_status,
     comp_id,
-    category_ruleset_id
+    dance_style,
+    event_level,
+    ruleset_id
   )
 ` as const;
 
-const EVENT_FIELDS = 'id, name, comp_id, category_ruleset_id, entry_type, start_at, end_at' as const;
+const EVENT_FIELDS = 'id, name, comp_id, dance_style, event_level, ruleset_id, entry_type, start_at, end_at' as const;
 
 /**
  * Get all competitions

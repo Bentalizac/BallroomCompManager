@@ -243,6 +243,7 @@ export type Database = {
           event_status: string
           id: string
           name: string
+          ruleset_id: string | null
           start_at: string | null
           start_date: string | null
         }
@@ -256,6 +257,7 @@ export type Database = {
           event_status?: string
           id?: string
           name: string
+          ruleset_id?: string | null
           start_at?: string | null
           start_date?: string | null
         }
@@ -269,6 +271,7 @@ export type Database = {
           event_status?: string
           id?: string
           name?: string
+          ruleset_id?: string | null
           start_at?: string | null
           start_date?: string | null
         }
@@ -292,6 +295,13 @@ export type Database = {
             columns: ["event_level"]
             isOneToOne: false
             referencedRelation: "event_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "event_info_ruleset_id_fkey"
+            columns: ["ruleset_id"]
+            isOneToOne: false
+            referencedRelation: "rulesets"
             referencedColumns: ["id"]
           },
         ]

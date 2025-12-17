@@ -419,27 +419,38 @@ export const eventRouter = router({
       }
 
       try {
-        // Convert EventCategory to category_ruleset_id
-        const { data: categoryRuleset, error: crError } =
-          await EventDAL.getCategoryRulesetFromEventCategory(
-            supabase,
-            input.category,
-            input.rulesetId,
-          );
+        // Look up dance_style_id
+        const { data: danceStyleId, error: styleError } =
+          await EventDAL.lookupDanceStyleId(supabase, input.category.style);
 
-        if (crError || !categoryRuleset) {
+        if (styleError || !danceStyleId) {
           if (process.env.NODE_ENV === "development")
-            console.error("Error with category-ruleset:", crError);
+            console.error("Error looking up dance style:", styleError);
           throw new TRPCError({
-            code: "INTERNAL_SERVER_ERROR",
-            message: "Failed to get/create category-ruleset combination",
+            code: "BAD_REQUEST",
+            message: `Invalid dance style: ${input.category.style}`,
           });
         }
 
-        // Create the event
+        // Look up event_level_id
+        const { data: eventLevelId, error: levelError } =
+          await EventDAL.lookupEventLevelId(supabase, input.category.level);
+
+        if (levelError || !eventLevelId) {
+          if (process.env.NODE_ENV === "development")
+            console.error("Error looking up event level:", levelError);
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: `Invalid event level: ${input.category.level}`,
+          });
+        }
+
+        // Create the event with direct foreign keys
         const eventData: any = {
           name: input.name,
-          category_ruleset_id: categoryRuleset.id,
+          dance_style: danceStyleId,
+          event_level: eventLevelId,
+          ruleset_id: input.rulesetId,
           comp_id: input.competitionId,
         };
 

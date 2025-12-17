@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.extractYearFromSlug = exports.extractNameFromSlug = exports.isValidCompetitionSlug = exports.generateCompetitionSlugWithSuffix = exports.generateCompetitionSlug = exports.BallroomLevelSchema = exports.DanceStyleSchema = exports.EntryTypeSchema = exports.ScoringMethodSchema = exports.AllEventRegistrationRoleSchema = exports.RegistrationRoleSchema = exports.EventRoleSchema = exports.CompRoleSchema = exports.registerForCompSchema = exports.createEventSchema = exports.getEventInfoSchema = exports.createCompetitionSchema = exports.CountrySwingLevel = exports.WCSLevel = exports.BallroomLevel = exports.DanceStyle = exports.RoundLevel = exports.EntryType = exports.AllEventRegistrationRoles = exports.RegistrationRoles = exports.EventRoles = exports.CompRoles = exports.ScoringMethods = exports.CompetitionRole = void 0;
+exports.extractYearFromSlug = exports.extractNameFromSlug = exports.isValidCompetitionSlug = exports.generateCompetitionSlugWithSuffix = exports.generateCompetitionSlug = exports.EventCategorySchema = exports.OtherLevelSchema = exports.CountrySwingLevelSchema = exports.WCSLevelSchema = exports.BallroomLevelSchema = exports.DanceStyleSchema = exports.EntryTypeSchema = exports.ScoringMethodSchema = exports.AllEventRegistrationRoleSchema = exports.RegistrationRoleSchema = exports.EventRoleSchema = exports.CompRoleSchema = exports.registerForCompSchema = exports.createEventSchema = exports.getEventInfoSchema = exports.createCompetitionSchema = exports.OtherLevel = exports.CountrySwingLevel = exports.WCSLevel = exports.BallroomLevel = exports.DanceStyle = exports.RoundLevel = exports.EntryType = exports.AllEventRegistrationRoles = exports.RegistrationRoles = exports.EventRoles = exports.CompRoles = exports.ScoringMethods = exports.CompetitionRole = void 0;
 // Enums exports
 var roles_1 = require("./data/enums/roles");
 Object.defineProperty(exports, "CompetitionRole", { enumerable: true, get: function () { return roles_1.CompetitionRole; } });
@@ -19,6 +19,7 @@ Object.defineProperty(exports, "DanceStyle", { enumerable: true, get: function (
 Object.defineProperty(exports, "BallroomLevel", { enumerable: true, get: function () { return eventTypes_1.BallroomLevel; } });
 Object.defineProperty(exports, "WCSLevel", { enumerable: true, get: function () { return eventTypes_1.WCSLevel; } });
 Object.defineProperty(exports, "CountrySwingLevel", { enumerable: true, get: function () { return eventTypes_1.CountrySwingLevel; } });
+Object.defineProperty(exports, "OtherLevel", { enumerable: true, get: function () { return eventTypes_1.OtherLevel; } });
 // Request and Response Schema exports
 var requests_1 = require("./req_res_schemas/requests");
 Object.defineProperty(exports, "createCompetitionSchema", { enumerable: true, get: function () { return requests_1.createCompetitionSchema; } });
@@ -35,6 +36,10 @@ Object.defineProperty(exports, "ScoringMethodSchema", { enumerable: true, get: f
 Object.defineProperty(exports, "EntryTypeSchema", { enumerable: true, get: function () { return zodEnums_1.EntryTypeSchema; } });
 Object.defineProperty(exports, "DanceStyleSchema", { enumerable: true, get: function () { return zodEnums_1.DanceStyleSchema; } });
 Object.defineProperty(exports, "BallroomLevelSchema", { enumerable: true, get: function () { return zodEnums_1.BallroomLevelSchema; } });
+Object.defineProperty(exports, "WCSLevelSchema", { enumerable: true, get: function () { return zodEnums_1.WCSLevelSchema; } });
+Object.defineProperty(exports, "CountrySwingLevelSchema", { enumerable: true, get: function () { return zodEnums_1.CountrySwingLevelSchema; } });
+Object.defineProperty(exports, "OtherLevelSchema", { enumerable: true, get: function () { return zodEnums_1.OtherLevelSchema; } });
+Object.defineProperty(exports, "EventCategorySchema", { enumerable: true, get: function () { return zodEnums_1.EventCategorySchema; } });
 // Utility exports
 var slugs_1 = require("./utils/slugs");
 Object.defineProperty(exports, "generateCompetitionSlug", { enumerable: true, get: function () { return slugs_1.generateCompetitionSlug; } });
