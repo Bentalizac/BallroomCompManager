@@ -4,7 +4,7 @@ import {
   useCompetitionBySlug,
   useCompetitionDisplay,
 } from "@/hooks/useCompetitions";
-import type { Competition } from "@ballroomcompmanager/shared";
+import type { Competition } from "@ballroomcompmanager/shared/dist";
 import Link from "next/link";
 
 interface CompetitionCardProps {
@@ -13,11 +13,17 @@ interface CompetitionCardProps {
 
 export function CompetitionCard({ competitionSlug }: CompetitionCardProps) {
   // Fetch competition data
-  const { data: competition, isLoading, error } = useCompetitionBySlug(competitionSlug);
+  const {
+    data: competition,
+    isLoading,
+    error,
+  } = useCompetitionBySlug(competitionSlug);
 
   // Get computed display data
   // Note: competition from API has string dates, but useCompetitionDisplay handles the conversion
-  const displayData = useCompetitionDisplay(competition as unknown as Competition);
+  const displayData = useCompetitionDisplay(
+    competition as unknown as Competition,
+  );
 
   if (isLoading) {
     return (
@@ -49,7 +55,7 @@ export function CompetitionCard({ competitionSlug }: CompetitionCardProps) {
   }
 
   return (
-    <Link 
+    <Link
       href={`/comp/${competitionSlug}`}
       className="block border rounded-lg p-6 shadow-sm hover:shadow-lg transition-all duration-200 hover:border-blue-300 hover:bg-blue-50/30 cursor-pointer group"
     >
@@ -60,11 +66,14 @@ export function CompetitionCard({ competitionSlug }: CompetitionCardProps) {
 
       {/* Date & Time Info */}
       <div className="mb-4 text-gray-600">
-        <p className="font-medium text-gray-800">{displayData.formattedStartDate}</p>
+        <p className="font-medium text-gray-800">
+          {displayData.formattedStartDate}
+        </p>
         <p className="text-sm">{displayData.formattedStartTime}</p>
         {displayData.daysUntilStart > 0 && (
           <p className="text-sm text-blue-600 font-medium mt-1">
-            {displayData.daysUntilStart} day{displayData.daysUntilStart !== 1 ? "s" : ""} until start
+            {displayData.daysUntilStart} day
+            {displayData.daysUntilStart !== 1 ? "s" : ""} until start
           </p>
         )}
       </div>
@@ -88,16 +97,21 @@ export function CompetitionCard({ competitionSlug }: CompetitionCardProps) {
             </span>
           )}
         </div>
-        
+
         {/* Venue Info */}
         {competition?.venue && (
           <div className="text-right">
-            <p className="text-sm font-medium text-gray-700">{competition.venue.name}</p>
-            {competition.venue.address && competition.venue.address.city && competition.venue.address.state && (
-              <p className="text-xs text-gray-500">
-                {competition.venue.address.city}, {competition.venue.address.state}
-              </p>
-            )}
+            <p className="text-sm font-medium text-gray-700">
+              {competition.venue.name}
+            </p>
+            {competition.venue.address &&
+              competition.venue.address.city &&
+              competition.venue.address.state && (
+                <p className="text-xs text-gray-500">
+                  {competition.venue.address.city},{" "}
+                  {competition.venue.address.state}
+                </p>
+              )}
           </div>
         )}
       </div>
@@ -106,14 +120,15 @@ export function CompetitionCard({ competitionSlug }: CompetitionCardProps) {
       <div className="mb-4">
         <div className="flex items-center justify-between mb-2">
           <p className="text-sm font-medium text-gray-700">
-            {displayData.eventCount} event{displayData.eventCount !== 1 ? "s" : ""}
+            {displayData.eventCount} event
+            {displayData.eventCount !== 1 ? "s" : ""}
           </p>
           <span className="text-xs text-blue-600 group-hover:text-blue-700 font-medium">
             View Details →
           </span>
         </div>
-        
-        {displayData.events.length > 0 && (
+
+        {displayData.events && displayData.events.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {displayData.events.slice(0, 3).map((event) => (
               <span

@@ -17,14 +17,14 @@ export interface Competition {
     startDate: Date;
     endDate: Date;
     timeZone: string;
-    events: CompEvent[];
+    events?: CompEvent[];
     name: string;
     venue: Venue | null;
 }
 export interface Venue {
     id: string;
     name: string;
-    address: Address | null;
+    address: Address;
     floors?: DanceFloor[];
 }
 export interface DanceFloor {

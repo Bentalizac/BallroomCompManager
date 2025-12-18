@@ -1,14 +1,15 @@
 "use client";
 
 import React, { createContext, useContext } from "react";
+import { TRPCClientErrorLike } from "@trpc/client";
 import { useEventManager } from "@/hooks/useEvents";
-import type { CompEvent } from "@ballroomcompmanager/shared";
+import type { CompEvent, DanceStyle, BallroomLevel } from "@ballroomcompmanager/shared";
 
 type EventProviderContextType = {
   // Event data
   events: CompEvent[] | undefined;
   isLoadingEvents: boolean;
-  eventsError: Error | null;
+  eventsError: TRPCClientErrorLike<any> | null;
   refetchEvents: () => void;
   
   // Event management actions
@@ -19,6 +20,10 @@ type EventProviderContextType = {
     endDate: Date | null;
     categoryId: string;
     rulesetId: string;
+    category: {
+      style: DanceStyle.Ballroom | DanceStyle.Latin | DanceStyle.Smooth | DanceStyle.Rhythm;
+      level: BallroomLevel;
+    };
   }) => Promise<CompEvent>;
   isCreating: boolean;
   
@@ -59,11 +64,32 @@ export const EventProvider: React.FC<EventProviderProps> = ({
     refetchEvents: eventManager.refetchEvents,
     
     // Event management actions
-    createEvent: eventManager.createEvent,
+    createEvent: async (eventData) => {
+      const newEvent = await eventManager.createEvent(eventData);
+      return {
+        ...newEvent,
+        startDate: newEvent.startDate ? new Date(newEvent.startDate) : null,
+        endDate: newEvent.endDate ? new Date(newEvent.endDate) : null,
+      };
+    },
     isCreating: eventManager.isCreating,
     
-    updateEvent: eventManager.updateEvent,
-    scheduleEvent: eventManager.scheduleEvent,
+    updateEvent: async (updateData) => {
+      const updatedEvent = await eventManager.updateEvent(updateData);
+      return {
+        ...updatedEvent,
+        startDate: updatedEvent.startDate ? new Date(updatedEvent.startDate) : null,
+        endDate: updatedEvent.endDate ? new Date(updatedEvent.endDate) : null,
+      };
+    },
+    scheduleEvent: async (eventId, startDate, endDate) => {
+      const scheduledEvent = await eventManager.scheduleEvent(eventId, startDate, endDate);
+      return {
+        ...scheduledEvent,
+        startDate: scheduledEvent.startDate ? new Date(scheduledEvent.startDate) : null,
+        endDate: scheduledEvent.endDate ? new Date(scheduledEvent.endDate) : null,
+      };
+    },
     isEventUpdating: eventManager.isEventUpdating,
     
     deleteEvent: eventManager.deleteEvent,

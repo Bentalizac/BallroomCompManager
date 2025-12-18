@@ -78,11 +78,11 @@ export default function CompetitionHomePage() {
                     <div className="bg-accent-foreground/10 p-4 rounded-lg">
                       <h3 className="font-semibold mb-1">Venue</h3>
                       <p className="text-sm">{competition.venue.name}</p>
-                      {competition.venue.address.city &&
-                        competition.venue.address.state && (
+                      {competition.venue.address!.city &&
+                        competition.venue.address!.state && (
                           <p className="text-xs opacity-75">
-                            {competition.venue.address.city},{" "}
-                            {competition.venue.address.state}
+                            {competition.venue.address!.city},{" "}
+                            {competition.venue.address!.state}
                           </p>
                         )}
                     </div>

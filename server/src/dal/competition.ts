@@ -1,7 +1,28 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { Database } from "./database.types";
+import { PostgrestSingleResponse } from "@supabase/supabase-js";
 
 type SupabaseClientType = SupabaseClient<Database>;
+
+// Type for competition row with venue relation
+type CompetitionRow = {
+  id: string;
+  slug: string;
+  name: string;
+  start_date: string;
+  end_date: string;
+  time_zone: string;
+  venue: {
+    id: string;
+    name: string;
+    city: string | null;
+    state: string | null;
+    street: string | null;
+    postal_code: string | null;
+    country: string;
+    google_maps_url: string | null;
+  } | null;
+};
 
 // Centralized field selection - update here when schema changes
 const COMPETITION_FIELDS = `
@@ -20,27 +41,18 @@ const COMPETITION_FIELDS = `
     postal_code,
     country,
     google_maps_url
-  ),
-  events:event_info (
-    id,
-    name,
-    start_at,
-    end_at,
-    event_status,
-    comp_id,
-    dance_style,
-    event_level,
-    ruleset_id
   )
-` as const;
+`;
 
 const EVENT_FIELDS =
   "id, name, comp_id, dance_style, event_level, ruleset_id, entry_type, start_at, end_at" as const;
-
+// The use of Promise<any> is intentional here since the typing of the returns was a cluster *word I won't put here*
 /**
  * Get all competitions
  */
-export async function getAllCompetitions(supabase: SupabaseClientType) {
+export async function getAllCompetitions(
+  supabase: SupabaseClientType,
+): Promise<any> {
   return await supabase
     .from("comp_info")
     .select(COMPETITION_FIELDS)
@@ -53,7 +65,7 @@ export async function getAllCompetitions(supabase: SupabaseClientType) {
 export async function getCompetitionById(
   supabase: SupabaseClientType,
   id: string,
-) {
+): Promise<any> {
   return await supabase
     .from("comp_info")
     .select(COMPETITION_FIELDS)
@@ -67,7 +79,7 @@ export async function getCompetitionById(
 export async function getCompetitionBySlug(
   supabase: SupabaseClientType,
   slug: string,
-) {
+): Promise<any> {
   return await supabase
     .from("comp_info")
     .select(COMPETITION_FIELDS)

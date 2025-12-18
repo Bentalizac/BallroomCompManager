@@ -22,14 +22,13 @@ export const CompProvider: React.FC<CompProviderProps> = ({
   children,
 }) => {
   const { data: rawCompetition, isLoading, error } = useCompetitionBySlug(slug);
-
-  const competition = rawCompetition ? { 
-    ...rawCompetition, 
-    startDate: new Date(rawCompetition.startDate),
-  } : null;
-
+  const competition = {
+    ...rawCompetition,
+    startDate: rawCompetition?.startDate ? new Date(rawCompetition.startDate) : undefined,
+    endDate: rawCompetition?.endDate ? new Date(rawCompetition.endDate) : undefined,
+  } as Competition | undefined;
   const contextValue: CompProviderContextType = {
-    competition: competition,
+    competition: competition || null,
     isLoading,
     slug,
   };

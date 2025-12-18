@@ -1,9 +1,6 @@
 import { trpc } from "@/lib/trpc";
+import { Competition } from "@ballroom/shared/dist";
 import { useMemo } from "react";
-import type {
-  Competition,
-} from "@ballroomcompmanager/shared";
-
 // Hook to get all competitions
 export function useCompetitions() {
   return trpc.competition.getAll.useQuery(undefined, {
@@ -24,13 +21,14 @@ export function useCompetition(id: string | undefined) {
 
 // Hook to get a single competition by slug
 export function useCompetitionBySlug(slug: string | undefined) {
-  return trpc.competition.getBySlug.useQuery(
+  const queryResult = trpc.competition.getBySlug.useQuery(
     { slug: slug! },
     {
       enabled: !!slug, // Only run query if slug is provided
       staleTime: 1000 * 60 * 5, // 5 minutes
     },
   );
+  return queryResult;
 }
 
 // Hook to get user's registration for a competition
@@ -125,7 +123,7 @@ export function useCompetitionDisplay(competition: Competition | undefined) {
       daysUntilStart: Math.ceil(
         (startDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
       ),
-      eventCount: competition.events.length,
+      eventCount: competition.events?.length || 0,
     };
   }, [competition]);
 }

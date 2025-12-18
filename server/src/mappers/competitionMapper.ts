@@ -1,6 +1,10 @@
 import type { Competition } from "@ballroomcompmanager/shared";
 import type { VenueRow } from "./venueMapper";
-import type { EventRow } from "./eventMapper";
+import {
+  EventRowEnriched,
+  mapEventRowEnrichedToCompEvent,
+  type EventRow,
+} from "./eventMapper";
 import { mapVenueRowToDTO } from "./venueMapper";
 
 export type CompRow = {
@@ -11,7 +15,6 @@ export type CompRow = {
   end_date: string;
   time_zone: string;
   venue: VenueRow | null;
-  events: EventRow[] | null;
 };
 
 /**
@@ -31,8 +34,6 @@ export function mapCompetitionRowToDTO(row: CompRow): Competition {
     endDate: new Date(row.end_date),
     timeZone: row.time_zone,
     venue: row.venue ? mapVenueRowToDTO(row.venue) : null,
-    // Empty events array - clients should fetch events via dedicated endpoint
-    // This prevents type mismatches between EventRow and EventRowEnriched
-    events: [],
+
   };
 }

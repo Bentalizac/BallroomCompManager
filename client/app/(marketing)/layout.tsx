@@ -1,4 +1,5 @@
 import { MarketingHeader } from "@/components/headers/MarketingHeader";
+import { SearchParamsWrapper } from "@/components/headers/SearchParamsWrapper";
 
 export default function MarketingLayout({
   children,
@@ -7,7 +8,9 @@ export default function MarketingLayout({
 }) {
   return (
     <>
-      <MarketingHeader />
+      <SearchParamsWrapper>
+        <MarketingHeader />
+      </SearchParamsWrapper>
       {children}
     </>
   );

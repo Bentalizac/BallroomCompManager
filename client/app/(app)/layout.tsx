@@ -1,4 +1,5 @@
 import { AppHeader } from "@/components/headers/AppHeader";
+import { SearchParamsWrapper } from "@/components/headers/SearchParamsWrapper";
 
 export default function AppLayout({
   children,
@@ -7,7 +8,9 @@ export default function AppLayout({
 }) {
   return (
     <>
-      <AppHeader />
+      <SearchParamsWrapper>
+        <AppHeader />
+      </SearchParamsWrapper>
       {children}
     </>
   );
