@@ -1,5 +1,5 @@
 {
-  "name": "shared",
+  "name": "@ballroomcompmanager/shared",
   "version": "1.0.0",
   "description": "Shared types and utilities for BallroomCompManager",
   "main": "dist/index.js",

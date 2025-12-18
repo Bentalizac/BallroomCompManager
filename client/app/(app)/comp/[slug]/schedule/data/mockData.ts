@@ -5,7 +5,7 @@ import {
   OtherLevel,
   ScoringMethods,
   EntryType,
-} from "@ballroom/shared/dist";
+} from "@ballroomcompmanager/shared";
 import { STATE_TYPES } from "../components/dnd/drag/draggableItem";
 
 const color = "#4e155d"; // Default color for mock events

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext } from "react";
 import { useCompetitionBySlug } from "@/hooks/useCompetitions";
-import { Competition } from "@ballroom/shared/dist";
+import { Competition } from "@ballroomcompmanager/shared";
 
 type CompProviderContextType = {
   competition: Competition | null;

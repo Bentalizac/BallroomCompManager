@@ -1,6 +1,6 @@
 import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { DanceStyle } from "@ballroom/shared/dist";
+import { DanceStyle } from "@ballroomcompmanager/shared";
 import { DraggableEvent } from "../dnd/drag/draggableEvent";
 import { DraggableBlock } from "../dnd/drag/draggableBlock";
 import { useScheduleState } from "../../hooks";

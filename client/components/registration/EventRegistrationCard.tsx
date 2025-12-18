@@ -1,11 +1,11 @@
 "use client";
 
-import { CompEvent } from "@ballroom/shared/data/types/event";
 import {
+  CompEvent,
   EventRegistrationParticipant,
   EventRegistrationApi,
-} from "@ballroom/shared/dist";
-import { EntryType } from "@ballroom/shared/dist/data/enums/eventTypes";
+  EntryType,
+} from "@ballroomcompmanager/shared";
 import { Button } from "../ui/button";
 import { Card, CardContent, CardHeader } from "../ui/card";
 import {

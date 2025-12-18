@@ -5,7 +5,7 @@ import { EventCard } from "./EventCard";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Filter, Calendar } from "lucide-react";
-import { CompEvent } from "@ballroom/shared/dist";
+import { CompEvent } from "@ballroomcompmanager/shared";
 
 type EventStatus = "scheduled" | "current" | "completed" | "cancelled";
 

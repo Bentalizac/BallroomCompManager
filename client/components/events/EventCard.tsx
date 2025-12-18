@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar, Clock, Users, CheckCircle, AlertCircle } from "lucide-react";
-import { CompEvent } from "@ballroom/shared/dist";
+import { CompEvent } from "@ballroomcompmanager/shared";
 
 interface EventCardProps {
   event: CompEvent;

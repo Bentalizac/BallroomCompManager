@@ -1,5 +1,5 @@
 import { trpc } from "@/lib/trpc";
-import { Competition } from "@ballroom/shared/dist";
+import { Competition } from "@ballroomcompmanager/shared";
 import { useMemo } from "react";
 // Hook to get all competitions
 export function useCompetitions() {

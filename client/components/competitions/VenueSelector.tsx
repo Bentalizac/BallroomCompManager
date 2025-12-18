@@ -1,5 +1,5 @@
 "use client";
-import { Venue } from "@ballroom/shared/dist";
+import { Venue } from "@ballroomcompmanager/shared";
 
 interface VenueSelectorProps {
   selectedVenueId: string;
